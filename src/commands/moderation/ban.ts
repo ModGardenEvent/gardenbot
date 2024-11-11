@@ -2,18 +2,18 @@ import ms from 'ms'
 
 import { ApplicationCommandOptionTypes } from '@discordeno/types'
 import { createEmbeds, CreateGuildBan, DiscordInteractionContextType, Guild, Interaction, Member, User } from '@discordeno/bot'
-import { createGlobalCommand } from '../../../util/commands.js'
-import { closestStartOfDay } from '../../../util/time.js'
-import { bot, logger } from '../../../bot.js'
-import { recordBan } from '../../../util/banDatabase.js'
-import { configs } from '../../../config.js'
+import { createCommand } from '../../util/commands.js'
+import { closestStartOfDay } from '../../util/time.js'
+import { bot, logger } from '../../bot.js'
+import { recordBan } from '../../util/banDatabase.js'
+import { configs } from '../../config.js'
 
 const permaAliases = [ "perma", "permaban", "permanent" ]
 
-createGlobalCommand({
+createCommand({
     command: {
         name: 'ban',
-        description: 'Bans a target user across all Greenhouse Team Discord servers.',
+        description: 'Bans a target user from the Mod Garden Discord.',
         defaultMemberPermissions: ["BAN_MEMBERS"],
         contexts: [ DiscordInteractionContextType.Guild ],
         options: [
@@ -112,7 +112,7 @@ createGlobalCommand({
 async function banMember(interaction: Interaction, user: User, guildBan: CreateGuildBan, duration: number, durString: string, reason: string, failedDm: boolean) {
     recordBan(user.id, duration, reason)
     try {
-        await interaction.bot.helpers.banMember(configs.moddingGuildId, user.id, guildBan, reason)
+        await interaction.bot.helpers.banMember(configs.guildId, user.id, guildBan, reason)
     } catch (ex) {
         logger.error(`Could not ban user ${user.username} from Greenhouse Modding.`)
     }
@@ -139,7 +139,7 @@ async function hasPermissions(interaction: Interaction, sender: Member, userId: 
         return false
     }
     
-    const guildId = configs.moddingGuildId
+    const guildId = configs.guildId
 
     let target
     try {

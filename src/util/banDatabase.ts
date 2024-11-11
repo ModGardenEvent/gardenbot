@@ -2,6 +2,7 @@ import Database from 'better-sqlite3'
 import { bot, logger } from '../bot.js'
 import { closestStartOfDay } from './time.js'
 import { configs } from '../config.js'
+import { botName } from '../constants.js'
 
 const db = new Database('./db/bans.db')
 
@@ -33,8 +34,8 @@ export async function unbanExpiredBans() {
         logger.info(`Attempting to unban user: ${unbannable.UserId}...`)
 
         try {
-            await bot.helpers.unbanMember(configs.moddingGuildId, unbannable.UserId, "GreenBot ban duration has expired.")
-            logger.info(`Unbanned user ${unbannable.UserId} as their GreenBot ban has expired.`)
+            await bot.helpers.unbanMember(configs.guildId, unbannable.UserId, `${botName} ban duration has expired.`)
+            logger.info(`Unbanned user ${unbannable.UserId} as their ${botName} ban has expired.`)
             ++totalUnbanned
         } catch (error) {
             logger.warn(`Failed to unban user ${unbannable.UserId} from Greenhouse Modding.`)

@@ -15,9 +15,9 @@
     },
     "main": "dist/index.js",
     "type": "module",
-    "name": "greenbot",
+    "name": "gardenbot",
     "version": "1.0.0",
-    "description": "Multi-purpose Discord bot for the Greenhouse Discords.",
+    "description": "Multi-purpose Discord bot for the Mod Garden Discord and Events.",
     "private": true,
     "packageManager": "npm@10.8.2",
     "scripts": {
@@ -27,12 +27,12 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/GreenhouseTeam/greenbot.git"
+        "url": "git+https://github.com/ModGardenEvent/gardenbot.git"
     },
     "author": "Greenhouse Team, MerchantPug",
     "license": "MPL-2.0",
     "bugs": {
-        "url": "https://github.com/GreenhouseTeam/greenbot/issues"
+        "url": "https://github.com/ModGardenEvent/gardenbot/issues"
     },
-    "homepage": "https://github.com/GreenhouseTeam/greenbot#readme"
+    "homepage": "https://github.com/ModGardenEvent/gardenbot#readme"
 }

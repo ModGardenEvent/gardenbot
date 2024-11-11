@@ -1,6 +1,6 @@
 import { commandOptionsParser, InteractionTypes } from '@discordeno/bot'
 import { bot } from '../bot.js'
-import { allCommands } from '../util/commands.js';
+import { commands } from '../util/commands.js';
 
 bot.events.interactionCreate = async ( interaction ) => {
     if (!interaction.token || !interaction.data || interaction.type !== InteractionTypes.ApplicationCommand) {
@@ -8,7 +8,7 @@ bot.events.interactionCreate = async ( interaction ) => {
         return
     }
 
-    const command = allCommands.get(interaction.data.name)
+    const command = commands.get(interaction.data.name)
 
     if (!command) {
         bot.logger.error(`Command ${interaction.data.name} not found.`)
