@@ -21,7 +21,7 @@
     "private": true,
     "packageManager": "npm@10.8.2",
     "scripts": {
-        "build": "tsc",
+        "build": "npx tsc",
         "start": "node dist/index.js",
         "github": "node dist/github.js",
         "commands": "node dist/registerCommands.js"
