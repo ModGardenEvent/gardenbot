@@ -24,6 +24,11 @@ export const bot = createBot({
             type: true,
             user: true
         },
+        interactionResource: {
+            type: true,
+            activityInstance: true,
+            message: true
+        },
         member: {
             id: true
         },
