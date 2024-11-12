@@ -1,36 +1,50 @@
-import Database from 'better-sqlite3'
 import { createEmbeds } from '@discordeno/bot'
 import { closestStartOfDay } from './time.js'
 import { bot, logger } from '../bot.js'
 import { configs } from '../config.js'
 import { botName } from '../constants.js'
+import Database from 'better-sqlite3'
 
-const db = new Database('./db/bans.db')
+const db = new Database('./database.db')
 
-export async function createBanDb() {
-    db.exec('CREATE TABLE IF NOT EXISTS list (user_id TEXT PRIMARY KEY, username TEXT NOT NULL, unban_time TEXT NOT NULL, reason TEXT NOT NULL)') 
+async function createBanTable() {
+    db.exec('CREATE TABLE IF NOT EXISTS bans (user_id TEXT PRIMARY KEY, username TEXT NOT NULL, unban_time TEXT NOT NULL, reason TEXT NOT NULL)') 
+}
+
+async function hasTable() {
+    if (db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'bans'`).all.length == 0)
+        return false
+    return true
 }
 
 export async function recordBan(userId: bigint, username: string, duration: number, reason: string) {
+    await createBanTable()
     const unbanTime = duration == -1 ? -1 : closestStartOfDay(Date.now() + duration)
-    createBanDb()
-    db.prepare(`INSERT INTO list(user_id, username, unban_time, reason) VALUES ('${userId}', '${username}', '${unbanTime}', '${reason}') ON CONFLICT(user_id) DO UPDATE SET username = '${username}', unban_time = '${unbanTime}', reason = '${reason}'`)
-    logger.info(`Successfully recorded ban of user ${username} (${userId}) into db/bans.db.`)
+    db.exec(`INSERT INTO bans(user_id, username, unban_time, reason) VALUES ('${userId}', '${username}', '${unbanTime}', '${reason}') ON CONFLICT(user_id) DO UPDATE SET username = '${username}', unban_time = '${unbanTime}', reason = '${reason}'`)
+    logger.info(`Successfully recorded ban of user ${username} (${userId}) into database.db.`)
 }
 
 export async function unrecordBan(userId: bigint) {
-    const result = db.prepare('DELETE FROM list WHERE CAST(user_id AS BIGINT) == ?').run(userId);
+    if (!hasTable()) {
+        logger.info(`Banned user ${userId} was not in database.db.`)
+        return
+    }
+    const result = db.prepare('DELETE FROM bans WHERE CAST(user_id AS BIGINT) == ?').run(userId);
     if (result.changes == 0)
-        logger.info(`User ${userId} was not in db/bans.db.`)
+        logger.info(`Banned user ${userId} was not in database.db.`)
     else
-        logger.info(`Successfully unrecorded ban of user ${userId} from db/bans.db.`)
+        logger.info(`Successfully unrecorded ban of user ${userId} from database.db.`)
 }
 
 export async function unbanExpiredBans() {
+    if (!hasTable()) {
+        logger.info(`No bans to expire.`)
+        return
+    }
     logger.info(`Attempting to unban users...`)
     const currentTime = closestStartOfDay(Date.now())
 
-    const usersToUnbanStatement = db.prepare(`SELECT user_id, username FROM list WHERE CAST(unban_time AS BIGINT) <= ? AND CAST(unban_time AS BIGINT) != -1`)
+    const usersToUnbanStatement = db.prepare(`SELECT user_id, username FROM bans WHERE CAST(unban_time AS BIGINT) <= ? AND CAST(unban_time AS BIGINT) != -1`)
     const toUnban = usersToUnbanStatement.all(currentTime)
 
     let unbanned = new Set<string>()
@@ -50,7 +64,7 @@ export async function unbanExpiredBans() {
             logger.warn(`Failed to unban user ${unbannable.user_id} from Mod Garden.`)
         }
     }
-    db.prepare(`DELETE FROM list WHERE CAST(unban_time AS BIGINT) <= ? AND CAST(unban_time AS BIGINT) != -1`).run(currentTime)
+    db.prepare(`DELETE FROM bans WHERE CAST(unban_time AS BIGINT) <= ? AND CAST(unban_time AS BIGINT) != -1`).run(currentTime)
     if (unbanned.size > 0) {
         logger.info(`Successfuly unbanned ${unbanned.size} user(s).`)
 
@@ -73,7 +87,7 @@ export async function unbanExpiredBans() {
 }
 
 function isUnbannable(obj: any): obj is Unbannable {
-    return typeof obj.UserId === 'string'
+    return typeof obj.user_id === 'string'
 }
 
 interface Unbannable {

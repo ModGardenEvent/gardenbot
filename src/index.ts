@@ -2,9 +2,10 @@ import 'dotenv/config'
 
 import { bot, logger } from './bot.js'
 import { botName } from './constants.js'
-import { createBanDb, unbanExpiredBans } from './util/banDatabase.js'
+import { unbanExpiredBans } from './util/banDatabase.js'
 import importDirectory from './util/loader.js'
 import { runEachBeginningOfDay } from './util/time.js'
+import { removeExpiredMessages } from './util/messageDatabase.js'
 
 logger.info(`Starting ${botName}...`)
 
@@ -18,5 +19,5 @@ logger.info(`Successfully loaded ${events} ${botName} events!`)
 
 await bot.start()
 
-await createBanDb()
 await runEachBeginningOfDay(() => unbanExpiredBans())
+await runEachBeginningOfDay(() => removeExpiredMessages())

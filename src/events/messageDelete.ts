@@ -1,24 +1,37 @@
 import { createEmbeds, iconBigintToHash } from "@discordeno/bot"
 import { bot } from "../bot.js"
 import { configs } from "../config.js"
-import { messageCache } from "../util/messageCache.js"
+import { getMessage, deleteMessage } from "../util/messageDatabase.js"
 
 bot.events.messageDelete = async ( payload, message ) => {
-    if (!configs.moderationLogsChannelId || !message || message.author.bot || payload.guildId != configs.guildId)
+    if (!configs.moderationLogsChannelId)
         return
-    messageCache.delete(message.id)
 
+    if (payload.guildId != configs.guildId)
+        return
+
+    const msg = await getMessage(payload.id)
+    if (!msg)
+        return
+    await deleteMessage(payload.id)
+    const author = await bot.helpers.getMember(payload.guildId, msg.user_id)
+
+    if (!author || !author.user)
+        return
+
+    const channel = await bot.helpers.getChannel(payload.channelId)
     const description = `
-        **Channel:** <#${message.channelId}> (${(await bot.helpers.getChannel(message.channelId)).name!}
-        **Author:** <@${message.author.id}> (${message.author.username})
-        **Author Id:** ${message.author.id}
+        **Channel:** <#${payload.channelId}> (${channel.name})
+        **Author:** <@${author.user.id}> (${author.user.username})
+        **Author ID:** ${author.id}
     `
+    const avatarHash = iconBigintToHash(author.user.avatar!);
 
-    bot.helpers.sendMessage(configs.moderationLogsChannelId, { embeds: createEmbeds()
+    await bot.helpers.sendMessage(configs.moderationLogsChannelId, { embeds: createEmbeds()
         .setColor('#873a3a')
-        .setAuthor('Message Deleted!', { icon_url: `https://cdn.discordapp.com/avatars/${iconBigintToHash(message.author.avatar!)}` } )
+        .setAuthor('Message Deleted!', { icon_url: `https://cdn.discordapp.com/avatars/${author.id}/${avatarHash}.webp` } )
         .setDescription(description)
-        .addField('Contents', message.content)
+        .addField('Contents', msg.content)
         .validate(),
         allowedMentions: {
             parse: []

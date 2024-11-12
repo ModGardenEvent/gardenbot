@@ -29,5 +29,5 @@ yarn-error.log*
 .env.test.local
 .env.production.loca
 
-/db
+database.db
 tsconfig.tsbuildinfo

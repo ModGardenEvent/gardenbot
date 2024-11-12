@@ -1,5 +1,3 @@
-import ms from 'ms'
-
 import { ApplicationCommandOptionTypes } from '@discordeno/types'
 import { createEmbeds,  DiscordInteractionContextType, Interaction, Member, User } from '@discordeno/bot'
 import { createCommand } from '../../util/commands.js'

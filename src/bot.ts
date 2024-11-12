@@ -1,8 +1,9 @@
-import { createBot } from '@discordeno/bot'
+import { createBot, Intents } from '@discordeno/bot'
 import { configs } from './config.js'
 
 export const bot = createBot({
     token: configs.token,
+    intents: Intents.Guilds | Intents.GuildMessages | Intents.MessageContent,
     desiredProperties: {
         channel: {
             id: true
@@ -30,16 +31,22 @@ export const bot = createBot({
             message: true
         },
         member: {
-            id: true
+            id: true,
+            user: true
         },
         message: {
             activity: true,
+            author: true,
             channelId: true,
             content: true,
-            editedTimestamp: true
+            editedTimestamp: true,
+            guildId: true,
+            id: true
         },
         user: {
+            avatar: true,
             id: true,
+            toggles: true,
             username: true
         }
     }

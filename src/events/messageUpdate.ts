@@ -1,30 +1,34 @@
 import { createEmbeds, iconBigintToHash } from '@discordeno/bot'
 import { bot } from '../bot.js'
 import { configs } from '../config.js'
-import { messageCache } from '../util/messageCache.js'
+import { cacheMessage, getMessage } from '../util/messageDatabase.js'
 
 bot.events.messageUpdate = async ( message ) => {
-    if (!configs.moderationLogsChannelId || message.author.bot)
+    if (!configs.moderationLogsChannelId || message.author.bot || message.guildId != configs.guildId)
         return
 
-    const oldMessage = messageCache.get(message.id)
+    const oldMessage = await getMessage(message.id)
+    if (!oldMessage)
+        return
 
+    const channel = await bot.helpers.getChannel(message.channelId)
     const description = `
-        **Channel:** <#${message.channelId}> (${(await bot.helpers.getChannel(message.channelId)).name!}
+        **Channel:** <#${message.channelId}> (${channel.name})
         **Author:** <@${message.author.id}> (${message.author.username})
-        **Author Id:** ${message.author.id}
+        **Author ID:** ${message.author.id}
     `
+    const avatarHash = iconBigintToHash(message.author.avatar!);
 
-    bot.helpers.sendMessage(configs.moderationLogsChannelId, { embeds: createEmbeds()
+    await bot.helpers.sendMessage(configs.moderationLogsChannelId, { embeds: createEmbeds()
         .setColor('#46883b')
-        .setAuthor('Message Edited!', { icon_url: `https://cdn.discordapp.com/avatars/${iconBigintToHash(message.author.avatar!)}` } )
+        .setAuthor('Message Edited!', { icon_url: `https://cdn.discordapp.com/avatars/${message.author.id}/${avatarHash}.webp` } )
         .setDescription(description)
-        .addField('Old Message', oldMessage ? oldMessage.content : "Unknown")
+        .addField('Old Message', oldMessage.content)
         .addField('New Message', message.content)
         .validate(),
         allowedMentions: {
             parse: []
         }
     })
-    messageCache.set(message.id, message)
+    await cacheMessage(message.id, message)
 }

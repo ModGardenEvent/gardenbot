@@ -89,7 +89,7 @@ createCommand({
         
         const durString = isPermanent ? 'permanently' : `for ${ms(msDuration, { long: true })}`
 
-        if (!dmChannel) {
+        if (!dmChannel || !user.member) {
             await banMember(interaction, user.user, guildBan, msDuration, durString, reason, true)
             return
         }

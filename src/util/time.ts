@@ -1,4 +1,4 @@
-const twentyFourHours = 86400000
+export const twentyFourHours = 86400000
 
 export function closestStartOfDay(input: number) : number {
     return Math.floor(input - input % twentyFourHours)
