@@ -1,10 +1,10 @@
 import 'dotenv/config'
 
-import { configs } from './config.js'
 import { bot, logger } from './bot.js'
+import { configs } from './config.js'
+import { botName } from './constants.js'
 import { commands } from './util/commands.js'
 import importDirectory from './util/loader.js'
-import { botName } from './constants.js'
 
 logger.info(`Upserting ${botName} commands!`)
 await importDirectory('./dist/commands')

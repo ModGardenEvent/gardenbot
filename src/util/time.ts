@@ -1,9 +1,14 @@
-import { logger } from "../bot.js";
-
 const twentyFourHours = 86400000
 
 export function closestStartOfDay(input: number) : number {
     return Math.floor(input - input % twentyFourHours)
+}
+
+export async function runInIntervals(func: () => Promise<void>, ms: number) {
+    setTimeout(async function () {
+        func();
+        setInterval(func, twentyFourHours);
+    }, ms)
 }
 
 export async function runEachBeginningOfDay(func: () => Promise<void>) {

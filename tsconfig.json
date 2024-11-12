@@ -2,6 +2,8 @@
     "compilerOptions": {
         "target": "es2022",
         "module": "es2022",
+        "rootDir": "./src",
+        "outDir": "./dist",
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "isolatedModules": true,
@@ -11,5 +13,8 @@
         "strict": true,
         "incremental": true,
         "sourceMap": true
-    }
+    },
+    "include": [
+        "./src"
+    ]
 }

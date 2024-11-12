@@ -57,15 +57,15 @@ createCommand({
         if (!hasPermissions(interaction, interactionMember as Member, user.user.id))
                return
 
-        var msDuration = -1
+        let msDuration = -1
         const isPermanent = permaAliases.some(alias => duration.toLocaleLowerCase() === alias)
         if (!isPermanent) {
             try {
                 msDuration = ms(duration)
-                if (msDuration < 86400000) {
-                    interaction.respond(`Too little of a duration '${ms(msDuration, {long: true})}': Bans must be at least 1 day long.`)
-                    return
-                }
+                // if (msDuration < 86400000) {
+                //     interaction.respond(`Too little of a duration '${ms(msDuration, {long: true})}': Bans must be at least 1 day long.`)
+                //     return
+                // }
             } catch (ignored) {
                 interaction.respond(`Invalid duration: '${duration}'.`)
                 return
@@ -73,7 +73,7 @@ createCommand({
         }
 
 
-        var deleteUntil = 0
+        let deleteUntil = 0
         if (delete_until)
             deleteUntil = ms(delete_until) / 1000
         
@@ -97,31 +97,53 @@ createCommand({
         const unbanTimeSeconds = Math.floor((closestStartOfDay(Date.now()) + closestStartOfDay(msDuration)) / 1000)
         const description = isPermanent ? `Reason Specified by Moderators: ${reason}` : `You will be unbanned on <t:${unbanTimeSeconds}:f>\nReason Specified by Moderators: ${reason}`
 
-        await interaction.bot.helpers.sendMessage(dmChannel.id, { embeds: createEmbeds()
-            .setColor('#2ecc71')
-            .setAuthor('Greenhouse Team Discords', { icon_url: "https://cdn.discordapp.com/avatars/876135519526977587/fe59baac695940ed7ac0e03b10376e57" } )
-            .setTitle(`You have been banned from the Greenhouse Team Discords ${durString}.`)
-            .setDescription(description)
-            .addField('Ban Appeal Forum', 'You may request an appeal through [this link.](https://www.youtube.com/watch?v=dQw4w9WgXcQ)')
-            .validate()
-        })
-        await banMember(interaction, user.user, guildBan, msDuration, durString, reason, false)
+        try {
+            await interaction.bot.helpers.sendMessage(dmChannel.id, { embeds: createEmbeds()
+                .setColor('#2ecc71')
+                .setAuthor('Mod Garden', { icon_url: "https://cdn.discordapp.com/avatars/1305609404837527612/1539b56c609c6082b6f2179e4e985035.webp" } )
+                .setTitle(`You have been banned from the Mod Garden Discord ${durString}.`)
+                .setDescription(description)
+                .addField('Ban Appeal Forum', 'You may request an appeal through [this link.](https://docs.google.com/forms/d/e/1FAIpQLSfWz-XskMEuF-26nuiS2UICu1YHYnAjZXEdrZaNjp_EGRRKyQ/viewform?usp=sf_link)')
+                .validate()
+            })
+            await banMember(interaction, user.user, guildBan, msDuration, durString, reason, false)
+        } catch (ex) {
+            logger.error(`Failed to send DM to user ${user.user.username}. ${ex}`)
+            await banMember(interaction, user.user, guildBan, msDuration, durString, reason, true)
+        }
     }
 })
 
 async function banMember(interaction: Interaction, user: User, guildBan: CreateGuildBan, duration: number, durString: string, reason: string, failedDm: boolean) {
-    recordBan(user.id, duration, reason)
+    recordBan(user.id, user.username, duration, reason)
     try {
         await interaction.bot.helpers.banMember(configs.guildId, user.id, guildBan, reason)
     } catch (ex) {
-        logger.error(`Could not ban user ${user.username} from Greenhouse Modding.`)
+        logger.error(`Could not ban user ${user.username} from Mod Garden.`)
     }
 
     logger.info(`User ${user.username} has been banned by ${interaction.user.username}.`)
-    var message = `Successfully banned user ${user.username} ${durString}.
+    let message = `Successfully banned user ${user.username} ${durString}.
     \nFor reason: ${reason}`
     if (failedDm) {
         message = message + `\nFailed to DM user about this ban.`
+    }
+
+    if (configs.moderationLogsChannelId) {
+        bot.helpers.sendMessage(configs.moderationLogsChannelId, { embeds: createEmbeds()
+            .setColor('#46883b')
+            .setAuthor('Banned User!', { icon_url: `https://cdn.discordapp.com/avatars/1305609404837527612/1539b56c609c6082b6f2179e4e985035.webp` } )
+            .setDescription(`
+                **Username:** ${user.username}
+                **User ID:** ${user.id}
+            `)
+            .addField("Reason", reason)
+            .addField("Duration", durString)
+            .validate(),
+            allowedMentions: {
+                parse: []
+            }
+        })
     }
 
     await interaction.respond(

@@ -1,10 +1,10 @@
 import 'dotenv/config'
 
-import importDirectory from './util/loader.js'
 import { bot, logger } from './bot.js'
-import { createBanDb, unbanExpiredBans } from './util/banDatabase.js'
-import { runEachBeginningOfDay } from './util/time.js'
 import { botName } from './constants.js'
+import { createBanDb, unbanExpiredBans } from './util/banDatabase.js'
+import importDirectory from './util/loader.js'
+import { runEachBeginningOfDay } from './util/time.js'
 
 logger.info(`Starting ${botName}...`)
 
