@@ -5,6 +5,11 @@ COPY . .
 WORKDIR /program
 RUN rm -rf /.git
 
+RUN apt-get -y update
+RUN apt-get -y install git
+
+RUN git clone https://github.com/ModGardenEvent/gardenbot.git
+
 RUN npm install
 RUN npm run build
-CMD npm run start
+CMD git pull && npm run start
