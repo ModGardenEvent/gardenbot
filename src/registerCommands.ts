@@ -1,5 +1,3 @@
-import 'dotenv/config'
-
 import { bot, logger } from './bot.js'
 import { configs } from './config.js'
 import { botName } from './constants.js'

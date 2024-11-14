@@ -1,5 +1,3 @@
-import 'dotenv/config'
-
 import { bot, logger } from './bot.js'
 import { botName } from './constants.js'
 import { unbanExpiredBans } from './util/banDatabase.js'
