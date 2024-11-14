@@ -5,4 +5,4 @@ services:
     restart: unless-stopped
     volumes:
       - ./database.db:/database.db
-      - ./.env:/.env
+      - .env:/.env
