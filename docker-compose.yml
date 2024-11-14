@@ -1,0 +1,9 @@
+services:
+  gardenbot:
+    container_name: gardenbot
+    build: .
+    restart: unless-stopped
+    volumes:
+      - ./database.db:/database.db
+      - ./.env:/.env
+      - ./node_modules:/node_modules
