@@ -4,5 +4,6 @@ services:
     build: .
     restart: unless-stopped
     volumes:
-      - ./database.db:/program/database.db
-      - ./.env:/program/.env
+      - ./database.db:/program/database
+    env_file:
+      - .env
