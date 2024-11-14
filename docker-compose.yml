@@ -6,4 +6,3 @@ services:
     volumes:
       - ./database.db:/database.db
       - ./.env:/.env
-      - ./node_modules:/node_modules
