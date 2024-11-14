@@ -7,7 +7,7 @@ RUN rm -rf /.git
 
 RUN apk add git
 
-RUN git clone https://github.com/ModGardenEvent/gardenbot.git
+RUN git clone https://github.com/ModGardenEvent/gardenbot.git .
 
 RUN npm install
 RUN npm run build
