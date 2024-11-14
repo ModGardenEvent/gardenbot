@@ -5,8 +5,7 @@ COPY . .
 WORKDIR /program
 RUN rm -rf /.git
 
-RUN apt-get -y update
-RUN apt-get -y install git
+RUN apk add git
 
 RUN git clone https://github.com/ModGardenEvent/gardenbot.git
 
