@@ -10,5 +10,4 @@ RUN apk add git
 RUN git clone https://github.com/ModGardenEvent/gardenbot.git .
 
 RUN npm install
-RUN npm run build
-CMD git pull && npm run start
+CMD git pull && npm run build && npm run start
