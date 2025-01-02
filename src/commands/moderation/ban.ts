@@ -1,7 +1,7 @@
 import ms from 'ms'
 
 import { ApplicationCommandOptionTypes } from '@discordeno/types'
-import { createEmbeds, CreateGuildBan, DiscordInteractionContextType, Guild, Interaction, Member, User } from '@discordeno/bot'
+import { createEmbeds, CreateGuildBan, DiscordInteractionContextType, Member, User } from '@discordeno/bot'
 import { createCommand } from '../../util/commands.js'
 import { closestStartOfDay } from '../../util/time.js'
 import { bot, logger } from '../../bot.js'
@@ -43,7 +43,7 @@ createCommand({
             }
         ]
     },
-    execute: async function (interaction: Interaction, args: Record<string, unknown>) {
+    execute: async function (interaction: typeof bot.transformers.$inferredTypes.interaction, args: Record<string, unknown>) {
         await interaction.defer(true)
         
         const interactionMember = interaction.member
@@ -62,10 +62,6 @@ createCommand({
         if (!isPermanent) {
             try {
                 msDuration = ms(duration)
-                // if (msDuration < 86400000) {
-                //     interaction.respond(`Too little of a duration '${ms(msDuration, {long: true})}': Bans must be at least 1 day long.`)
-                //     return
-                // }
             } catch (ignored) {
                 interaction.respond(`Invalid duration: '${duration}'.`)
                 return
@@ -114,7 +110,7 @@ createCommand({
     }
 })
 
-async function banMember(interaction: Interaction, user: User, guildBan: CreateGuildBan, duration: number, durString: string, reason: string, failedDm: boolean) {
+async function banMember(interaction: typeof bot.transformers.$inferredTypes.interaction, user: typeof bot.transformers.$inferredTypes.user, guildBan: CreateGuildBan, duration: number, durString: string, reason: string, failedDm: boolean) {
     recordBan(user.id, user.username, duration, reason)
     try {
         await interaction.bot.helpers.banMember(configs.guildId, user.id, guildBan, reason)
@@ -152,7 +148,7 @@ async function banMember(interaction: Interaction, user: User, guildBan: CreateG
     )
 }
 
-async function hasPermissions(interaction: Interaction, sender: Member, userId: bigint) : Promise<boolean> {
+async function hasPermissions(interaction: typeof bot.transformers.$inferredTypes.interaction, sender: Member, userId: bigint) : Promise<boolean> {
     if (userId == interaction.bot.id) {
         await interaction.respond(
             `I cannot ban myself.`,
@@ -212,7 +208,7 @@ async function hasPermissions(interaction: Interaction, sender: Member, userId: 
     return true
 }
 
-function getMaxRolePosition(target: Member, guild: Guild) : number {
+function getMaxRolePosition(target: typeof bot.transformers.$inferredTypes.member, guild: typeof bot.transformers.$inferredTypes.guild) : number {
     if (!target.roles)
         return 0
     return Math.max(...target.roles.map(roleId => {

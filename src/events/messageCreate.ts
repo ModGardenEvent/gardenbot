@@ -5,5 +5,5 @@ import { cacheMessage } from '../util/messageDatabase.js'
 bot.events.messageCreate = async ( message ) => {
     if (!configs.moderationLogsChannelId || message.author.bot || message.guildId != configs.guildId)
         return
-    await cacheMessage(message.id, message)
+    await cacheMessage(message.id, message.author.id, message.content)
 }

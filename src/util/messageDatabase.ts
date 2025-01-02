@@ -15,10 +15,10 @@ async function hasTable() {
     return true
 }
 
-export async function cacheMessage(key: bigint, value: Message) {
+export async function cacheMessage(key: bigint, authorId: bigint, content: string) {
     await createMessageCacheTable()
     const removalTimestamp = closestStartOfDay(Date.now()) + (twentyFourHours * 10)
-    db.exec(`INSERT INTO message_cache (message_id, user_id, content, removal_timestamp) VALUES ('${key}', '${value.author.id}', '${value.content}', '${removalTimestamp}') ON CONFLICT(message_id) DO UPDATE SET content = '${value.content}', removal_timestamp = '${removalTimestamp}'`)
+    db.exec(`INSERT INTO message_cache (message_id, user_id, content, removal_timestamp) VALUES ('${key}', '${authorId}', '${content}', '${removalTimestamp}') ON CONFLICT(message_id) DO UPDATE SET content = '${content}', removal_timestamp = '${removalTimestamp}'`)
 }
 
 export async function getMessage(key: bigint) {

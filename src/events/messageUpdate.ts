@@ -30,5 +30,5 @@ bot.events.messageUpdate = async ( message ) => {
             parse: []
         }
     })
-    await cacheMessage(message.id, message)
+    await cacheMessage(message.id, message.author.id, message.content)
 }
