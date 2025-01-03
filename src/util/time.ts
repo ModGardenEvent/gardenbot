@@ -20,7 +20,7 @@ export async function runEachHour(func: () => Promise<void>) {
     const now = new Date();
     const time = new Date();
 
-    time.setHours(now.getHours() + Math.round(now.getMinutes() / 60))
+    time.setHours(now.getHours() + 1)
     time.setMinutes(0, 0, 0)
 
     const etaMs = time.getTime() - now.getTime();
