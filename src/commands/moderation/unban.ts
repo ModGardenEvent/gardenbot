@@ -26,7 +26,7 @@ createCommand({
             }
         ]
     },
-    execute: async function (interaction: Interaction, args: Record<string, unknown>) {
+    execute: async function (interaction: typeof bot.transformers.$inferredTypes.interaction, args: Record<string, unknown>) {
         await interaction.defer(true)
         
         const interactionMember = interaction.member
@@ -41,7 +41,7 @@ createCommand({
     }
 })
 
-async function unbanMember(interaction: Interaction, user: User, reason: string) {
+async function unbanMember(interaction: typeof bot.transformers.$inferredTypes.interaction, user: User, reason: string) {
     unrecordBan(user.id)
     try {
         await interaction.bot.helpers.unbanMember(configs.guildId, user.id, reason)

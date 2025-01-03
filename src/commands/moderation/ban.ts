@@ -3,7 +3,7 @@ import ms from 'ms'
 import { ApplicationCommandOptionTypes } from '@discordeno/types'
 import { createEmbeds, CreateGuildBan, DiscordInteractionContextType, Member, User } from '@discordeno/bot'
 import { createCommand } from '../../util/commands.js'
-import { closestStartOfDay } from '../../util/time.js'
+import { closestHour } from '../../util/time.js'
 import { bot, logger } from '../../bot.js'
 import { recordBan } from '../../util/banDatabase.js'
 import { configs } from '../../config.js'
@@ -90,7 +90,7 @@ createCommand({
             return
         }
 
-        const unbanTimeSeconds = Math.floor((closestStartOfDay(Date.now()) + closestStartOfDay(msDuration)) / 1000)
+        const unbanTimeSeconds = Math.floor((closestHour(Date.now()) + closestHour(msDuration)) / 1000)
         const description = isPermanent ? `Reason Specified by Moderators: ${reason}` : `You will be unbanned on <t:${unbanTimeSeconds}:f>\nReason Specified by Moderators: ${reason}`
 
         try {

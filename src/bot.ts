@@ -30,6 +30,7 @@ export const desiredProperties = createDesiredPropertiesObject({
         message: true
     },
     member: {
+        guildId: true,
         id: true,
         roles: true,
         user: true
@@ -58,7 +59,7 @@ interface BotDesiredProperties extends Required<typeof desiredProperties> {}
 
 export const bot = createBot<BotDesiredProperties>({
     token: configs.token,
-    intents: Intents.Guilds | Intents.GuildMessages | Intents.MessageContent,
+    intents: Intents.Guilds | Intents.GuildMembers | Intents.GuildMessages | Intents.MessageContent,
     desiredProperties: desiredProperties
 })
 export const user = (await bot.helpers.getUser(bot.id))

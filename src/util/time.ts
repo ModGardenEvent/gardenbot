@@ -1,4 +1,9 @@
+export const oneHour = 3600000
 export const twentyFourHours = 86400000
+
+export function closestHour(input: number) : number {
+    return Math.floor(input - input % oneHour)
+}
 
 export function closestStartOfDay(input: number) : number {
     return Math.floor(input - input % twentyFourHours)
@@ -9,6 +14,21 @@ export async function runInIntervals(func: () => Promise<void>, ms: number) {
         func();
         setInterval(func, twentyFourHours);
     }, ms)
+}
+
+export async function runEachHour(func: () => Promise<void>) {
+    const now = new Date();
+    const time = new Date();
+
+    time.setHours(now.getHours() + Math.round(now.getMinutes() / 60))
+    time.setMinutes(0, 0, 0)
+
+    const etaMs = time.getTime() - now.getTime();
+
+    setTimeout(async function () {
+        func();
+        setInterval(func, oneHour);
+    }, etaMs)
 }
 
 export async function runEachBeginningOfDay(func: () => Promise<void>) {

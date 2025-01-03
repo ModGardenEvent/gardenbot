@@ -11,9 +11,8 @@ bot.events.messageUpdate = async ( message ) => {
     if (!oldMessage)
         return
 
-    const channel = await bot.helpers.getChannel(message.channelId)
     const description = `
-        **Channel:** <#${message.channelId}> (${channel.name})
+        **Channel:** <#${message.channelId}>)
         **Author:** <@${message.author.id}> (${message.author.username})
         **Author ID:** ${message.author.id}
     `

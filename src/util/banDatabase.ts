@@ -8,13 +8,19 @@ import Database from 'better-sqlite3'
 const db = new Database('./database.db')
 
 async function createBanTable() {
-    db.exec('CREATE TABLE IF NOT EXISTS bans (user_id TEXT PRIMARY KEY, username TEXT NOT NULL, unban_time TEXT NOT NULL, reason TEXT NOT NULL)') 
+    db.exec('CREATE TABLE IF NOT EXISTS bans (user_id TEXT NOT NULL UNIQUE PRIMARY KEY, username TEXT NOT NULL, unban_time TEXT NOT NULL, reason TEXT NOT NULL)') 
 }
 
 async function hasTable() {
     if (db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'bans'`).all.length == 0)
         return false
     return true
+}
+
+export function isBanned(userId: bigint) : boolean {
+    const checkForBan = db.prepare(`SELECT 1 FROM bans WHERE user_id = ?`)
+    const result = checkForBan.all(userId)
+    return result.length > 0;
 }
 
 export async function recordBan(userId: bigint, username: string, duration: number, reason: string) {
