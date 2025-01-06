@@ -19,7 +19,6 @@ bot.events.messageDelete = async ( payload, message ) => {
     if (!author || !author.user)
         return
 
-    const channel = await bot.helpers.getChannel(payload.channelId)
     const description = `
         **Channel:** <#${payload.channelId}>
         **Author:** <@${author.user.id}> (${author.user.username})
