@@ -8,7 +8,7 @@ bot.events.guildMemberRemove = async ( user, guildId ) => {
         return
 
     const description = `
-        Goodbye <@${user.id}>.
+        Goodbye <@${user.id}> (${user.username})
         **ID:** ${user.id}
     `
     const avatarHash = iconBigintToHash(user.avatar!);

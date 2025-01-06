@@ -7,7 +7,7 @@ bot.events.guildMemberAdd = async ( member, user ) => {
         return
 
     const description = `
-        Welcome <@${user.id}>. 
+        Welcome <@${user.id}> (${user.username})
         **ID:** ${user.id}
     `
     const avatarHash = iconBigintToHash(user.avatar!);
