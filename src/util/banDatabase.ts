@@ -18,6 +18,8 @@ async function hasTable() {
 }
 
 export function isBanned(userId: bigint) : boolean {
+    if (!hasTable())
+        return false
     const checkForBan = db.prepare(`SELECT 1 FROM bans WHERE user_id = ?`)
     const result = checkForBan.all(userId)
     return result.length > 0;
