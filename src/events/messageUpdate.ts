@@ -12,7 +12,7 @@ bot.events.messageUpdate = async ( message ) => {
         return
 
     const description = `
-        **Channel:** <#${message.channelId}>)
+        **Channel:** <#${message.channelId}>
         **Author:** <@${message.author.id}> (${message.author.username})
         **Author ID:** ${message.author.id}
     `
