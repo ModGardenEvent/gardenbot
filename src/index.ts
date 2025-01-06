@@ -1,9 +1,9 @@
 import { bot, logger } from './bot.js'
 import { botName } from './constants.js'
-import { unbanExpiredBans } from './util/banDatabase.js'
+import { createBanTable, unbanExpiredBans } from './util/banDatabase.js'
 import importDirectory from './util/loader.js'
 import { runEachBeginningOfDay, runEachHour } from './util/time.js'
-import { removeExpiredMessages } from './util/messageDatabase.js'
+import { createMessageCacheTable, removeExpiredMessages } from './util/messageDatabase.js'
 
 logger.info(`Starting ${botName}...`)
 
@@ -16,6 +16,9 @@ const events = await importDirectory('./dist/events')
 logger.info(`Successfully loaded ${events} ${botName} events!`)
 
 await bot.start()
+
+await createBanTable()
+await createMessageCacheTable()
 
 await runEachHour(() => unbanExpiredBans())
 await runEachBeginningOfDay(() => removeExpiredMessages())

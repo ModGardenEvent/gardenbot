@@ -1,18 +1,11 @@
-import { Message } from "@discordeno/bot"
 import { logger } from '../bot.js'
 import { closestStartOfDay, twentyFourHours } from "./time.js"
 import Database from 'better-sqlite3'
 
 const db = new Database('./database.db')
 
-async function createMessageCacheTable() {
+export async function createMessageCacheTable() {
     db.exec('CREATE TABLE IF NOT EXISTS message_cache (message_id TEXT PRIMARY KEY, user_id TEXT, content TEXT, removal_timestamp TEXT)') 
-}
-
-async function hasTable() {
-    if (db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'message_cache'`).all.length == 0)
-        return false
-    return true
 }
 
 export async function cacheMessage(key: bigint, authorId: bigint, content: string) {
@@ -22,8 +15,6 @@ export async function cacheMessage(key: bigint, authorId: bigint, content: strin
 }
 
 export async function getMessage(key: bigint) {
-    if (!hasTable())
-        return null
     const result = db.prepare('SELECT user_id, content FROM message_cache WHERE CAST(message_id AS BIGINT) == ?').get(key)
     if (!result)
         return null
@@ -31,8 +22,6 @@ export async function getMessage(key: bigint) {
 }
 
 export async function deleteMessage(key: bigint) {
-    if (!hasTable())
-        return
     const result = db.prepare('DELETE FROM message_cache WHERE CAST(message_id AS BIGINT) == ?').run(key)
     if (result.changes == 0)
         logger.info(`Message ${key} was not in database.db.`)
@@ -46,8 +35,6 @@ export interface User {
 }
 
 export async function removeExpiredMessages() {
-    if (!hasTable())
-        return
     logger.info(`Attempting to remove expired messages...`)
     const currentTime = closestStartOfDay(Date.now())
 
