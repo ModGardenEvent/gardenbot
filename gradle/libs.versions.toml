@@ -1,0 +1,10 @@
+[versions]
+jda = "5.2.3"
+
+idea_ext = "1.1.9"
+
+[libraries]
+jda = { group = "net.dv8tion", name = "JDA", version.ref = "jda" }
+
+[plugins]
+idea_ext = { id = "org.jetbrains.gradle.plugin.idea-ext", version.ref = "idea_ext" }
