@@ -1,6 +1,5 @@
 package net.modgarden.gardenbot.interaction.command;
 
-import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.modgarden.gardenbot.interaction.InteractionHandler;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;

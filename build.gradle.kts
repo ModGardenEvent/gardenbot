@@ -23,7 +23,11 @@ repositories {
 }
 
 dependencies {
+	implementation(libs.dotenv)
+	implementation(libs.gson)
+	implementation(libs.logback)
     implementation(libs.jda)
+	implementation(libs.sqlite)
 }
 
 tasks {
@@ -71,9 +75,9 @@ idea {
                 mainClass = "net.modgarden.gardenbot.GardenBot"
                 moduleName = project.idea.module.name + ".main"
                 includeProvidedDependencies = true
-                envs = mapOf(
-                    "env" to "development"
-                )
+				envs = mapOf(
+					"env" to "development"
+				)
             }
         }
     }

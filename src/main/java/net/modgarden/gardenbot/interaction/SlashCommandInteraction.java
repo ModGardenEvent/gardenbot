@@ -1,7 +1,7 @@
 package net.modgarden.gardenbot.interaction;
 
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
 
-public record SlashCommandInteraction(SlashCommandInteractionEvent event) implements Interaction {
+public record SlashCommandInteraction(GenericCommandInteractionEvent event) implements Interaction {
 
 }

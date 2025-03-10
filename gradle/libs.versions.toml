@@ -1,10 +1,18 @@
 [versions]
+dotenv = "2.3.0"
+gson = "2.12.1"
+logback = "1.5.12"
 jda = "5.2.3"
+sqlite = "3.47.1.0"
 
 idea_ext = "1.1.9"
 
 [libraries]
+dotenv = { group = "io.github.cdimascio", name = "dotenv-java", version.ref = "dotenv" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+logback = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
 jda = { group = "net.dv8tion", name = "JDA", version.ref = "jda" }
+sqlite = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlite" }
 
 [plugins]
 idea_ext = { id = "org.jetbrains.gradle.plugin.idea-ext", version.ref = "idea_ext" }

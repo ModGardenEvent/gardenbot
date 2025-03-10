@@ -1,5 +1,6 @@
 package net.modgarden.gardenbot.interaction;
 
+import net.modgarden.gardenbot.interaction.response.Response;
 import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface

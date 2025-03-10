@@ -1,8 +1,9 @@
 package net.modgarden.gardenbot.interaction.command;
 
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
-import net.modgarden.gardenbot.interaction.Response;
+import net.modgarden.gardenbot.interaction.response.EmbedResponse;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
+import net.modgarden.gardenbot.interaction.response.Response;
 
 import java.util.HashMap;
 
