@@ -4,6 +4,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.modgarden.gardenbot.util.MessageCacheUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +27,7 @@ public class GardenBot {
 	public static JDA jda;
 
 	public static void main(String[] args) {
-		jda =  JDABuilder.create(EnumSet.noneOf(GatewayIntent.class))
+		jda = JDABuilder.create(GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT)
 				.setToken(DOTENV.get("TOKEN"))
 				.addEventListeners(new GardenBotEvents())
 				.build();
@@ -42,6 +43,7 @@ public class GardenBot {
 		}
 
 		GardenBotCommands.registerAll();
+		MessageCacheUtil.removeExpiredMessagesStartOfDay();
     }
 
 	public static Connection createDatabaseConnection() throws SQLException {
