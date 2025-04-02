@@ -1,6 +1,7 @@
 package net.modgarden.gardenbot.commands.account;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
@@ -24,7 +25,7 @@ public class RegisterCommandHandler {
 	public static Response handleRegistration(SlashCommandInteraction interaction) {
 		User user = interaction.event().getUser();
 
-		var req = HttpRequest.newBuilder(URI.create(GardenBot.API_URL + "/user/" + user.getId() + "?service=discord"))
+		var req = HttpRequest.newBuilder(URI.create(GardenBot.API_URL + "user/" + user.getId() + "?service=discord"))
 				.build();
 		try {
 			HttpResponse<InputStream> stream = GardenBot.HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofInputStream());
@@ -42,7 +43,7 @@ public class RegisterCommandHandler {
 
 	public static Response handleModal(ModalInteraction interaction) {
 		User user = interaction.event().getUser();
-		String uri = GardenBot.API_URL + "/register/discord?id=" + user.getId();
+		String uri = GardenBot.API_URL + "register/discord";
 
 		ModalMapping username = interaction.event().getValue("username");
 		if (!username.getAsString().matches(GardenBot.SAFE_URL_REGEX))
@@ -53,7 +54,6 @@ public class RegisterCommandHandler {
 		if (username.getAsString().length() < 3)
 			return new MessageResponse()
 					.setMessage("Username must be at least 3 characters long.");
-		uri = uri + "&username=" + username.getAsString();
 
 		ModalMapping displayName = interaction.event().getValue("displayName");
 		if (!displayName.getAsString().matches(GardenBot.SAFE_URL_REGEX))
@@ -66,11 +66,18 @@ public class RegisterCommandHandler {
 					.setTitle("Failed to register Mod Garden account.")
 					.setDescription("Display Name must be at least 3 characters long.")
 					.markEphemeral();
-		uri = uri + "&displayname=" + displayName.getAsString();
+
+		JsonObject inputJson = new JsonObject();
+		inputJson.addProperty("id", user.getId());
+		inputJson.addProperty("username", username.getAsString());
+		inputJson.addProperty("display_name", displayName.getAsString());
 
 		var req = HttpRequest.newBuilder(URI.create(uri))
-				.headers("Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"))
-				.POST(HttpRequest.BodyPublishers.noBody())
+				.headers(
+						"Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"),
+						"Content-Type", "application/json"
+				)
+				.POST(HttpRequest.BodyPublishers.ofString(inputJson.toString()))
 				.build();
 		try {
 			HttpResponse<InputStream> stream = GardenBot.HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofInputStream());
