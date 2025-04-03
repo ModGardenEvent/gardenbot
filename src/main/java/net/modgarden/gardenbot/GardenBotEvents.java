@@ -8,13 +8,16 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.modgarden.gardenbot.interaction.ButtonInteraction;
 import net.modgarden.gardenbot.interaction.ModalInteraction;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
+import net.modgarden.gardenbot.interaction.button.ButtonDispatcher;
 import net.modgarden.gardenbot.interaction.command.SlashCommandDispatcher;
 import net.modgarden.gardenbot.interaction.modal.ModalDispatcher;
 import net.modgarden.gardenbot.util.MessageCacheUtil;
@@ -26,6 +29,12 @@ public class GardenBotEvents extends ListenerAdapter {
 	@Override
 	public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
 		var response = SlashCommandDispatcher.dispatch(new SlashCommandInteraction(event));
+		response.send(event).queue();
+	}
+
+	@Override
+	public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
+		var response = ButtonDispatcher.dispatch(new ButtonInteraction(event));
 		response.send(event).queue();
 	}
 

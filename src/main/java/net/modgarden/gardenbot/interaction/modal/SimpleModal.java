@@ -1,6 +1,7 @@
 package net.modgarden.gardenbot.interaction.modal;
 
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.LayoutComponent;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.modgarden.gardenbot.interaction.InteractionHandler;
@@ -26,6 +27,12 @@ public class SimpleModal extends AbstractModal {
 
 	@Override
 	public Modal getModal(SlashCommandInteractionEvent interaction) {
+		return Modal.create(ID, TITLE)
+				.addComponents(COMPONENTS).build();
+	}
+
+	@Override
+	public Modal getModal(ButtonInteractionEvent interaction) {
 		return Modal.create(ID, TITLE)
 				.addComponents(COMPONENTS).build();
 	}

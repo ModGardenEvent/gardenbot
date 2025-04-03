@@ -2,6 +2,7 @@ package net.modgarden.gardenbot.interaction.response;
 
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.requests.restaction.interactions.InteractionCallbackAction;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,6 +13,11 @@ public class MessageResponse implements Response {
 
 	@Override
 	public InteractionCallbackAction<?> send(SlashCommandInteractionEvent event) {
+		return event.reply(getMessage()).setEphemeral(isEphemeral());
+	}
+
+	@Override
+	public InteractionCallbackAction<?> send(ButtonInteractionEvent event) {
 		return event.reply(getMessage()).setEphemeral(isEphemeral());
 	}
 

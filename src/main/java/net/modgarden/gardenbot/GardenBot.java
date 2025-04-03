@@ -20,7 +20,7 @@ public class GardenBot {
 	public static final Dotenv DOTENV = Dotenv.load();
 	public static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
-	public static final String SAFE_URL_REGEX = "[a-zA-Z0-9!@$()`.+,_\"-]+";
+	public static final String USERNAME_REGEX = "[a-z0-9_-]+";
 	private static final int DATABASE_SCHEMA_VERSION = 1;
 
 	public static JDA jda;
@@ -42,6 +42,7 @@ public class GardenBot {
 		}
 
 		GardenBotCommands.registerAll();
+		GardenBotButtonHandlers.registerAll();
 		MessageCacheUtil.removeExpiredMessagesStartOfDay();
     }
 
