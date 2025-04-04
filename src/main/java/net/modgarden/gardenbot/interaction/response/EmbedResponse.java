@@ -20,6 +20,7 @@ public class EmbedResponse implements Response {
 	private boolean ephemeral = false;
 	private @Nullable String title = null;
 	private @Nullable String description = null;
+	private int color = -1;
 	private final List<Button> buttons = new ArrayList<>();
 
 	public ReplyCallbackAction createAction(IReplyCallback callback) {
@@ -32,6 +33,8 @@ public class EmbedResponse implements Response {
 			embed.setTitle(title);
 		if (description != null)
 			embed.setDescription(description);
+		if (color != -1)
+			embed.setColor(color);
 
 		ReplyCallbackAction action = callback.replyEmbeds(embed.build()).setEphemeral(isEphemeral());
 
@@ -78,6 +81,12 @@ public class EmbedResponse implements Response {
 
 	public EmbedResponse setDescription(String description) {
 		this.description = description;
+
+		return this;
+	}
+
+	public EmbedResponse setColor(int color) {
+		this.color = color;
 
 		return this;
 	}

@@ -18,8 +18,8 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-public class LinkCommandHandler {
-	public static Response handleModrinthLink(SlashCommandInteraction interaction) {
+public class UnlinkCommandHandler {
+	public static Response handleModrinthUnlink(SlashCommandInteraction interaction) {
 		User user = interaction.event().getUser();
 
 		var req = HttpRequest.newBuilder(URI.create(GardenBot.API_URL + "user/" + user.getId() + "?service=discord"))
@@ -28,20 +28,18 @@ public class LinkCommandHandler {
 			HttpResponse<InputStream> stream = GardenBot.HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofInputStream());
 			if (stream.statusCode() == 200) {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
-				if (json.isJsonObject() && json.getAsJsonObject().has("modrinth_id"))
+				if (json.isJsonObject() && !json.getAsJsonObject().has("modrinth_id")) {
 					return new MessageResponse()
-							.setMessage("You already have a Modrinth account linked!\nRun **/unlink modrinth** to unlink your current account then try again.")
+							.setMessage("You do not have a Modrinth account linked to your Mod Garden account.")
 							.markEphemeral();
-			} else if (stream.statusCode() == 404) {
-				return new MessageResponse()
-						.setMessage("You do not have a Mod Garden account.\nPlease register with **/register**.");
+				}
 			} else {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
 				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
 						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
 						"Undefined Error.";
 				return new EmbedResponse()
-						.setTitle("Failed to link Mod Garden account to Modrinth.")
+						.setTitle("Failed to unlink Mod Garden account.")
 						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
 						.setColor(0xFF0000)
 						.markEphemeral();
@@ -51,17 +49,13 @@ public class LinkCommandHandler {
 		}
 
 		return new EmbedResponse()
-				.setTitle("Link your Modrinth Account!")
-				.addButtonUrl(
-						URI.create("https://modrinth.com/auth/authorize?client_id=4g0H4NkM&redirect_uri=" + GardenBot.API_URL + "link/discord/modrinth&scope=USER_READ+PROJECT_READ+VERSION_READ+ORGANIZATION_READ"),
-						"1. Authorize",
-						Emoji.fromCustom("modrinth", 1330663190626828479L, false)
-				)
+				.setTitle("Are you sure?")
+				.setDescription("Are you sure you want to unlink your current Modrinth account?")
 				.addButton(
-						"linkModrinth",
-						"2. Link",
-						ButtonStyle.SECONDARY,
-						Emoji.fromUnicode("U+1F517")
+						"unlinkModrinth",
+						"Unlink",
+						ButtonStyle.DANGER,
+						Emoji.fromUnicode("U+26D3U+FE0FU+200DU+1F4A5")
 				).markEphemeral();
 	}
 }

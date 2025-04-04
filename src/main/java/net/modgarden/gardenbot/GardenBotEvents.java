@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
@@ -42,6 +43,14 @@ public class GardenBotEvents extends ListenerAdapter {
 	public void onModalInteraction(@NotNull ModalInteractionEvent event) {
 		var response = ModalDispatcher.dispatch(new ModalInteraction(event));
 		response.send(event).queue();
+	}
+
+	@Override
+	public void onGuildReady(@NotNull GuildReadyEvent event) {
+		if (!event.getGuild().getId().equals(GardenBot.DOTENV.get("GUILD_ID")))
+			return;
+
+		SlashCommandDispatcher.addCommands(event.getGuild());
 	}
 
 	@Override

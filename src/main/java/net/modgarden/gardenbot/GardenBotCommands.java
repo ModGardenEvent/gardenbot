@@ -3,6 +3,7 @@ package net.modgarden.gardenbot;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.modgarden.gardenbot.commands.account.LinkCommandHandler;
 import net.modgarden.gardenbot.commands.account.RegisterCommandHandler;
+import net.modgarden.gardenbot.commands.account.UnlinkCommandHandler;
 import net.modgarden.gardenbot.commands.moderation.BanCommandHandler;
 import net.modgarden.gardenbot.interaction.command.SlashCommand;
 import net.modgarden.gardenbot.interaction.command.SlashCommandDispatcher;
@@ -17,6 +18,12 @@ public class GardenBotCommands {
 						"modrinth",
 						"Provides setup to link your account with Modrinth",
 						LinkCommandHandler::handleModrinthLink
+				)));
+		SlashCommandDispatcher.register(new SlashCommand("unlink", "Unlink your account from different services.",
+				new SlashCommand.SubCommand(
+						"modrinth",
+						"Unlinks your account from Modrinth",
+						UnlinkCommandHandler::handleModrinthUnlink
 				)));
 
 		SlashCommandDispatcher.register(new SlashCommand("ban", "Bans a user from the Mod Garden Discord.", BanCommandHandler::handleBan,

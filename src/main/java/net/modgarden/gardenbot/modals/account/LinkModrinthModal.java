@@ -1,4 +1,4 @@
-package net.modgarden.gardenbot.interaction.modal;
+package net.modgarden.gardenbot.modals.account;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.interaction.ModalInteraction;
+import net.modgarden.gardenbot.interaction.modal.SimpleModal;
 import net.modgarden.gardenbot.interaction.response.EmbedResponse;
 import net.modgarden.gardenbot.interaction.response.MessageResponse;
 import net.modgarden.gardenbot.interaction.response.Response;
@@ -21,51 +22,35 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-public class RegisterModal extends SimpleModal {
-	public RegisterModal() {
-		super("modalRegister", "Register your Mod Garden account!", RegisterModal::handleModal,
+public class LinkModrinthModal extends SimpleModal {
+	public LinkModrinthModal() {
+		super("modalLinkModrinth", "Link your Modrinth account!", LinkModrinthModal::handleModal,
 				ActionRow.of(
-						TextInput.create("username",
-										"Username (Defaults to Discord Username)",
+						TextInput.create("linkCode",
+										"Link Code",
 										TextInputStyle.SHORT
-								)
-								.setRequired(false)
-								.setMaxLength(48).build()
-				),
-				ActionRow.of(
-						TextInput.create("displayName",
-										"Username (Defaults to Discord Display Name)",
-										TextInputStyle.SHORT
-								)
-								.setRequired(false)
-								.setMaxLength(48).build()
+								).setMinLength(6)
+								.setMaxLength(6).build()
 				));
 	}
 
+
 	public static Response handleModal(ModalInteraction interaction) {
 		User user = interaction.event().getUser();
-		String uri = GardenBot.API_URL + "register/discord";
+		String uri = GardenBot.API_URL + "link/discord";
 
-		ModalMapping username = interaction.event().getValue("username");
-		if (!username.getAsString().isEmpty() && !username.getAsString().matches(GardenBot.USERNAME_REGEX))
-			return new EmbedResponse()
-					.setTitle("Failed to register Mod Garden account.")
-					.setDescription("Invalid characters in username.")
-					.markEphemeral();
+		ModalMapping linkCode = interaction.event().getValue("linkCode");
 
-		ModalMapping displayName = interaction.event().getValue("displayName");
-		if (!username.getAsString().isEmpty() && !displayName.getAsString().matches(GardenBot.USERNAME_REGEX))
+		if (linkCode == null)
 			return new EmbedResponse()
-					.setTitle("Failed to register Mod Garden account.")
-					.setDescription("Invalid characters in display name.")
+					.setTitle("Failed to link Modrinth account.")
+					.setDescription("Link code is null.")
 					.markEphemeral();
 
 		JsonObject inputJson = new JsonObject();
-		inputJson.addProperty("id", user.getId());
-		if (!username.getAsString().isEmpty())
-			inputJson.addProperty("username", username.getAsString());
-		if (!displayName.getAsString().isEmpty())
-			inputJson.addProperty("display_name", displayName.getAsString());
+		inputJson.addProperty("discord_id", user.getId());
+		inputJson.addProperty("link_code", linkCode.getAsString());
+		inputJson.addProperty("service", "modrinth");
 
 		var req = HttpRequest.newBuilder(URI.create(uri))
 				.headers(
@@ -74,6 +59,7 @@ public class RegisterModal extends SimpleModal {
 				)
 				.POST(HttpRequest.BodyPublishers.ofString(inputJson.toString()))
 				.build();
+
 		try {
 			HttpResponse<InputStream> stream = GardenBot.HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofInputStream());
 			if (stream.statusCode() < 200 || stream.statusCode() > 299) {
@@ -82,8 +68,9 @@ public class RegisterModal extends SimpleModal {
 						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
 						"Undefined Error.";
 				return new EmbedResponse()
-						.setTitle("Failed to register Mod Garden account.")
-						.setDescription(stream.statusCode() + ": " + errorDescription)
+						.setTitle("Failed to link Mod Garden account to Modrinth.")
+						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
+						.setColor(0xFF0000)
 						.markEphemeral();
 			}
 		} catch (IOException | InterruptedException ex) {
@@ -91,7 +78,7 @@ public class RegisterModal extends SimpleModal {
 		}
 
 		return new MessageResponse()
-				.setMessage("Your Mod Garden account has successfully been registered!")
+				.setMessage("Successfully linked your Modrinth account to Mod Garden!")
 				.markEphemeral();
 	}
 }
