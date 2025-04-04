@@ -15,7 +15,7 @@ public class GardenBotCommands {
 		SlashCommandDispatcher.register(new SlashCommand("link", "Link your account with different services.",
 				new SlashCommand.SubCommand(
 						"modrinth",
-						"Provide setup to link your account with Modrinth",
+						"Provides setup to link your account with Modrinth",
 						LinkCommandHandler::handleModrinthLink
 				)));
 
