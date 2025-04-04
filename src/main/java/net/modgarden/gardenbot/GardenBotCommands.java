@@ -7,14 +7,13 @@ import net.modgarden.gardenbot.commands.moderation.BanCommandHandler;
 import net.modgarden.gardenbot.interaction.command.SlashCommand;
 import net.modgarden.gardenbot.interaction.command.SlashCommandDispatcher;
 import net.modgarden.gardenbot.interaction.command.SlashCommandOption;
-import net.modgarden.gardenbot.interaction.command.SubCommandSlashCommand;
 
 public class GardenBotCommands {
 
 	public static void registerAll() {
 		SlashCommandDispatcher.register(new SlashCommand("register", "Registers a Mod Garden account for yourself.", RegisterCommandHandler::handleRegistration));
-		SlashCommandDispatcher.register(new SubCommandSlashCommand("link", "Link your account with different services.",
-				new SubCommandSlashCommand.SubCommand(
+		SlashCommandDispatcher.register(new SlashCommand("link", "Link your account with different services.",
+				new SlashCommand.SubCommand(
 						"modrinth",
 						"Provide setup to link your account with Modrinth",
 						LinkCommandHandler::handleModrinthLink
