@@ -58,7 +58,7 @@ public class GardenBotButtonHandlers {
 		}
 
 		return new MessageResponse()
-				.setMessage("Sucessfully unlinked your Modrinth account from Mod Garden!")
+				.setMessage("Successfully unlinked your Modrinth account from Mod Garden!")
 				.markEphemeral();
 	}
 }
