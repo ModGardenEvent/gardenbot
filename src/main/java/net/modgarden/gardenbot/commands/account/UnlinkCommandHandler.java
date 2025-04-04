@@ -39,7 +39,7 @@ public class UnlinkCommandHandler {
 						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
 						"Undefined Error.";
 				return new EmbedResponse()
-						.setTitle("Failed to unlink Mod Garden account.")
+						.setTitle("Encountered an exception whilst attempting to send the setup for unlinking your Mod Garden account from Modrinth.")
 						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
 						.setColor(0xFF0000)
 						.markEphemeral();
@@ -51,6 +51,7 @@ public class UnlinkCommandHandler {
 		return new EmbedResponse()
 				.setTitle("Are you sure?")
 				.setDescription("Are you sure you want to unlink your current Modrinth account?")
+				.setColor(0X5D3E40)
 				.addButton(
 						"unlinkModrinth",
 						"Unlink",

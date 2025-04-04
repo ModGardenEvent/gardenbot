@@ -1,6 +1,7 @@
 package net.modgarden.gardenbot.util;
 
 import net.modgarden.gardenbot.GardenBot;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -22,6 +23,7 @@ public class MessageCacheUtil {
 		}
 	}
 
+	@Nullable
 	public static String getCachedMessage(String messageId) {
 		try (var connection = GardenBot.createDatabaseConnection();
 			 PreparedStatement statement = connection.prepareStatement("SELECT content FROM message_cache WHERE message_id == ?")) {
@@ -30,9 +32,10 @@ public class MessageCacheUtil {
 		} catch (SQLException ex) {
 			GardenBot.LOG.info("Exception whilst getting cached message {}.", messageId, ex);
 		}
-		return "Unknown Old Message";
+		return null;
 	}
 
+	@Nullable
 	public static String getAuthorFromMessage(String messageId) {
 		try (var connection = GardenBot.createDatabaseConnection();
 			 PreparedStatement statement = connection.prepareStatement("SELECT user_id FROM message_cache WHERE message_id == ?")) {

@@ -41,7 +41,7 @@ public class LinkCommandHandler {
 						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
 						"Undefined Error.";
 				return new EmbedResponse()
-						.setTitle("Failed to link Mod Garden account to Modrinth.")
+						.setTitle("Encountered an exception whilst attempting to send the setup for linking your Mod Garden account to Modrinth.")
 						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
 						.setColor(0xFF0000)
 						.markEphemeral();
@@ -52,6 +52,10 @@ public class LinkCommandHandler {
 
 		return new EmbedResponse()
 				.setTitle("Link your Modrinth Account!")
+				.setDescription(
+						"1. Authorize with Modrinth, which will redirect you to a page with a link code.\n" +
+						"2. Enter your link code inside the modal.")
+				.setColor(0xA9FFA7)
 				.addButtonUrl(
 						URI.create("https://modrinth.com/auth/authorize?client_id=4g0H4NkM&redirect_uri=" + GardenBot.API_URL + "link/discord/modrinth&scope=USER_READ+PROJECT_READ+VERSION_READ+ORGANIZATION_READ"),
 						"1. Authorize",

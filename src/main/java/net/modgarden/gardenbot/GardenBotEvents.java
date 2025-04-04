@@ -116,9 +116,11 @@ public class GardenBotEvents extends ListenerAdapter {
 
 		String description = "**Channel:** <#" + event.getMessage().getChannelId() + ">\n" +
 				"**Author:** <@" + event.getAuthor().getId() + "> (" + event.getAuthor().getName() + ")\n" +
-				"**Author ID:**" + event.getAuthor().getId();
+				"**Author ID:** " + event.getAuthor().getId();
 
 		String oldMessageContent = MessageCacheUtil.getCachedMessage(event.getMessageId());
+		if (oldMessageContent == null)
+			return;
 
 		channel.sendMessageEmbeds(new EmbedBuilder()
 				.setColor(0x00FF02)
@@ -158,7 +160,7 @@ public class GardenBotEvents extends ListenerAdapter {
 			String globalName = member != null && member.getUser().getGlobalName() != null ? member.getUser().getName() : "unknown";
 				description = description + "\n" +
 						"**Author:** <@" + userId + "> (" + globalName + ")\n" +
-						"**Author ID:**" + userId;
+						"**Author ID:** " + userId;
 		}
 
 		var builder = new EmbedBuilder()

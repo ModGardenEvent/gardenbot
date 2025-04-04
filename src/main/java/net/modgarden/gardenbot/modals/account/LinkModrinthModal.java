@@ -62,13 +62,23 @@ public class LinkModrinthModal extends SimpleModal {
 
 		try {
 			HttpResponse<InputStream> stream = GardenBot.HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofInputStream());
-			if (stream.statusCode() < 200 || stream.statusCode() > 299) {
+			if (stream.statusCode() == 422) {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
 				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
 						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
 						"Undefined Error.";
 				return new EmbedResponse()
 						.setTitle("Failed to link Mod Garden account to Modrinth.")
+						.setDescription(errorDescription)
+						.setColor(0x5D3E40)
+						.markEphemeral();
+			} else if (stream.statusCode() < 200 || stream.statusCode() > 299) {
+				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
+				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
+						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
+						"Undefined Error.";
+				return new EmbedResponse()
+						.setTitle("Encountered an exception whilst attempting to link your Mod Garden account to Modrinth.")
 						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
 						.setColor(0xFF0000)
 						.markEphemeral();
@@ -77,8 +87,9 @@ public class LinkModrinthModal extends SimpleModal {
 			GardenBot.LOG.error("", ex);
 		}
 
-		return new MessageResponse()
-				.setMessage("Successfully linked your Modrinth account to Mod Garden!")
+		return new EmbedResponse()
+				.setTitle("Successfully linked your Modrinth account to Mod Garden!")
+				.setColor(0xA9FFA7)
 				.markEphemeral();
 	}
 }

@@ -31,7 +31,7 @@ public class RegisterModal extends SimpleModal {
 										TextInputStyle.SHORT
 								)
 								.setRequired(false)
-								.setMaxLength(48).build()
+								.setMaxLength(32).build()
 				),
 				ActionRow.of(
 						TextInput.create("displayName",
@@ -39,7 +39,7 @@ public class RegisterModal extends SimpleModal {
 										TextInputStyle.SHORT
 								)
 								.setRequired(false)
-								.setMaxLength(48).build()
+								.setMaxLength(32).build()
 				));
 	}
 
@@ -52,13 +52,15 @@ public class RegisterModal extends SimpleModal {
 			return new EmbedResponse()
 					.setTitle("Failed to register Mod Garden account.")
 					.setDescription("Invalid characters in username.")
+					.setColor(0X5D3E40)
 					.markEphemeral();
 
 		ModalMapping displayName = interaction.event().getValue("displayName");
-		if (!username.getAsString().isEmpty() && !displayName.getAsString().matches(GardenBot.USERNAME_REGEX))
+		if (!username.getAsString().isEmpty() && !displayName.getAsString().matches(GardenBot.DISPLAY_NAME_REGEX))
 			return new EmbedResponse()
 					.setTitle("Failed to register Mod Garden account.")
 					.setDescription("Invalid characters in display name.")
+					.setColor(0X5D3E40)
 					.markEphemeral();
 
 		JsonObject inputJson = new JsonObject();
@@ -83,7 +85,7 @@ public class RegisterModal extends SimpleModal {
 						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
 						"Undefined Error.";
 				return new EmbedResponse()
-						.setTitle("Failed to register Mod Garden account.")
+						.setTitle("Encountered an exception whilst attempting to register your Mod Garden account.")
 						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
 						.setColor(0xFF0000)
 						.markEphemeral();
@@ -92,8 +94,9 @@ public class RegisterModal extends SimpleModal {
 			GardenBot.LOG.error("", ex);
 		}
 
-		return new MessageResponse()
-				.setMessage("Your Mod Garden account has successfully been registered!")
+		return new EmbedResponse()
+				.setTitle("Your Mod Garden account has successfully been registered!")
+				.setColor(0xA9FFA7)
 				.markEphemeral();
 	}
 }

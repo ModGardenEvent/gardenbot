@@ -48,7 +48,7 @@ public class GardenBotButtonHandlers {
 						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
 						"Undefined Error.";
 				return new EmbedResponse()
-						.setTitle("Failed to unlink Mod Garden account.")
+						.setTitle("Encountered an exception whilst attempting to unlink your Mod Garden account from Modrinth.")
 						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
 						.setColor(0xFF0000)
 						.markEphemeral();
@@ -57,8 +57,9 @@ public class GardenBotButtonHandlers {
 			GardenBot.LOG.error("", ex);
 		}
 
-		return new MessageResponse()
-				.setMessage("Successfully unlinked your Modrinth account from Mod Garden!")
+		return new EmbedResponse()
+				.setTitle("Successfully unlinked your Modrinth account from Mod Garden!")
+				.setColor(0xA9FFA7)
 				.markEphemeral();
 	}
 }
