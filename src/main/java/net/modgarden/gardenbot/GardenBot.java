@@ -1,5 +1,6 @@
 package net.modgarden.gardenbot;
 
+import ch.qos.logback.classic.Level;
 import io.github.cdimascio.dotenv.Dotenv;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -27,6 +28,9 @@ public class GardenBot {
 	public static JDA jda;
 
 	public static void main(String[] args) {
+		if ("development".equals(System.getenv("env")))
+			((ch.qos.logback.classic.Logger)LOG).setLevel(Level.DEBUG);
+
 		jda = JDABuilder.create(GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT)
 				.setToken(DOTENV.get("TOKEN"))
 				.addEventListeners(new GardenBotEvents())
@@ -45,6 +49,8 @@ public class GardenBot {
 		GardenBotCommands.registerAll();
 		GardenBotButtonHandlers.registerAll();
 		MessageCacheUtil.removeExpiredMessagesStartOfDay();
+
+		LOG.info("GardenBot has been initialized.");
     }
 
 	public static Connection createDatabaseConnection() throws SQLException {
@@ -74,7 +80,7 @@ public class GardenBot {
 			LOG.error("Failed to create database tables. ", ex);
 			return;
 		}
-		LOG.info("Created database tables.");
+		LOG.debug("Created database tables.");
 	}
 
 	private static void updateSchemaVersion() {
@@ -91,6 +97,6 @@ public class GardenBot {
 			LOG.error("Failed to update database schema version. ", ex);
 			return;
 		}
-		LOG.info("Updated database schema version.");
+		LOG.debug("Updated database schema version.");
 	}
 }
