@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.modgarden.gardenbot.interaction.ButtonInteraction;
 import net.modgarden.gardenbot.interaction.button.ButtonDispatcher;
 import net.modgarden.gardenbot.interaction.response.EmbedResponse;
-import net.modgarden.gardenbot.interaction.response.MessageResponse;
 import net.modgarden.gardenbot.interaction.response.ModalResponse;
 import net.modgarden.gardenbot.interaction.response.Response;
 
@@ -26,7 +25,7 @@ public class GardenBotButtonHandlers {
 
 	public static Response unlinkModrinth(ButtonInteraction interaction) {
 		User user = interaction.event().getUser();
-		String uri = GardenBot.API_URL + "unlink/discord";
+		String uri = GardenBot.API_URL + "discord/unlink";
 
 		JsonObject inputJson = new JsonObject();
 		inputJson.addProperty("discord_id", user.getId());

@@ -12,7 +12,6 @@ import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.interaction.ModalInteraction;
 import net.modgarden.gardenbot.interaction.modal.SimpleModal;
 import net.modgarden.gardenbot.interaction.response.EmbedResponse;
-import net.modgarden.gardenbot.interaction.response.MessageResponse;
 import net.modgarden.gardenbot.interaction.response.Response;
 
 import java.io.IOException;
@@ -37,7 +36,7 @@ public class LinkModrinthModal extends SimpleModal {
 
 	public static Response handleModal(ModalInteraction interaction) {
 		User user = interaction.event().getUser();
-		String uri = GardenBot.API_URL + "link/discord";
+		String uri = GardenBot.API_URL + "discord/link";
 
 		ModalMapping linkCode = interaction.event().getValue("linkCode");
 

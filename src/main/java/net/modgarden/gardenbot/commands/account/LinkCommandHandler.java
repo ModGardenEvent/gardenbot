@@ -57,7 +57,7 @@ public class LinkCommandHandler {
 						"2. Enter your link code inside the modal.")
 				.setColor(0xA9FFA7)
 				.addButtonUrl(
-						URI.create("https://modrinth.com/auth/authorize?client_id=4g0H4NkM&redirect_uri=" + GardenBot.API_URL + "link/discord/modrinth&scope=USER_READ+PROJECT_READ+VERSION_READ+ORGANIZATION_READ"),
+						URI.create("https://modrinth.com/auth/authorize?client_id=4g0H4NkM&redirect_uri=" + GardenBot.API_URL + "discord/oauth/modrinth&scope=USER_READ+PROJECT_READ+VERSION_READ+ORGANIZATION_READ"),
 						"1. Authorize",
 						Emoji.fromCustom("modrinth", 1330663190626828479L, false)
 				)
