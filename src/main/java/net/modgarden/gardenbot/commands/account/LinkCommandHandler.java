@@ -41,7 +41,7 @@ public class LinkCommandHandler {
 						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
 						"Undefined Error.";
 				return new EmbedResponse()
-						.setTitle("Encountered an exception whilst attempting to send the setup for linking your Mod Garden account to Modrinth.")
+						.setTitle("Encountered an exception whilst attempting to send the setup for linking your Modrinth account to your Mod Garden account.")
 						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
 						.setColor(0xFF0000)
 						.markEphemeral();
@@ -63,6 +63,51 @@ public class LinkCommandHandler {
 				)
 				.addButton(
 						"linkModrinth",
+						"2. Link",
+						ButtonStyle.SECONDARY,
+						Emoji.fromUnicode("U+1F517")
+				).markEphemeral();
+	}
+
+
+	public static Response handleMinecraftLink(SlashCommandInteraction interaction) {
+		User user = interaction.event().getUser();
+
+		var req = HttpRequest.newBuilder(URI.create(GardenBot.API_URL + "user/" + user.getId() + "?service=discord"))
+				.build();
+		try {
+			HttpResponse<InputStream> stream = GardenBot.HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofInputStream());
+			if (stream.statusCode() == 404) {
+				return new MessageResponse()
+						.setMessage("You do not have a Mod Garden account.\nPlease register with **/register**.");
+			} else if (stream.statusCode() != 200) {
+				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
+				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
+						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
+						"Undefined Error.";
+				return new EmbedResponse()
+						.setTitle("Encountered an exception whilst attempting to send the setup for linking your Minecraft account to your Mod Garden account.")
+						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
+						.setColor(0xFF0000)
+						.markEphemeral();
+			}
+		} catch (IOException | InterruptedException ex) {
+			GardenBot.LOG.error("", ex);
+		}
+
+		return new EmbedResponse()
+				.setTitle("Link your Minecraft Account!")
+				.setDescription(
+						"1. Authorize with Microsoft, which will redirect you to a page with a link code.\n" +
+								"2. Enter your link code inside the modal.")
+				.setColor(0xA9FFA7)
+				.addButtonUrl(
+						URI.create("https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=5023fb8b-017e-497a-82af-de70b3b754f0&response_type=code&redirect_uri=" + GardenBot.API_URL + "discord/oauth/minecraft&scope=XboxLive.signin api.minecraftservices.com"),
+						"1. Authorize",
+						Emoji.fromCustom("microsoft", 1360176270687731842L, false)
+				)
+				.addButton(
+						"linkMinecraft",
 						"2. Link",
 						ButtonStyle.SECONDARY,
 						Emoji.fromUnicode("U+1F517")
