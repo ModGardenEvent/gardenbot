@@ -33,7 +33,6 @@ public class LinkModrinthModal extends SimpleModal {
 				));
 	}
 
-
 	public static Response handleModal(ModalInteraction interaction) {
 		User user = interaction.event().getUser();
 		String uri = GardenBot.API_URL + "discord/link";
