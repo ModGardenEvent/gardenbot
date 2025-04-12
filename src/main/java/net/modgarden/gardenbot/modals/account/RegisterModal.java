@@ -45,7 +45,7 @@ public class RegisterModal extends SimpleModal {
 
 	public static Response handleModal(ModalInteraction interaction) {
 		User user = interaction.event().getUser();
-		String uri = GardenBot.API_URL + "register/discord";
+		String uri = GardenBot.API_URL + "discord/register";
 
 		ModalMapping username = interaction.event().getValue("username");
 		if (!username.getAsString().isEmpty() && !username.getAsString().matches(GardenBot.USERNAME_REGEX))
