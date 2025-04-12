@@ -10,22 +10,18 @@ import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.interaction.response.EmbedResponse;
 import net.modgarden.gardenbot.interaction.response.MessageResponse;
 import net.modgarden.gardenbot.interaction.response.Response;
+import net.modgarden.gardenbot.util.ModGardenAPIClient;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class UnlinkCommandHandler {
 	public static Response handleModrinthUnlink(SlashCommandInteraction interaction) {
 		User user = interaction.event().getUser();
-
-		var req = HttpRequest.newBuilder(URI.create(GardenBot.API_URL + "user/" + user.getId() + "?service=discord"))
-				.build();
 		try {
-			HttpResponse<InputStream> stream = GardenBot.HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofInputStream());
+			HttpResponse<InputStream> stream = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
 			if (stream.statusCode() == 200) {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
 				if (json.isJsonObject() && !json.getAsJsonObject().has("modrinth_id")) {

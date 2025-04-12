@@ -7,21 +7,18 @@ import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.interaction.response.MessageResponse;
 import net.modgarden.gardenbot.interaction.response.ModalResponse;
 import net.modgarden.gardenbot.interaction.response.Response;
+import net.modgarden.gardenbot.util.ModGardenAPIClient;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class RegisterCommandHandler {
 	public static Response handleRegistration(SlashCommandInteraction interaction) {
 		User user = interaction.event().getUser();
 
-		var req = HttpRequest.newBuilder(URI.create(GardenBot.API_URL + "user/" + user.getId() + "?service=discord"))
-				.build();
 		try {
-			HttpResponse<InputStream> stream = GardenBot.HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofInputStream());
+			HttpResponse<InputStream> stream = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
 			if (stream.statusCode() == 200) {
 				return new MessageResponse()
 						.setMessage("You are already registered with Mod Garden.")

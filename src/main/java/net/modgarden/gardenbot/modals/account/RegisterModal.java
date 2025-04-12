@@ -12,15 +12,15 @@ import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.interaction.ModalInteraction;
 import net.modgarden.gardenbot.interaction.modal.SimpleModal;
 import net.modgarden.gardenbot.interaction.response.EmbedResponse;
-import net.modgarden.gardenbot.interaction.response.MessageResponse;
 import net.modgarden.gardenbot.interaction.response.Response;
+import net.modgarden.gardenbot.util.ModGardenAPIClient;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Objects;
 
 public class RegisterModal extends SimpleModal {
 	public RegisterModal() {
@@ -45,20 +45,19 @@ public class RegisterModal extends SimpleModal {
 
 	public static Response handleModal(ModalInteraction interaction) {
 		User user = interaction.event().getUser();
-		String uri = GardenBot.API_URL + "discord/register";
 
-		ModalMapping username = interaction.event().getValue("username");
+		ModalMapping username = Objects.requireNonNull(interaction.event().getValue("username"));
 		if (!username.getAsString().isEmpty() && !username.getAsString().matches(GardenBot.USERNAME_REGEX))
 			return new EmbedResponse()
-					.setTitle("Failed to register Mod Garden account.")
+					.setTitle("Could not register your Mod Garden account.")
 					.setDescription("Invalid characters in username.")
 					.setColor(0X5D3E40)
 					.markEphemeral();
 
-		ModalMapping displayName = interaction.event().getValue("displayName");
-		if (!username.getAsString().isEmpty() && !displayName.getAsString().matches(GardenBot.DISPLAY_NAME_REGEX))
+		ModalMapping displayName = Objects.requireNonNull(interaction.event().getValue("displayName"));
+		if (!displayName.getAsString().isEmpty() && !displayName.getAsString().matches(GardenBot.DISPLAY_NAME_REGEX))
 			return new EmbedResponse()
-					.setTitle("Failed to register Mod Garden account.")
+					.setTitle("Could not register your Mod Garden account.")
 					.setDescription("Invalid characters in display name.")
 					.setColor(0X5D3E40)
 					.markEphemeral();
@@ -70,15 +69,14 @@ public class RegisterModal extends SimpleModal {
 		if (!displayName.getAsString().isEmpty())
 			inputJson.addProperty("display_name", displayName.getAsString());
 
-		var req = HttpRequest.newBuilder(URI.create(uri))
-				.headers(
-						"Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"),
-						"Content-Type", "application/json"
-				)
-				.POST(HttpRequest.BodyPublishers.ofString(inputJson.toString()))
-				.build();
 		try {
-			HttpResponse<InputStream> stream = GardenBot.HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofInputStream());
+			HttpResponse<InputStream> stream = ModGardenAPIClient.post(
+					"discord/register",
+					HttpRequest.BodyPublishers.ofString(inputJson.toString()),
+					HttpResponse.BodyHandlers.ofInputStream(),
+					"Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"),
+					"Content-Type", "application/json"
+			);
 			if (stream.statusCode() < 200 || stream.statusCode() > 299) {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
 				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
@@ -92,6 +90,11 @@ public class RegisterModal extends SimpleModal {
 			}
 		} catch (IOException | InterruptedException ex) {
 			GardenBot.LOG.error("", ex);
+			return new EmbedResponse()
+					.setTitle("Encountered an exception whilst attempting to register your Mod Garden account.")
+					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
+					.setColor(0xFF0000)
+					.markEphemeral();
 		}
 
 		return new EmbedResponse()

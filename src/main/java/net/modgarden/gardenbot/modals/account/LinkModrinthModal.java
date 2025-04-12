@@ -13,11 +13,11 @@ import net.modgarden.gardenbot.interaction.ModalInteraction;
 import net.modgarden.gardenbot.interaction.modal.SimpleModal;
 import net.modgarden.gardenbot.interaction.response.EmbedResponse;
 import net.modgarden.gardenbot.interaction.response.Response;
+import net.modgarden.gardenbot.util.ModGardenAPIClient;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
@@ -35,13 +35,12 @@ public class LinkModrinthModal extends SimpleModal {
 
 	public static Response handleModal(ModalInteraction interaction) {
 		User user = interaction.event().getUser();
-		String uri = GardenBot.API_URL + "discord/link";
 
 		ModalMapping linkCode = interaction.event().getValue("linkCode");
 
 		if (linkCode == null)
 			return new EmbedResponse()
-					.setTitle("Failed to link Modrinth account.")
+					.setTitle("Could not link your Modrinth account.")
 					.setDescription("Link code is null.")
 					.markEphemeral();
 
@@ -50,23 +49,21 @@ public class LinkModrinthModal extends SimpleModal {
 		inputJson.addProperty("link_code", linkCode.getAsString());
 		inputJson.addProperty("service", "modrinth");
 
-		var req = HttpRequest.newBuilder(URI.create(uri))
-				.headers(
-						"Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"),
-						"Content-Type", "application/json"
-				)
-				.POST(HttpRequest.BodyPublishers.ofString(inputJson.toString()))
-				.build();
-
 		try {
-			HttpResponse<InputStream> stream = GardenBot.HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofInputStream());
+			HttpResponse<InputStream> stream = ModGardenAPIClient.post(
+					"discord/link",
+					HttpRequest.BodyPublishers.ofString(inputJson.toString()),
+					HttpResponse.BodyHandlers.ofInputStream(),
+					"Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"),
+					"Content-Type", "application/json"
+			);
 			if (stream.statusCode() == 422) {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
 				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
 						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
 						"Undefined Error.";
 				return new EmbedResponse()
-						.setTitle("Failed to link Mod Garden account to Modrinth.")
+						.setTitle("Could not link your Mod Garden account to Modrinth.")
 						.setDescription(errorDescription)
 						.setColor(0x5D3E40)
 						.markEphemeral();
@@ -83,6 +80,11 @@ public class LinkModrinthModal extends SimpleModal {
 			}
 		} catch (IOException | InterruptedException ex) {
 			GardenBot.LOG.error("", ex);
+			return new EmbedResponse()
+					.setTitle("Encountered an exception whilst attempting to link your Mod Garden account to Modrinth.")
+					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
+					.setColor(0xFF0000)
+					.markEphemeral();
 		}
 
 		return new EmbedResponse()

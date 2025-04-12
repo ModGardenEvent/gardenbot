@@ -9,11 +9,11 @@ import net.modgarden.gardenbot.interaction.button.ButtonDispatcher;
 import net.modgarden.gardenbot.interaction.response.EmbedResponse;
 import net.modgarden.gardenbot.interaction.response.ModalResponse;
 import net.modgarden.gardenbot.interaction.response.Response;
+import net.modgarden.gardenbot.util.ModGardenAPIClient;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
@@ -25,22 +25,19 @@ public class GardenBotButtonHandlers {
 
 	public static Response unlinkModrinth(ButtonInteraction interaction) {
 		User user = interaction.event().getUser();
-		String uri = GardenBot.API_URL + "discord/unlink";
 
 		JsonObject inputJson = new JsonObject();
 		inputJson.addProperty("discord_id", user.getId());
 		inputJson.addProperty("service", "modrinth");
 
-		var req = HttpRequest.newBuilder(URI.create(uri))
-				.headers(
-						"Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"),
-						"Content-Type", "application/json"
-				)
-				.POST(HttpRequest.BodyPublishers.ofString(inputJson.toString()))
-				.build();
-
 		try {
-			HttpResponse<InputStream> stream = GardenBot.HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofInputStream());
+			HttpResponse<InputStream> stream = ModGardenAPIClient.post(
+					"discord/unlink",
+					HttpRequest.BodyPublishers.ofString(inputJson.toString()),
+					HttpResponse.BodyHandlers.ofInputStream(),
+					"Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"),
+					"Content-Type", "application/json"
+			);
 			if (stream.statusCode() < 200 || stream.statusCode() > 299) {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
 				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?

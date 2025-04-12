@@ -1,6 +1,7 @@
 package net.modgarden.gardenbot.interaction.response;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -8,6 +9,7 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
+import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.InteractionCallbackAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +25,7 @@ public class EmbedResponse implements Response {
 	private int color = -1;
 	private final List<Button> buttons = new ArrayList<>();
 
-	public ReplyCallbackAction createAction(IReplyCallback callback) {
+	public MessageEmbed createEmbed() {
 		var embed = new EmbedBuilder();
 
 		if (title == null && description == null)
@@ -36,7 +38,15 @@ public class EmbedResponse implements Response {
 		if (color != -1)
 			embed.setColor(color);
 
-		ReplyCallbackAction action = callback.replyEmbeds(embed.build()).setEphemeral(isEphemeral());
+		return embed.build();
+	}
+	
+	public RestAction<?> createAction(IReplyCallback callback) {
+		if (callback.isAcknowledged()) {
+			callback.getHook().editOriginalEmbeds(createEmbed()).queue();
+			return callback.getHook().retrieveOriginal();
+		}
+		ReplyCallbackAction action = callback.replyEmbeds(createEmbed()).setEphemeral(isEphemeral());
 
 		if (!buttons.isEmpty())
 			action.addActionRow(buttons.toArray(Button[]::new));
@@ -45,17 +55,17 @@ public class EmbedResponse implements Response {
 	}
 
 	@Override
-	public InteractionCallbackAction<?> send(SlashCommandInteractionEvent event) {
+	public RestAction<?> send(SlashCommandInteractionEvent event) {
 		return createAction(event);
 	}
 
 	@Override
-	public InteractionCallbackAction<?> send(ButtonInteractionEvent event) {
+	public RestAction<?> send(ButtonInteractionEvent event) {
 		return createAction(event);
 	}
 
 	@Override
-	public InteractionCallbackAction<?> send(ModalInteractionEvent event) {
+	public RestAction<?> send(ModalInteractionEvent event) {
 		return createAction(event);
 	}
 
@@ -110,4 +120,5 @@ public class EmbedResponse implements Response {
 
 		return this;
 	}
+
 }
