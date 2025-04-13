@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
@@ -31,6 +32,14 @@ public class GardenBotEvents extends ListenerAdapter {
 	public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
 		var response = SlashCommandDispatcher.dispatch(new SlashCommandInteraction(event));
 		response.send(event).queue();
+	}
+
+	@Override
+	public void onCommandAutoCompleteInteraction(@NotNull CommandAutoCompleteInteractionEvent event) {
+		var choices = SlashCommandDispatcher.getAutoCompleteChoices(event);
+		if (choices.isEmpty())
+			return;
+		event.replyChoices(choices).queue();
 	}
 
 	@Override

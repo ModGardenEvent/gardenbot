@@ -12,7 +12,7 @@ import net.modgarden.gardenbot.interaction.command.SlashCommandOption;
 public class GardenBotCommands {
 
 	public static void registerAll() {
-		SlashCommandDispatcher.register(new SlashCommand("register", "Registers a Mod Garden account for yourself.", RegisterCommandHandler::handleRegistration));
+		SlashCommandDispatcher.register(new SlashCommand("register", "Registers a Mod Garden account for yourself.", RegisterCommandHandler::handleRegistration, null));
 		SlashCommandDispatcher.register(new SlashCommand("link", "Link your account with different services.",
 				new SlashCommand.SubCommand(
 						"modrinth",
@@ -30,8 +30,9 @@ public class GardenBotCommands {
 						"modrinth",
 						"Submits your Modrinth project to a current Mod Garden event.",
 						SubmitHandler::handleSubmitModrinth,
-						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the Modrinth project to submit.", true),
-						new SlashCommandOption(OptionType.STRING, "event", "The event to submit to. Does not have to be specified ", false)
+						SubmitHandler::getChoices,
+						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the Modrinth project to submit.", true, true),
+						new SlashCommandOption(OptionType.STRING, "event", "The event to submit to. Does not have to be specified ", false, true)
 				)));
 
 		// TODO: Implement Ban command.
