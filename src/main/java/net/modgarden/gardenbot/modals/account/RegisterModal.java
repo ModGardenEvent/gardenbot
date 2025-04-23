@@ -35,7 +35,7 @@ public class RegisterModal extends SimpleModal {
 				),
 				ActionRow.of(
 						TextInput.create("displayName",
-										"Username (Defaults to Discord Display Name)",
+										"Display Name (Defaults to Discord Display Name)",
 										TextInputStyle.SHORT
 								)
 								.setRequired(false)
