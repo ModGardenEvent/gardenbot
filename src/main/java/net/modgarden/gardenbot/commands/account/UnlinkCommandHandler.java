@@ -29,17 +29,20 @@ public class UnlinkCommandHandler {
 							.setMessage("You do not have a Modrinth account linked to your Mod Garden account.")
 							.markEphemeral();
 				}
-			} else {
-				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
-				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
-						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
-						"Undefined Error.";
-				return new EmbedResponse()
-						.setTitle("Encountered an exception whilst attempting to send the setup for unlinking your Mod Garden account from Modrinth.")
-						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
-						.setColor(0xFF0000)
+			} else if (stream.statusCode() == 404) {
+				return new MessageResponse()
+						.setMessage("You do not have a Mod Garden account.\nPlease register with **/register**.")
 						.markEphemeral();
 			}
+			JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
+			String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
+					json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
+					"Undefined Error.";
+			return new EmbedResponse()
+					.setTitle("Encountered an exception whilst attempting to send the setup for unlinking your Mod Garden account from Modrinth.")
+					.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
+					.setColor(0xFF0000)
+					.markEphemeral();
 		} catch (IOException | InterruptedException ex) {
 			GardenBot.LOG.error("", ex);
 		}
