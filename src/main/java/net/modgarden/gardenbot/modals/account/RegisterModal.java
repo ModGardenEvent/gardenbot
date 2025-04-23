@@ -27,7 +27,7 @@ public class RegisterModal extends SimpleModal {
 		super("modalRegister", "Register your Mod Garden account!", RegisterModal::handleModal,
 				ActionRow.of(
 						TextInput.create("username",
-										"Username (Defaults to Discord Username)",
+										"Username (Defaults to Discord Value)",
 										TextInputStyle.SHORT
 								)
 								.setRequired(false)
@@ -35,7 +35,7 @@ public class RegisterModal extends SimpleModal {
 				),
 				ActionRow.of(
 						TextInput.create("displayName",
-										"Display Name (Defaults to Discord Display Name)",
+										"Display Name (Defaults to Discord Value)",
 										TextInputStyle.SHORT
 								)
 								.setRequired(false)
