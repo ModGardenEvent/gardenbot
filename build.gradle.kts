@@ -31,36 +31,26 @@ dependencies {
 }
 
 tasks {
-    val expandProps = mapOf(
-        "version" to version
-    )
-
-    val processResourcesTasks = listOf("processResources", "processTestResources")
-
-    assemble.configure {
-        dependsOn(processResourcesTasks)
-    }
-
-    jar.configure {
-        manifest {
-            attributes["Main-Class"] = "net.modgarden.backend.ModGardenBackend"
-        }
-    }
-    withType<ProcessResources>().matching { processResourcesTasks.contains(it.name) }.configureEach {
-        inputs.properties(expandProps)
-        filesMatching("landing.json") {
-            expand(expandProps)
-        }
-    }
+	distZip.configure {
+		archiveFileName.set("gardenbot.zip")
+	}
+	jar.configure {
+		manifest {
+			attributes["Main-Class"] = "net.modgarden.gardenbot.GardenBot"
+		}
+		archiveFileName.set("gardenbot.jar")
+	}
     withType<Zip>().configureEach {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 }
 
 distributions {
-    main {
-        distributionBaseName = "gardenbot"
-    }
+	main {
+		contents {
+			into("../gardenbot")
+		}
+	}
 }
 
 application {
