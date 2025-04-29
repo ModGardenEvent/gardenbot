@@ -109,7 +109,7 @@ public class GardenBotEvents extends ListenerAdapter {
 		if (GardenBot.DOTENV.get("MODERATION_LOGS_CHANNEL_ID") == null || !event.getGuild().getId().equals(GardenBot.DOTENV.get("GUILD_ID")) || event.getAuthor().isSystem() || event.getAuthor().isBot() || event.getMessage().getContentRaw().isEmpty() || event.isWebhookMessage())
 			return;
 
-		MessageCacheUtil.cacheMessage(event.getAuthor().getId(), event.getMessageId(), event.getMessage().getContentDisplay());
+		MessageCacheUtil.cacheMessage(event.getAuthor().getId(), event.getMessageId(), event.getMessage().getContentRaw());
 	}
 
 	@Override
@@ -128,7 +128,7 @@ public class GardenBotEvents extends ListenerAdapter {
 				"**Author ID:** " + event.getAuthor().getId();
 
 		String oldMessageContent = MessageCacheUtil.getCachedMessage(event.getMessageId());
-		if (oldMessageContent == null)
+		if (oldMessageContent == null || oldMessageContent.equals(event.getMessage().getContentRaw()))
 			return;
 
 		channel.sendMessageEmbeds(new EmbedBuilder()
@@ -139,7 +139,7 @@ public class GardenBotEvents extends ListenerAdapter {
 				.addField("New Message", event.getMessage().getContentDisplay(), false)
 				.build()).setAllowedMentions(List.of()).queue();
 
-		MessageCacheUtil.cacheMessage(event.getAuthor().getId(), event.getMessageId(), event.getMessage().getContentDisplay());
+		MessageCacheUtil.cacheMessage(event.getAuthor().getId(), event.getMessageId(), event.getMessage().getContentRaw());
 	}
 
 	@Override
