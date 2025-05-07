@@ -57,21 +57,18 @@ public class LinkModrinthModal extends SimpleModal {
 					"Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"),
 					"Content-Type", "application/json"
 			);
-			if (stream.statusCode() == 422) {
+			if (stream.statusCode() < 200 || stream.statusCode() > 299) {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
 				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
 						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
 						"Undefined Error.";
-				return new EmbedResponse()
-						.setTitle("Could not link your Mod Garden account to Modrinth.")
-						.setDescription(errorDescription)
-						.setColor(0x5D3E40)
-						.markEphemeral();
-			} else if (stream.statusCode() < 200 || stream.statusCode() > 299) {
-				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
-				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
-						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
-						"Undefined Error.";
+				if (stream.statusCode() == 422) {
+					return new EmbedResponse()
+							.setTitle("Could not link your Mod Garden account to Modrinth.")
+							.setDescription(errorDescription)
+							.setColor(0x5D3E40)
+							.markEphemeral();
+				}
 				return new EmbedResponse()
 						.setTitle("Encountered an exception whilst attempting to link your Mod Garden account to Modrinth.")
 						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")

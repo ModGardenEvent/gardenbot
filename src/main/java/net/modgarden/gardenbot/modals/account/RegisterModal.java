@@ -32,6 +32,7 @@ public class RegisterModal extends SimpleModal {
 								)
 								.setRequired(false)
 								.setPlaceholder("Leave blank to use your Discord username.")
+								.setMinLength(3)
 								.setMaxLength(32).build()
 				),
 				ActionRow.of(
@@ -49,20 +50,7 @@ public class RegisterModal extends SimpleModal {
 		User user = interaction.event().getUser();
 
 		ModalMapping username = Objects.requireNonNull(interaction.event().getValue("username"));
-		if (!username.getAsString().isEmpty() && !username.getAsString().matches(GardenBot.USERNAME_REGEX))
-			return new EmbedResponse()
-					.setTitle("Could not register your Mod Garden account.")
-					.setDescription("Invalid characters in username.")
-					.setColor(0X5D3E40)
-					.markEphemeral();
-
 		ModalMapping displayName = Objects.requireNonNull(interaction.event().getValue("displayName"));
-		if (!displayName.getAsString().isEmpty() && !displayName.getAsString().matches(GardenBot.DISPLAY_NAME_REGEX))
-			return new EmbedResponse()
-					.setTitle("Could not register your Mod Garden account.")
-					.setDescription("Invalid characters in display name.")
-					.setColor(0X5D3E40)
-					.markEphemeral();
 
 		JsonObject inputJson = new JsonObject();
 		inputJson.addProperty("id", user.getId());
@@ -84,6 +72,13 @@ public class RegisterModal extends SimpleModal {
 				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
 						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
 						"Undefined Error.";
+				if (stream.statusCode() == 422) {
+					return new EmbedResponse()
+							.setTitle("Could not register your Mod Garden account.")
+							.setDescription(errorDescription)
+							.setColor(0x5D3E40)
+							.markEphemeral();
+				}
 				return new EmbedResponse()
 						.setTitle("Encountered an exception whilst attempting to register your Mod Garden account.")
 						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")

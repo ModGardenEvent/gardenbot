@@ -1,10 +1,7 @@
 package net.modgarden.gardenbot;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.modgarden.gardenbot.commands.account.LinkCommandHandler;
-import net.modgarden.gardenbot.commands.account.RegisterCommandHandler;
-import net.modgarden.gardenbot.commands.account.SubmitHandler;
-import net.modgarden.gardenbot.commands.account.UnlinkCommandHandler;
+import net.modgarden.gardenbot.commands.account.*;
 import net.modgarden.gardenbot.interaction.command.SlashCommand;
 import net.modgarden.gardenbot.interaction.command.SlashCommandDispatcher;
 import net.modgarden.gardenbot.interaction.command.SlashCommandOption;
@@ -25,6 +22,42 @@ public class GardenBotCommands {
 						"Unlinks your account from Modrinth",
 						UnlinkCommandHandler::handleModrinthUnlink
 				)));
+
+		SlashCommandDispatcher.register(new SlashCommand("profile", "Actions relating to your visible Mod Garden profile.",
+				new SlashCommand.SubCommandGroup(
+						"modify",
+						"Allows you to modify various options about your Mod Garden profile.",
+						new SlashCommand.SubCommand(
+								"username",
+								"Modifies your Mod Garden username.",
+								ProfileCommandHandler::handleModifyUsername,
+								new SlashCommandOption(OptionType.STRING, "username", "The new username for your account.", true, false)
+						),
+						new SlashCommand.SubCommand(
+								"displayname",
+								"Modifies your Mod Garden display name.",
+								ProfileCommandHandler::handleModifyDisplayName,
+								new SlashCommandOption(OptionType.STRING, "displayname", "The new display name for your account.", true, false)
+						),
+						new SlashCommand.SubCommand(
+								"pronouns",
+								"Modifies your pronouns on your Mod Garden profile.",
+								ProfileCommandHandler::handleModifyPronouns,
+								new SlashCommandOption(OptionType.STRING, "pronouns", "The new pronouns to show on your account.", true, false)
+						)
+				),
+				new SlashCommand.SubCommandGroup(
+						"remove",
+						"Allows you to remove various options from your Mod Garden profile.",
+						new SlashCommand.SubCommand(
+								"pronouns",
+								"Removes any pronouns from your Mod Garden profile.",
+								ProfileCommandHandler::removePronouns
+						)
+				)
+		));
+
+
 		SlashCommandDispatcher.register(new SlashCommand("submit", "Submit your project to a current Mod Garden event.",
 				new SlashCommand.SubCommand(
 						"modrinth",

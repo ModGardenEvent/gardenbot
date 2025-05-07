@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 import net.modgarden.gardenbot.interaction.InteractionHandler;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
@@ -23,14 +24,16 @@ public class SlashCommand extends AbstractSlashCommand {
 	public final SlashCommandOption[] OPTIONS;
 	@Nullable
 	public final AutoCompleteFunction COMPLETION_FUNCTION;
+	public final Map<String, SubCommandGroup> SUBCOMMAND_GROUPS;
 	public final Map<String, SubCommand> SUBCOMMANDS;
 
-	public SlashCommand(String name, String description, InteractionHandler<SlashCommandInteraction> handler, @Nullable AutoCompleteFunction completionFunction, SlashCommandOption... options) {
+	public SlashCommand(String name, String description, @NotNull InteractionHandler<SlashCommandInteraction> handler, @Nullable AutoCompleteFunction completionFunction, SlashCommandOption... options) {
 		super(name, description);
 		HANDLER = handler;
 		OPTIONS = options;
 		COMPLETION_FUNCTION = completionFunction;
-		SUBCOMMANDS = Map.of();
+		SUBCOMMAND_GROUPS = Collections.emptyMap();
+		SUBCOMMANDS = Collections.emptyMap();
 	}
 
 	public SlashCommand(String name, String description, SubCommand... subCommands) {
@@ -38,21 +41,36 @@ public class SlashCommand extends AbstractSlashCommand {
 		HANDLER = null;
 		OPTIONS = new SlashCommandOption[0];
 		COMPLETION_FUNCTION = null;
+		SUBCOMMAND_GROUPS = Collections.emptyMap();
 		SUBCOMMANDS = Arrays.stream(subCommands)
 				.map(subCommand -> Pair.of(subCommand.NAME, subCommand))
 				.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
 	}
 
+	public SlashCommand(String name, String description, SubCommandGroup... subCommandGroups) {
+		super(name, description);
+		HANDLER = null;
+		OPTIONS = new SlashCommandOption[0];
+		COMPLETION_FUNCTION = null;
+		SUBCOMMAND_GROUPS = Arrays.stream(subCommandGroups)
+				.map(subCommand -> Pair.of(subCommand.NAME, subCommand))
+				.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+		SUBCOMMANDS = Collections.emptyMap();
+	}
+
 	@NotNull
 	@Override
 	public Response respond(SlashCommandInteraction interaction) {
+		if (interaction.event().getSubcommandGroup() != null && SUBCOMMAND_GROUPS.containsKey(interaction.event().getSubcommandGroup()))
+			return SUBCOMMAND_GROUPS.get(interaction.event().getSubcommandGroup()).respond(interaction);
+
 		if (interaction.event().getSubcommandName() != null && SUBCOMMANDS.containsKey(interaction.event().getSubcommandName()))
 			return SUBCOMMANDS.get(interaction.event().getSubcommandName()).respond(interaction);
 
 		if (HANDLER != null)
 			return HANDLER.respond(interaction);
 
-		throw new UnsupportedOperationException("Invalid slash command response. Make sure the handler or subcommand you are trying to access exists.");
+		throw new UnsupportedOperationException("Invalid slash command response. Make sure the handler you are trying to access exists.");
 	}
 
 	@Override
@@ -65,8 +83,11 @@ public class SlashCommand extends AbstractSlashCommand {
 		for (var option : OPTIONS)
 			command.addOption(option.type(), option.name(), option.description(), option.required(), option.isAutoComplete());
 
-		for (var subcommand : SUBCOMMANDS.values())
-			command.addSubcommands(subcommand.getData());
+		for (var subCommandGroup : SUBCOMMAND_GROUPS.values())
+			command.addSubcommandGroups(subCommandGroup.getData());
+
+		for (var subCommand : SUBCOMMANDS.values())
+			command.addSubcommands(subCommand.getData());
 
 		return command;
 	}
@@ -77,7 +98,7 @@ public class SlashCommand extends AbstractSlashCommand {
 			SubCommand subCommand = SUBCOMMANDS.get(subcommandName);
 			if (subCommand != null && subCommand.COMPLETION_FUNCTION != null)
 				return subCommand.COMPLETION_FUNCTION.autoCompleteChoices(focusedOption);
-			return SUBCOMMANDS.get(subcommandGroup).SUBCOMMANDS.get(subcommandName).COMPLETION_FUNCTION.autoCompleteChoices(focusedOption);
+			return Collections.emptyList();
 		}
 		return COMPLETION_FUNCTION != null ? COMPLETION_FUNCTION.autoCompleteChoices(focusedOption) : Collections.emptyList();
 	}
@@ -89,33 +110,28 @@ public class SlashCommand extends AbstractSlashCommand {
 		@Nullable
 		public final AutoCompleteFunction COMPLETION_FUNCTION;
 		public final SlashCommandOption[] OPTIONS;
-		public final Map<String, SubCommand> SUBCOMMANDS;
 
 		public SubCommand(String name,
 						  String description,
 						  InteractionHandler<SlashCommandInteraction> handler,
-						  SubCommand... subCommands) {
+						  SlashCommandOption... options) {
 			NAME = name;
 			DESCRIPTION = description;
 			HANDLER = handler;
 			COMPLETION_FUNCTION = null;
-			OPTIONS = new SlashCommandOption[0];
-			SUBCOMMANDS = Arrays.stream(subCommands)
-					.map(subCommand -> Pair.of(subCommand.NAME, subCommand))
-					.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+			OPTIONS = options;
 		}
 
 		public SubCommand(String name,
 						  String description,
 						  InteractionHandler<SlashCommandInteraction> handler,
-						  @Nullable AutoCompleteFunction completionFunction,
+						  @NotNull AutoCompleteFunction completionFunction,
 						  SlashCommandOption... options) {
 			NAME = name;
 			DESCRIPTION = description;
 			HANDLER = handler;
 			COMPLETION_FUNCTION = completionFunction;
 			OPTIONS = options;
-			SUBCOMMANDS = Collections.emptyMap();
 		}
 
 		@NotNull
@@ -128,6 +144,38 @@ public class SlashCommand extends AbstractSlashCommand {
 
 			for (var option : OPTIONS)
 				command.addOption(option.type(), option.name(), option.description(), option.required(), option.isAutoComplete());
+
+			return command;
+		}
+	}
+
+
+	public static class SubCommandGroup {
+		public final String NAME;
+		public final String DESCRIPTION;
+		public final Map<String, SubCommand> SUBCOMMANDS;
+
+		public SubCommandGroup(String name, String description, SubCommand... subCommands) {
+			NAME = name;
+			DESCRIPTION = description;
+			SUBCOMMANDS = Arrays.stream(subCommands)
+					.map(subCommand -> Pair.of(subCommand.NAME, subCommand))
+					.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+		}
+
+		@NotNull
+		public Response respond(SlashCommandInteraction interaction) {
+			SubCommand subCommand = SUBCOMMANDS.get(interaction.event().getSubcommandName());
+			if (subCommand != null)
+				return subCommand.respond(interaction);
+			throw new UnsupportedOperationException("Invalid slash command response. Make sure the handler you are trying to access exists.");
+		}
+
+		SubcommandGroupData getData() {
+			var command = new SubcommandGroupData(NAME, DESCRIPTION);
+
+			for (var subcommand : SUBCOMMANDS.values())
+				command.addSubcommands(subcommand.getData());
 
 			return command;
 		}
