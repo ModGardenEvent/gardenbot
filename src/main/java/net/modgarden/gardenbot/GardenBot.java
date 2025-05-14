@@ -18,7 +18,7 @@ import java.sql.*;
 public class GardenBot {
 	public static final Logger LOG = LoggerFactory.getLogger("GardenBot");
 	public static final String API_URL = "development".equals(System.getenv("env")) ? "http://localhost:7070/v1/" : "https://api.modgarden.net/v1/";
-	public static final String VERSION = "1.0.0";
+	public static final String VERSION = "1.1.1";
 
 	public static final Dotenv DOTENV = Dotenv.load();
 	public static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
