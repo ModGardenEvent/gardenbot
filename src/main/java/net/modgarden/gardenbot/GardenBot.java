@@ -23,8 +23,6 @@ public class GardenBot {
 	public static final Dotenv DOTENV = Dotenv.load();
 	public static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
-	public static final String USERNAME_REGEX = "^(?=.{2,32}$).?[a-z0-9_]+(?:.[a-z0-9_]+)*.?$";
-	public static final String DISPLAY_NAME_REGEX = "^(?=.{2,32}$)[A-Za-z]+(( )?(('|-|.)?([A-Za-z])+))*$";
 	private static final int DATABASE_SCHEMA_VERSION = 1;
 
 	public static JDA jda;
