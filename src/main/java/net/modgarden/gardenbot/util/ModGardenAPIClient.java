@@ -8,9 +8,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class ModGardenAPIClient {
+	private static final String USER_AGENT = "ModGardenEvent/gardenbot/" + GardenBot.VERSION + " (modgarden.net)";
+
 	public static <T> HttpResponse<T> get(String endpoint, HttpResponse.BodyHandler<T> bodyHandler, String... headers) throws IOException, InterruptedException {
 		var req = HttpRequest.newBuilder(URI.create(GardenBot.API_URL + endpoint))
-				.header("User-Agent", "ModGardenEvent/gardenbot/" + GardenBot.VERSION + " (modgarden.net)");
+				.header("User-Agent", USER_AGENT);
 		if (headers.length > 0)
 			req.headers(headers);
 
@@ -19,7 +21,7 @@ public class ModGardenAPIClient {
 
 	public static <T> HttpResponse<T> post(String endpoint, HttpRequest.BodyPublisher bodyPublisher, HttpResponse.BodyHandler<T> bodyHandler, String... headers) throws IOException, InterruptedException {
 		var req = HttpRequest.newBuilder(URI.create(GardenBot.API_URL + endpoint))
-				.header("User-Agent", "ModGardenEvent/gardenbot/" + GardenBot.VERSION + " (modgarden.net)");
+				.header("User-Agent", USER_AGENT);
 		if (headers.length > 0)
 			req.headers(headers);
 		req.POST(bodyPublisher);
