@@ -14,7 +14,7 @@ import java.io.InputStream;
 import java.net.http.HttpResponse;
 
 public class RegisterCommandHandler {
-	public static Response handleRegistration(SlashCommandInteraction interaction) {
+	public static Response handleAccountCreation(SlashCommandInteraction interaction) {
 		User user = interaction.event().getUser();
 
 		try {

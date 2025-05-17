@@ -9,7 +9,11 @@ import net.modgarden.gardenbot.interaction.command.SlashCommandOption;
 public class GardenBotCommands {
 
 	public static void registerAll() {
-		SlashCommandDispatcher.register(new SlashCommand("register", "Registers a Mod Garden account for yourself.", RegisterCommandHandler::handleRegistration, null));
+		SlashCommandDispatcher.register(new SlashCommand("account", "Manage your Mod Garden account.",
+				new SlashCommand.SubCommand(
+						"create",
+						"Registers a Mod Garden account for yourself.", RegisterCommandHandler::handleAccountCreation
+				)));
 		SlashCommandDispatcher.register(new SlashCommand("link", "Link your account with different services.",
 				new SlashCommand.SubCommand(
 						"modrinth",
