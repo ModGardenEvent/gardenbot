@@ -33,8 +33,7 @@ public class SlashCommandDispatcher {
 	}
 
 	public static void addCommands(Guild guild) {
-		for (CommandData data : COMMANDS.values().stream().map(AbstractSlashCommand::getData).toList()) {
-			guild.upsertCommand(data).queue();
-		}
+		// TODO: Only upsert when a commit has [upsert] in its name if possible.
+		guild.updateCommands().addCommands(COMMANDS.values().stream().map(AbstractSlashCommand::getData).toList()).complete();
 	}
 }
