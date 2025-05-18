@@ -1,7 +1,7 @@
 [versions]
 dotenv = "2.3.0"
 gson = "2.12.1"
-logback = "1.5.12"
+logback = "1.5.18"
 jda = "5.2.3"
 sqlite = "3.47.1.0"
 
