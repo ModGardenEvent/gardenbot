@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpResponse;
 
-public class RegisterCommandHandler {
+public class CreateCommandHandler {
 	public static Response handleAccountCreation(SlashCommandInteraction interaction) {
 		User user = interaction.event().getUser();
 
@@ -21,7 +21,7 @@ public class RegisterCommandHandler {
 			HttpResponse<InputStream> stream = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
 			if (stream.statusCode() == 200) {
 				return new MessageResponse()
-						.setMessage("You are already registered with Mod Garden.")
+						.setMessage("You already have an account with Mod Garden.")
 						.markEphemeral();
 			}
 		} catch (IOException | InterruptedException ex) {

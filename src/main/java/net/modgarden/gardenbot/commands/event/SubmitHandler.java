@@ -1,4 +1,4 @@
-package net.modgarden.gardenbot.commands.account;
+package net.modgarden.gardenbot.commands.event;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

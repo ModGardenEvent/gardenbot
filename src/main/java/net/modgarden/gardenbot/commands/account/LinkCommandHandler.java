@@ -32,7 +32,7 @@ public class LinkCommandHandler {
 							.markEphemeral();
 			} else if (stream.statusCode() == 404) {
 				return new MessageResponse()
-						.setMessage("You do not have a Mod Garden account.\nPlease register with **/register**.")
+						.setMessage("You do not have a Mod Garden account.\nPlease create one with **/account create**.")
 						.markEphemeral();
 			} else {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
@@ -76,7 +76,7 @@ public class LinkCommandHandler {
 			HttpResponse<InputStream> stream = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
 			if (stream.statusCode() == 404) {
 				return new MessageResponse()
-						.setMessage("You do not have a Mod Garden account.\nPlease register with **/register**.");
+						.setMessage("You do not have a Mod Garden account.\nPlease create one with **/account create**.");
 			} else if (stream.statusCode() != 200) {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
 				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?

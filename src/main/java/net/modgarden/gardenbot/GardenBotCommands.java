@@ -2,6 +2,9 @@ package net.modgarden.gardenbot;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.modgarden.gardenbot.commands.account.*;
+import net.modgarden.gardenbot.commands.event.RegisterHandler;
+import net.modgarden.gardenbot.commands.event.SubmitHandler;
+import net.modgarden.gardenbot.commands.event.UnregisterHandler;
 import net.modgarden.gardenbot.interaction.command.SlashCommand;
 import net.modgarden.gardenbot.interaction.command.SlashCommandDispatcher;
 import net.modgarden.gardenbot.interaction.command.SlashCommandOption;
@@ -12,7 +15,7 @@ public class GardenBotCommands {
 		SlashCommandDispatcher.register(new SlashCommand("account", "Manage your Mod Garden account.",
 				new SlashCommand.SubCommand(
 						"create",
-						"Registers a Mod Garden account for yourself.", RegisterCommandHandler::handleAccountCreation
+						"Registers a Mod Garden account for yourself.", CreateCommandHandler::handleAccountCreation
 				)));
 		SlashCommandDispatcher.register(new SlashCommand("link", "Link your account with different services.",
 				new SlashCommand.SubCommand(
@@ -62,6 +65,17 @@ public class GardenBotCommands {
 		));
 
 
+		SlashCommandDispatcher.register(new SlashCommand("event", "Actions relating to Mod Garden events.",
+				new SlashCommand.SubCommand(
+						"register",
+						"Registers you to a current Mod Garden event.",
+						RegisterHandler::handleEventRegister
+				),
+				new SlashCommand.SubCommand(
+						"unregister",
+						"Unregisters you from a current Mod Garden event.",
+						UnregisterHandler::handleEventUnregister
+				)));
 		SlashCommandDispatcher.register(new SlashCommand("submit", "Submit your project to a current Mod Garden event.",
 				new SlashCommand.SubCommand(
 						"modrinth",

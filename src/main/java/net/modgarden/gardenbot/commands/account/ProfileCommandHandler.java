@@ -30,7 +30,7 @@ public class ProfileCommandHandler {
 			HttpResponse<InputStream> userStream = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
 			if (userStream.statusCode() == 404) {
 				return new MessageResponse()
-						.setMessage("You do not have a Mod Garden account.\nPlease register with **/register**.")
+						.setMessage("You do not have a Mod Garden account.\nPlease create one with **/account create**.")
 						.markEphemeral();
 			} else if (userStream.statusCode() != 200) {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(userStream.body()));
@@ -101,7 +101,7 @@ public class ProfileCommandHandler {
 			HttpResponse<InputStream> userStream = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
 			if (userStream.statusCode() == 404) {
 				return new MessageResponse()
-						.setMessage("You do not have a Mod Garden account.\nPlease register with **/register**.")
+						.setMessage("You do not have a Mod Garden account.\nPlease create one with **/account create**.")
 						.markEphemeral();
 			} else if (userStream.statusCode() != 200) {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(userStream.body()));
@@ -172,7 +172,7 @@ public class ProfileCommandHandler {
 			HttpResponse<InputStream> userStream = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
 			if (userStream.statusCode() == 404) {
 				return new MessageResponse()
-						.setMessage("You do not have a Mod Garden account.\nPlease register with **/register**.")
+						.setMessage("You do not have a Mod Garden account.\nPlease create one with **/account create**.")
 						.markEphemeral();
 			} else if (userStream.statusCode() != 200) {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(userStream.body()));
@@ -244,7 +244,7 @@ public class ProfileCommandHandler {
 			HttpResponse<InputStream> userStream = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
 			if (userStream.statusCode() == 404) {
 				return new MessageResponse()
-						.setMessage("You do not have a Mod Garden account.\nPlease register with **/register**.")
+						.setMessage("You do not have a Mod Garden account.\nPlease create one with **/account create**.")
 						.markEphemeral();
 			} else if (userStream.statusCode() != 200) {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(userStream.body()));
