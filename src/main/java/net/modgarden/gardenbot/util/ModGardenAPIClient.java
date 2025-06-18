@@ -12,7 +12,8 @@ public class ModGardenAPIClient {
 
 	public static <T> HttpResponse<T> get(String endpoint, HttpResponse.BodyHandler<T> bodyHandler, String... headers) throws IOException, InterruptedException {
 		var req = HttpRequest.newBuilder(URI.create(GardenBot.API_URL + endpoint))
-				.header("User-Agent", USER_AGENT);
+				.header("User-Agent", USER_AGENT)
+				.header("Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"));
 		if (headers.length > 0)
 			req.headers(headers);
 
@@ -21,7 +22,8 @@ public class ModGardenAPIClient {
 
 	public static <T> HttpResponse<T> post(String endpoint, HttpRequest.BodyPublisher bodyPublisher, HttpResponse.BodyHandler<T> bodyHandler, String... headers) throws IOException, InterruptedException {
 		var req = HttpRequest.newBuilder(URI.create(GardenBot.API_URL + endpoint))
-				.header("User-Agent", USER_AGENT);
+				.header("User-Agent", USER_AGENT)
+				.header("Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"));
 		if (headers.length > 0)
 			req.headers(headers);
 		req.POST(bodyPublisher);

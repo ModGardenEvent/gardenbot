@@ -1,5 +1,6 @@
 package net.modgarden.gardenbot.interaction.command;
 
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
@@ -93,14 +94,14 @@ public class SlashCommand extends AbstractSlashCommand {
 	}
 
 	@Override
-	public List<Command.Choice> getAutoCompleteChoices(String focusedOption, @Nullable String subcommandGroup, @Nullable String subcommandName) {
+	public List<Command.Choice> getAutoCompleteChoices(String focusedOption, User user, @Nullable String subcommandGroup, @Nullable String subcommandName) {
 		if (!SUBCOMMANDS.isEmpty()) {
 			SubCommand subCommand = SUBCOMMANDS.get(subcommandName);
 			if (subCommand != null && subCommand.COMPLETION_FUNCTION != null)
-				return subCommand.COMPLETION_FUNCTION.autoCompleteChoices(focusedOption);
+				return subCommand.COMPLETION_FUNCTION.autoCompleteChoices(focusedOption, user);
 			return Collections.emptyList();
 		}
-		return COMPLETION_FUNCTION != null ? COMPLETION_FUNCTION.autoCompleteChoices(focusedOption) : Collections.emptyList();
+		return COMPLETION_FUNCTION != null ? COMPLETION_FUNCTION.autoCompleteChoices(focusedOption, user) : Collections.emptyList();
 	}
 
 	public static class SubCommand {
@@ -183,6 +184,6 @@ public class SlashCommand extends AbstractSlashCommand {
 
 	@FunctionalInterface
 	public interface AutoCompleteFunction {
-		List<Command.Choice> autoCompleteChoices(String focusedOption);
+		List<Command.Choice> autoCompleteChoices(String focusedOption, User user);
 	}
 }

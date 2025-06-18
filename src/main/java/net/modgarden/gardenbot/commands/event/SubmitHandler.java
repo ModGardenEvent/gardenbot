@@ -42,7 +42,6 @@ public class SubmitHandler {
 					"discord/submission/create",
 					HttpRequest.BodyPublishers.ofString(inputJson.toString()),
 					HttpResponse.BodyHandlers.ofInputStream(),
-					"Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"),
 					"Content-Type", "application/json"
 			);
 			JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
@@ -79,7 +78,7 @@ public class SubmitHandler {
 		}
 	}
 
-	public static List<Command.Choice> getChoices(String focusedOption)  {
+	public static List<Command.Choice> getChoices(String focusedOption, User user) {
 		if (focusedOption.equals("slug")) {
 			return Collections.emptyList();
 		}

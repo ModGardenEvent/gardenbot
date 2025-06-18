@@ -54,7 +54,6 @@ public class LinkModrinthModal extends SimpleModal {
 					"discord/link",
 					HttpRequest.BodyPublishers.ofString(inputJson.toString()),
 					HttpResponse.BodyHandlers.ofInputStream(),
-					"Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"),
 					"Content-Type", "application/json"
 			);
 			if (stream.statusCode() < 200 || stream.statusCode() > 299) {
@@ -64,13 +63,13 @@ public class LinkModrinthModal extends SimpleModal {
 						"Undefined Error.";
 				if (stream.statusCode() == 422) {
 					return new EmbedResponse()
-							.setTitle("Could not link your Mod Garden account to Modrinth.")
+							.setTitle("Could not link your Minecraft account to your Mod Garden account.")
 							.setDescription(errorDescription)
 							.setColor(0x5D3E40)
 							.markEphemeral();
 				}
 				return new EmbedResponse()
-						.setTitle("Encountered an exception whilst attempting to link your Mod Garden account to Modrinth.")
+						.setTitle("Encountered an exception whilst attempting to link your Modrinth account to your Mod Garden account.")
 						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
 						.setColor(0xFF0000)
 						.markEphemeral();
@@ -78,14 +77,14 @@ public class LinkModrinthModal extends SimpleModal {
 		} catch (IOException | InterruptedException ex) {
 			GardenBot.LOG.error("", ex);
 			return new EmbedResponse()
-					.setTitle("Encountered an exception whilst attempting to link your Mod Garden account to Modrinth.")
+					.setTitle("Encountered an exception whilst attempting to link your Modrinth account to your Mod Garden account.")
 					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
 					.setColor(0xFF0000)
 					.markEphemeral();
 		}
 
 		return new EmbedResponse()
-				.setTitle("Successfully linked your Modrinth account to Mod Garden!")
+				.setTitle("Successfully linked your Modrinth account to your Mod Garden account!")
 				.setColor(0xA9FFA7)
 				.markEphemeral();
 	}

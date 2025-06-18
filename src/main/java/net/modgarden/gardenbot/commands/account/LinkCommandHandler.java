@@ -17,6 +17,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
 
 public class LinkCommandHandler {
 	public static Response handleModrinthLink(SlashCommandInteraction interaction) {
@@ -34,7 +36,7 @@ public class LinkCommandHandler {
 				return new MessageResponse()
 						.setMessage("You do not have a Mod Garden account.\nPlease create one with **/account create**.")
 						.markEphemeral();
-			} else {
+			} else if (stream.statusCode() < 200 && stream.statusCode() > 299) {
 				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
 				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
 						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
@@ -52,8 +54,12 @@ public class LinkCommandHandler {
 		return new EmbedResponse()
 				.setTitle("Link your Modrinth Account!")
 				.setDescription(
-						"1. Authorize with Modrinth, which will redirect you to a page with a link code.\n" +
-						"2. Enter your link code inside the modal.")
+						"""
+						1. Authorize with Modrinth, which will redirect you to a page with a link code.
+						2. 2. Enter your link code inside the modal.
+
+						You may only have one Modrinth account linked to your Mod Garden account.
+						""")
 				.setColor(0xA9FFA7)
 				.addButtonUrl(
 						URI.create("https://modrinth.com/auth/authorize?client_id=Q2tuKyb4&redirect_uri=" + GardenBot.API_URL + "discord/oauth/modrinth&scope=USER_READ+PROJECT_READ+VERSION_READ+ORGANIZATION_READ"),
@@ -70,36 +76,58 @@ public class LinkCommandHandler {
 
 
 	public static Response handleMinecraftLink(SlashCommandInteraction interaction) {
+		interaction.event().deferReply(true).queue();
 		User user = interaction.event().getUser();
+		String challengeCode = null;
 
 		try {
-			HttpResponse<InputStream> stream = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
-			if (stream.statusCode() == 404) {
+			HttpResponse<InputStream> userResponse = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
+			if (userResponse.statusCode() == 404) {
 				return new MessageResponse()
 						.setMessage("You do not have a Mod Garden account.\nPlease create one with **/account create**.");
-			} else if (stream.statusCode() != 200) {
-				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
-				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
-						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
-						"Undefined Error.";
-				return new EmbedResponse()
-						.setTitle("Encountered an exception whilst attempting to send the setup for linking your Minecraft account to your Mod Garden account.")
-						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
-						.setColor(0xFF0000)
-						.markEphemeral();
+			} else if (userResponse.statusCode() != 200) {
+				try (var userStream = new InputStreamReader(userResponse.body())) {
+					JsonElement json = JsonParser.parseReader(userStream);
+					String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
+							json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
+							"Undefined Error.";
+					return new EmbedResponse()
+							.setTitle("Encountered an exception whilst attempting to send the setup for linking your Minecraft account to your Mod Garden account.")
+							.setDescription(userResponse.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
+							.setColor(0xFF0000)
+							.markEphemeral();
+				}
+			}
+
+			HttpResponse<InputStream> challengeCodeResponse = ModGardenAPIClient.get("discord/oauth/minecraft/challenge", HttpResponse.BodyHandlers.ofInputStream());
+			try (var challengeCodeStream = new InputStreamReader(challengeCodeResponse.body(), StandardCharsets.UTF_8)) {
+				challengeCode = new Scanner(challengeCodeStream).next();
 			}
 		} catch (IOException | InterruptedException ex) {
 			GardenBot.LOG.error("", ex);
 		}
 
+		if (challengeCode == null) {
+			return new EmbedResponse()
+					.setTitle("Encountered an exception whilst attempting to send the setup for linking your Minecraft account to your Mod Garden account.")
+					.setDescription("Failed to create challenge code for Microsoft Authentication.\nPlease report this to a team member.")
+					.setColor(0xFF0000)
+					.markEphemeral();
+		}
+
 		return new EmbedResponse()
 				.setTitle("Link your Minecraft Account!")
 				.setDescription(
-						"1. Authorize with Microsoft, which will redirect you to a page with a link code.\n" +
-								"2. Enter your link code inside the modal.")
+						"""
+						1. Authorize with Microsoft, which will redirect you to a page with a link code.
+						2. Enter your link code inside the modal.
+
+						You may have multiple Minecraft accounts linked to your Mod Garden account.
+						You are only able to use each Microsoft Authorization link once. Please generate a new message if you need another one.
+						""")
 				.setColor(0xA9FFA7)
 				.addButtonUrl(
-						URI.create("https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=5023fb8b-017e-497a-82af-de70b3b754f0&response_type=code&redirect_uri=" + GardenBot.API_URL + "discord/oauth/minecraft&scope=XboxLive.signin api.minecraftservices.com"),
+						URI.create("https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=e7ee42f6-e542-4ce6-9f7b-1d31941e84c6&response_type=code&redirect_uri=" + GardenBot.API_URL.replaceAll(":", "%3A").replaceAll("/", "%2F") + "discord%2Foauth%2Fminecraft&response_mode=query&scope=XboxLive.signIn&state=" + challengeCode + "&prompt=select_account&code_challenge=" + challengeCode + "&code_challenge_method=S256"),
 						"1. Authorize",
 						Emoji.fromCustom("microsoft", 1360176270687731842L, false)
 				)

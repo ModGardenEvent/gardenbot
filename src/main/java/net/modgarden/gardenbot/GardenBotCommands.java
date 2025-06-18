@@ -3,7 +3,6 @@ package net.modgarden.gardenbot;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.modgarden.gardenbot.commands.account.*;
 import net.modgarden.gardenbot.commands.event.RegisterHandler;
-import net.modgarden.gardenbot.commands.event.SubmitHandler;
 import net.modgarden.gardenbot.commands.event.UnregisterHandler;
 import net.modgarden.gardenbot.interaction.command.SlashCommand;
 import net.modgarden.gardenbot.interaction.command.SlashCommandDispatcher;
@@ -17,17 +16,29 @@ public class GardenBotCommands {
 						"create",
 						"Registers a Mod Garden account for yourself.", CreateCommandHandler::handleAccountCreation
 				)));
-		SlashCommandDispatcher.register(new SlashCommand("link", "Link your account with different services.",
+		SlashCommandDispatcher.register(new SlashCommand("link", "Link different services to your Mod Garden account.",
 				new SlashCommand.SubCommand(
 						"modrinth",
-						"Provides setup to link your account with Modrinth",
+						"Provides setup to link your Modrinth account",
 						LinkCommandHandler::handleModrinthLink
+				),
+				new SlashCommand.SubCommand(
+						"minecraft",
+						"Provides setup to link your Minecraft account",
+						LinkCommandHandler::handleMinecraftLink
 				)));
-		SlashCommandDispatcher.register(new SlashCommand("unlink", "Unlink your account from different services.",
+		SlashCommandDispatcher.register(new SlashCommand("unlink", "Unlink different services from your Mod Garden account.",
 				new SlashCommand.SubCommand(
 						"modrinth",
-						"Unlinks your account from Modrinth",
+						"Unlinks your Modrinth account from Mod Garden",
 						UnlinkCommandHandler::handleModrinthUnlink
+				),
+				new SlashCommand.SubCommand(
+						"minecraft",
+						"Unlinks your Minecraft account(s) from Mod Garden",
+						UnlinkCommandHandler::handleMinecraftUnlink,
+						UnlinkCommandHandler::getMinecraftChoices,
+						new SlashCommandOption(OptionType.STRING, "account", "The username of the Minecraft account to unlink.", true, true)
 				)));
 
 		SlashCommandDispatcher.register(new SlashCommand("profile", "Actions relating to your visible Mod Garden profile.",
@@ -76,15 +87,16 @@ public class GardenBotCommands {
 						"Unregisters you from a current Mod Garden event.",
 						UnregisterHandler::handleEventUnregister
 				)));
-		SlashCommandDispatcher.register(new SlashCommand("submit", "Submit your project to a current Mod Garden event.",
-				new SlashCommand.SubCommand(
-						"modrinth",
-						"Submits your Modrinth project to a current Mod Garden event.",
-						SubmitHandler::handleSubmitModrinth,
-						SubmitHandler::getChoices,
-						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the Modrinth project to submit.", true, true),
-						new SlashCommandOption(OptionType.STRING, "event", "The event to submit to. Does not have to be specified ", false, true)
-				)));
+		// FIXME: Submit command, commented out whilst non functional to prevent potential abuse.
+//		SlashCommandDispatcher.register(new SlashCommand("submit", "Submit your project to a current Mod Garden event.",
+//				new SlashCommand.SubCommand(
+//						"modrinth",
+//						"Submits your Modrinth project to a current Mod Garden event.",
+//						SubmitHandler::handleSubmitModrinth,
+//						SubmitHandler::getChoices,
+//						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the Modrinth project to submit.", true, false),
+//						new SlashCommandOption(OptionType.STRING, "event", "The event to submit to. Does not have to be specified ", false, true)
+//				)));
 
 		// TODO: Implement Ban command.
 //		SlashCommandDispatcher.register(new SlashCommand("ban", "Bans a user from the Mod Garden Discord.", BanCommandHandler::handleBan,
