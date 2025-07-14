@@ -3,7 +3,9 @@ package net.modgarden.gardenbot;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.modgarden.gardenbot.commands.account.*;
 import net.modgarden.gardenbot.commands.event.RegisterHandler;
+import net.modgarden.gardenbot.commands.event.SubmitHandler;
 import net.modgarden.gardenbot.commands.event.UnregisterHandler;
+import net.modgarden.gardenbot.commands.event.UnsubmitHandler;
 import net.modgarden.gardenbot.interaction.command.SlashCommand;
 import net.modgarden.gardenbot.interaction.command.SlashCommandDispatcher;
 import net.modgarden.gardenbot.interaction.command.SlashCommandOption;
@@ -86,17 +88,24 @@ public class GardenBotCommands {
 						"unregister",
 						"Unregisters you from a current Mod Garden event.",
 						UnregisterHandler::handleEventUnregister
+				),
+				new SlashCommand.SubCommand(
+						"submit",
+						"Submit your Modrinth project to a current Mod Garden event.",
+						SubmitHandler::handleSubmit,
+						SubmitHandler::getChoices,
+						new SlashCommandOption(OptionType.STRING, "source", "The source of your project.", true, true),
+						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the project to submit.", true, false),
+						new SlashCommandOption(OptionType.STRING, "event", "A specific event to submit to.", false, true)
+				),
+				new SlashCommand.SubCommand(
+						"unsubmit",
+						"Unsubmit your Modrinth project from a current Mod Garden event.",
+						UnsubmitHandler::handleUnsubmit,
+						UnsubmitHandler::getChoices,
+						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the project to unsubmit.", true, false),
+						new SlashCommandOption(OptionType.STRING, "event", "A specific event to unsubmit from.", false, true)
 				)));
-		// FIXME: Submit command, commented out whilst non functional to prevent potential abuse.
-//		SlashCommandDispatcher.register(new SlashCommand("submit", "Submit your project to a current Mod Garden event.",
-//				new SlashCommand.SubCommand(
-//						"modrinth",
-//						"Submits your Modrinth project to a current Mod Garden event.",
-//						SubmitHandler::handleSubmitModrinth,
-//						SubmitHandler::getChoices,
-//						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the Modrinth project to submit.", true, false),
-//						new SlashCommandOption(OptionType.STRING, "event", "The event to submit to. Does not have to be specified ", false, true)
-//				)));
 
 		// TODO: Implement Ban command.
 //		SlashCommandDispatcher.register(new SlashCommand("ban", "Bans a user from the Mod Garden Discord.", BanCommandHandler::handleBan,
