@@ -79,7 +79,7 @@ public class UnsubmitHandler {
 		}
 	}
 
-	public static List<Command.Choice> getChoices(String focusedOption)  {
+	public static List<Command.Choice> getChoices(String focusedOption, User user)  {
 		if (focusedOption.equals("slug")) {
 			// TODO: Get a user's projects that can be unsubmitted.
 			return Collections.emptyList();

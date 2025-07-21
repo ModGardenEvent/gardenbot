@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.requests.RestAction;
@@ -40,10 +41,11 @@ public class EmbedResponse implements Response {
 
 		return embed.build();
 	}
-	
+
 	public RestAction<?> createAction(IReplyCallback callback) {
 		if (callback.isAcknowledged()) {
 			callback.getHook().editOriginalEmbeds(createEmbed()).queue();
+			callback.getHook().editOriginalComponents(ActionRow.of(buttons.toArray(Button[]::new))).queue();
 			return callback.getHook().retrieveOriginal();
 		}
 		ReplyCallbackAction action = callback.replyEmbeds(createEmbed()).setEphemeral(isEphemeral());

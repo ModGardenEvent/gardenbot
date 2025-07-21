@@ -44,7 +44,7 @@ public class GardenBotEvents extends ListenerAdapter {
 
 	@Override
 	public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
-		var response = ButtonDispatcher.dispatch(new ButtonInteraction(event));
+		var response = ButtonDispatcher.dispatch(event);
 		response.send(event).queue();
 	}
 
