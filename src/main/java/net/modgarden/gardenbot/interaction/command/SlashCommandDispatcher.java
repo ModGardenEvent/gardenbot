@@ -19,7 +19,7 @@ public class SlashCommandDispatcher {
 
 	public static List<Command.Choice> getAutoCompleteChoices(CommandAutoCompleteInteractionEvent event) {
 		var slashCommand = COMMANDS.get(event.getName());
-		return slashCommand.getAutoCompleteChoices(event.getFocusedOption().getName(), event.getUser(), event.getSubcommandGroup(), event.getSubcommandName());
+		return slashCommand.getAutoCompleteChoices(event.getFocusedOption().getName(), event.getUser(), event::getOption, event.getSubcommandGroup(), event.getSubcommandName());
 	}
 
 	public static void apply(CommandListUpdateAction action) {

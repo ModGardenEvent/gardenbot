@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
+import net.modgarden.gardenbot.interaction.command.AbstractSlashCommand;
 import net.modgarden.gardenbot.interaction.response.EmbedResponse;
 import net.modgarden.gardenbot.interaction.response.Response;
 import net.modgarden.gardenbot.util.ModGardenAPIClient;
@@ -19,6 +20,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 public class SubmitHandler {
 	public static Response handleSubmit(SlashCommandInteraction interaction) {
@@ -32,7 +34,7 @@ public class SubmitHandler {
 		inputJson.addProperty("slug", slug);
 
 		String source = interaction.event().getOption("source", OptionMapping::getAsString);
-		if (!"modrinth".equals(source)) {
+		if (source == null || !"modrinth".equals(source.toLowerCase(Locale.ROOT))) {
 			return new EmbedResponse()
 					.setTitle("Could not submit your project to Mod Garden.")
 					.setDescription("Invalid mod source.")
@@ -41,7 +43,7 @@ public class SubmitHandler {
 
 		try {
 			HttpResponse<InputStream> stream = ModGardenAPIClient.post(
-					"discord/submission/create/" + source,
+					"discord/submission/create/" + source.toLowerCase(Locale.ROOT),
 					HttpRequest.BodyPublishers.ofString(inputJson.toString()),
 					HttpResponse.BodyHandlers.ofInputStream(),
 					"Content-Type", "application/json"
@@ -80,7 +82,8 @@ public class SubmitHandler {
 		}
 	}
 
-	public static List<Command.Choice> getChoices(String focusedOption, User user) {
+	public static List<Command.Choice> getChoices(String focusedOption, User user,
+												  AbstractSlashCommand.CompletionFunction completionFunction) {
 		if (focusedOption.equals("slug")) {
 			return Collections.emptyList();
 		}

@@ -94,14 +94,15 @@ public class SlashCommand extends AbstractSlashCommand {
 	}
 
 	@Override
-	public List<Command.Choice> getAutoCompleteChoices(String focusedOption, User user, @Nullable String subcommandGroup, @Nullable String subcommandName) {
+	public List<Command.Choice> getAutoCompleteChoices(String focusedOption, User user,  AbstractSlashCommand.CompletionFunction completionFunction,
+													   @Nullable String subcommandGroup, @Nullable String subcommandName) {
 		if (!SUBCOMMANDS.isEmpty()) {
 			SubCommand subCommand = SUBCOMMANDS.get(subcommandName);
 			if (subCommand != null && subCommand.COMPLETION_FUNCTION != null)
-				return subCommand.COMPLETION_FUNCTION.autoCompleteChoices(focusedOption, user);
+				return subCommand.COMPLETION_FUNCTION.autoCompleteChoices(focusedOption, user, completionFunction);
 			return Collections.emptyList();
 		}
-		return COMPLETION_FUNCTION != null ? COMPLETION_FUNCTION.autoCompleteChoices(focusedOption, user) : Collections.emptyList();
+		return COMPLETION_FUNCTION != null ? COMPLETION_FUNCTION.autoCompleteChoices(focusedOption, user, completionFunction) : Collections.emptyList();
 	}
 
 	public static class SubCommand {
@@ -184,6 +185,6 @@ public class SlashCommand extends AbstractSlashCommand {
 
 	@FunctionalInterface
 	public interface AutoCompleteFunction {
-		List<Command.Choice> autoCompleteChoices(String focusedOption, User user);
+		List<Command.Choice> autoCompleteChoices(String focusedOption, User user, AbstractSlashCommand.CompletionFunction completionFunction);
 	}
 }

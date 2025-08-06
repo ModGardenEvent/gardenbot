@@ -2,10 +2,7 @@ package net.modgarden.gardenbot;
 
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.modgarden.gardenbot.commands.account.*;
-import net.modgarden.gardenbot.commands.event.RegisterHandler;
-import net.modgarden.gardenbot.commands.event.SubmitHandler;
-import net.modgarden.gardenbot.commands.event.UnregisterHandler;
-import net.modgarden.gardenbot.commands.event.UnsubmitHandler;
+import net.modgarden.gardenbot.commands.event.*;
 import net.modgarden.gardenbot.interaction.command.SlashCommand;
 import net.modgarden.gardenbot.interaction.command.SlashCommandDispatcher;
 import net.modgarden.gardenbot.interaction.command.SlashCommandOption;
@@ -91,7 +88,7 @@ public class GardenBotCommands {
 				),
 				new SlashCommand.SubCommand(
 						"submit",
-						"Submit your Modrinth project to a current Mod Garden event.",
+						"Submit your project to a current Mod Garden event.",
 						SubmitHandler::handleSubmit,
 						SubmitHandler::getChoices,
 						new SlashCommandOption(OptionType.STRING, "source", "The source of your project.", true, true),
@@ -99,10 +96,19 @@ public class GardenBotCommands {
 				),
 				new SlashCommand.SubCommand(
 						"unsubmit",
-						"Unsubmit your Modrinth project from a current Mod Garden event.",
+						"Unsubmit your project from a current Mod Garden event.",
 						UnsubmitHandler::handleUnsubmit,
 						UnsubmitHandler::getChoices,
 						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the project to unsubmit.", true, true)
+				),
+				new SlashCommand.SubCommand(
+						"update",
+						"Updates your project to the latest release, or a specific release in the database.",
+						UpdateHandler::handleUpdate,
+						UpdateHandler::getChoices,
+						new SlashCommandOption(OptionType.STRING, "source", "The source of your project.", true, true),
+						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the project to update.", true, true),
+						new SlashCommandOption(OptionType.STRING, "version", "The version of the project to update to.", false, true)
 				)));
 
 		// TODO: Implement Ban command.

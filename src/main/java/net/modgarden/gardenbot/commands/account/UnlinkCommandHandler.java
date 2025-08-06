@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
+import net.modgarden.gardenbot.interaction.command.AbstractSlashCommand;
 import net.modgarden.gardenbot.interaction.response.EmbedResponse;
 import net.modgarden.gardenbot.interaction.response.MessageResponse;
 import net.modgarden.gardenbot.interaction.response.Response;
@@ -126,7 +127,8 @@ public class UnlinkCommandHandler {
 	}
 
 
-	public static List<Command.Choice> getMinecraftChoices(String focusedOption, User user) {
+	public static List<Command.Choice> getMinecraftChoices(String focusedOption, User user,
+														   AbstractSlashCommand.CompletionFunction completionFunction) {
 		try {
 			var userResult = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
 			if (userResult.statusCode() == 200) {
@@ -153,7 +155,7 @@ public class UnlinkCommandHandler {
 				return choices;
 			}
 		} catch (IOException | InterruptedException ex) {
-			GardenBot.LOG.error("Could not get active events.", ex);
+			GardenBot.LOG.error("Could not get Minecraft accounts from user.", ex);
 		}
 		return Collections.emptyList();
 	}
