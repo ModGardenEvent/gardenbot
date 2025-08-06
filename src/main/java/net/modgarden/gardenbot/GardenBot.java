@@ -25,7 +25,7 @@ public class GardenBot {
 	public static final Dotenv DOTENV = Dotenv.load();
 	public static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
-	private static final int DATABASE_SCHEMA_VERSION = 1;
+	private static final int DATABASE_SCHEMA_VERSION = 4;
 
 	public static JDA jda;
 
