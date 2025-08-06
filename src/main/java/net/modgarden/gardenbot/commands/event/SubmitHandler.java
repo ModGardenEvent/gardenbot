@@ -30,10 +30,6 @@ public class SubmitHandler {
 		JsonObject inputJson = new JsonObject();
 		inputJson.addProperty("discord_id", user.getId());
 
-		@Nullable String event = interaction.event().getOption("event", OptionMapping::getAsString);
-		if (event != null)
-			inputJson.addProperty("event", event);
-
 		String slug = interaction.event().getOption("slug", OptionMapping::getAsString);
 		inputJson.addProperty("slug", slug);
 
@@ -91,28 +87,6 @@ public class SubmitHandler {
 		if (focusedOption.equals("slug")) {
 			return Collections.emptyList();
 		}
-		if (focusedOption.equals("source")) {
-			return List.of(new Command.Choice("Modrinth", "modrinth"));
-		}
-		try {
-			var activeEventsResult = ModGardenAPIClient.get("events/active", HttpResponse.BodyHandlers.ofInputStream());
-			if (activeEventsResult.statusCode() == 200) {
-				List<Command.Choice> choices = new ArrayList<>();
-				try (InputStreamReader activeEventsReader = new InputStreamReader(activeEventsResult.body())) {
-					JsonElement activeEventsJson = JsonParser.parseReader(activeEventsReader);
-					if (activeEventsJson.isJsonArray()) {
-						for (JsonElement eventJson : activeEventsJson.getAsJsonArray()) {
-							if (!eventJson.isJsonObject())
-								continue;
-							choices.add(new Command.Choice(eventJson.getAsJsonObject().get("display_name").getAsString(), eventJson.getAsJsonObject().get("slug").getAsString()));
-						}
-					}
-				}
-				return choices;
-			}
-		} catch (IOException | InterruptedException ex) {
-			GardenBot.LOG.error("Could not get active events.", ex);
-		}
-		return Collections.emptyList();
+		return List.of(new Command.Choice("Modrinth", "modrinth"));
 	}
 }

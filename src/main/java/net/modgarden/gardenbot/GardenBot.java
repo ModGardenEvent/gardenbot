@@ -1,6 +1,7 @@
 package net.modgarden.gardenbot;
 
 import ch.qos.logback.classic.Level;
+import com.google.gson.Gson;
 import io.github.cdimascio.dotenv.Dotenv;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -19,6 +20,7 @@ public class GardenBot {
 	public static final Logger LOG = LoggerFactory.getLogger("GardenBot");
 	public static final String API_URL = "development".equals(System.getenv("env")) ? "http://localhost:7070/v1/" : "https://api.modgarden.net/v1/";
 	public static final String VERSION = "1.1.1";
+	public static final Gson GSON = new Gson();
 
 	public static final Dotenv DOTENV = Dotenv.load();
 	public static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();

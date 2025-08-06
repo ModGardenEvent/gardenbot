@@ -83,16 +83,14 @@ public class GardenBotCommands {
 						SubmitHandler::handleSubmit,
 						SubmitHandler::getChoices,
 						new SlashCommandOption(OptionType.STRING, "source", "The source of your project.", true, true),
-						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the project to submit.", true, false),
-						new SlashCommandOption(OptionType.STRING, "event", "A specific event to submit to.", false, true)
+						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the project to submit.", true, false)
 				),
 				new SlashCommand.SubCommand(
 						"unsubmit",
 						"Unsubmit your Modrinth project from a current Mod Garden event.",
 						UnsubmitHandler::handleUnsubmit,
 						UnsubmitHandler::getChoices,
-						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the project to unsubmit.", true, false),
-						new SlashCommandOption(OptionType.STRING, "event", "A specific event to unsubmit from.", false, true)
+						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the project to unsubmit.", true, true)
 				)));
 
 		// TODO: Implement Ban command.
