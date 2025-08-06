@@ -20,48 +20,38 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Objects;
 
-public class RegisterModal extends SimpleModal {
-	public RegisterModal() {
-		super("modalRegister", "Register your Mod Garden account!", RegisterModal::handleModal,
+public class LinkMinecraftModal extends SimpleModal {
+	public LinkMinecraftModal() {
+		super("modalLinkMinecraft", "Link your Minecraft account!", LinkMinecraftModal::handleModal,
 				ActionRow.of(
-						TextInput.create("username",
-										"Username",
+						TextInput.create("linkCode",
+										"Link Code",
 										TextInputStyle.SHORT
-								)
-								.setRequired(false)
-								.setPlaceholder("Leave blank to use your Discord username.")
-								.setMinLength(3)
-								.setMaxLength(32).build()
-				),
-				ActionRow.of(
-						TextInput.create("displayName",
-										"Display Name",
-										TextInputStyle.SHORT
-								)
-								.setRequired(false)
-								.setPlaceholder("Leave blank to use your Discord display name.")
-								.setMaxLength(32).build()
+								).setMinLength(6)
+								.setMaxLength(6).build()
 				));
 	}
 
 	public static Response handleModal(ModalInteraction interaction) {
 		User user = interaction.event().getUser();
 
-		ModalMapping username = Objects.requireNonNull(interaction.event().getValue("username"));
-		ModalMapping displayName = Objects.requireNonNull(interaction.event().getValue("displayName"));
+		ModalMapping linkCode = interaction.event().getValue("linkCode");
+
+		if (linkCode == null)
+			return new EmbedResponse()
+					.setTitle("Could not link your Minecraft account.")
+					.setDescription("Link code is null.")
+					.markEphemeral();
 
 		JsonObject inputJson = new JsonObject();
-		inputJson.addProperty("id", user.getId());
-		if (!username.getAsString().isEmpty())
-			inputJson.addProperty("username", username.getAsString());
-		if (!displayName.getAsString().isEmpty())
-			inputJson.addProperty("display_name", displayName.getAsString());
+		inputJson.addProperty("discord_id", user.getId());
+		inputJson.addProperty("link_code", linkCode.getAsString());
+		inputJson.addProperty("service", "minecraft");
 
 		try {
 			HttpResponse<InputStream> stream = ModGardenAPIClient.post(
-					"discord/register",
+					"discord/link",
 					HttpRequest.BodyPublishers.ofString(inputJson.toString()),
 					HttpResponse.BodyHandlers.ofInputStream(),
 					"Content-Type", "application/json"
@@ -73,28 +63,33 @@ public class RegisterModal extends SimpleModal {
 						"Undefined Error.";
 				if (stream.statusCode() == 422) {
 					return new EmbedResponse()
-							.setTitle("Could not register your Mod Garden account.")
+							.setTitle("Could not link your Minecraft account to your Mod Garden account.")
 							.setDescription(errorDescription)
 							.setColor(0x5D3E40)
 							.markEphemeral();
 				}
 				return new EmbedResponse()
-						.setTitle("Encountered an exception whilst attempting to register your Mod Garden account.")
+						.setTitle("Encountered an exception whilst attempting to link your Minecraft account to your Mod Garden account.")
 						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
 						.setColor(0xFF0000)
+						.markEphemeral();
+			} else if (stream.statusCode() == 200) {
+				return new EmbedResponse()
+						.setTitle("Your Minecraft account is already linked to your Mod Garden account.")
+						.setColor(0xA9FFA7)
 						.markEphemeral();
 			}
 		} catch (IOException | InterruptedException ex) {
 			GardenBot.LOG.error("", ex);
 			return new EmbedResponse()
-					.setTitle("Encountered an exception whilst attempting to register your Mod Garden account.")
+					.setTitle("Encountered an exception whilst attempting to link your Minecraft account to your Mod Garden account.")
 					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
 					.setColor(0xFF0000)
 					.markEphemeral();
 		}
 
 		return new EmbedResponse()
-				.setTitle("Your Mod Garden account has successfully been registered!")
+				.setTitle("Successfully linked your Minecraft account to your Mod Garden account!")
 				.setColor(0xA9FFA7)
 				.markEphemeral();
 	}

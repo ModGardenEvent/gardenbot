@@ -54,7 +54,6 @@ public class ProfileCommandHandler {
 					"discord/modify/username",
 					HttpRequest.BodyPublishers.ofString(inputJson.toString()),
 					HttpResponse.BodyHandlers.ofInputStream(),
-					"Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"),
 					"Content-Type", "application/json"
 			);
 			if (postStream.statusCode() < 200 || postStream.statusCode() > 299) {
@@ -125,7 +124,6 @@ public class ProfileCommandHandler {
 					"discord/modify/displayname",
 					HttpRequest.BodyPublishers.ofString(inputJson.toString()),
 					HttpResponse.BodyHandlers.ofInputStream(),
-					"Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"),
 					"Content-Type", "application/json"
 			);
 			if (postStream.statusCode() < 200 || postStream.statusCode() > 299) {
@@ -196,7 +194,6 @@ public class ProfileCommandHandler {
 					"discord/modify/pronouns",
 					HttpRequest.BodyPublishers.ofString(inputJson.toString()),
 					HttpResponse.BodyHandlers.ofInputStream(),
-					"Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"),
 					"Content-Type", "application/json"
 			);
 			if (postStream.statusCode() < 200 || postStream.statusCode() > 299) {
@@ -265,7 +262,6 @@ public class ProfileCommandHandler {
 					"discord/remove/pronouns",
 					HttpRequest.BodyPublishers.ofString(inputJson.toString()),
 					HttpResponse.BodyHandlers.ofInputStream(),
-					"Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"),
 					"Content-Type", "application/json"
 			);
 			if (postStream.statusCode() < 200 || postStream.statusCode() > 299) {

@@ -1,5 +1,6 @@
 package net.modgarden.gardenbot.interaction.command;
 
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.modgarden.gardenbot.interaction.InteractionHandler;
@@ -20,7 +21,7 @@ public abstract class AbstractSlashCommand implements InteractionHandler<SlashCo
 
 	public abstract SlashCommandData getData();
 
-	public List<Command.Choice> getAutoCompleteChoices(String focusedOption, @Nullable String subcommandGroup, @Nullable String subcommandName) {
+	public List<Command.Choice> getAutoCompleteChoices(String focusedOption, User user, @Nullable String subcommandGroup, @Nullable String subcommandName) {
 		return Collections.emptyList();
 	}
 }

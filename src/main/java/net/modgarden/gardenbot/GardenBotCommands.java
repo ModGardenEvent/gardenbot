@@ -18,17 +18,29 @@ public class GardenBotCommands {
 						"create",
 						"Registers a Mod Garden account for yourself.", CreateCommandHandler::handleAccountCreation
 				)));
-		SlashCommandDispatcher.register(new SlashCommand("link", "Link your account with different services.",
+		SlashCommandDispatcher.register(new SlashCommand("link", "Link different services to your Mod Garden account.",
 				new SlashCommand.SubCommand(
 						"modrinth",
-						"Provides setup to link your account with Modrinth",
+						"Provides setup to link your Modrinth account",
 						LinkCommandHandler::handleModrinthLink
+				),
+				new SlashCommand.SubCommand(
+						"minecraft",
+						"Provides setup to link your Minecraft account",
+						LinkCommandHandler::handleMinecraftLink
 				)));
-		SlashCommandDispatcher.register(new SlashCommand("unlink", "Unlink your account from different services.",
+		SlashCommandDispatcher.register(new SlashCommand("unlink", "Unlink different services from your Mod Garden account.",
 				new SlashCommand.SubCommand(
 						"modrinth",
-						"Unlinks your account from Modrinth",
+						"Unlinks your Modrinth account from Mod Garden",
 						UnlinkCommandHandler::handleModrinthUnlink
+				),
+				new SlashCommand.SubCommand(
+						"minecraft",
+						"Unlinks your Minecraft account(s) from Mod Garden",
+						UnlinkCommandHandler::handleMinecraftUnlink,
+						UnlinkCommandHandler::getMinecraftChoices,
+						new SlashCommandOption(OptionType.STRING, "account", "The username of the Minecraft account to unlink.", true, true)
 				)));
 
 		SlashCommandDispatcher.register(new SlashCommand("profile", "Actions relating to your visible Mod Garden profile.",
