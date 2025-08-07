@@ -22,6 +22,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class UnsubmitHandler {
 	public static Response handleUnsubmit(SlashCommandInteraction interaction) {
@@ -31,8 +32,8 @@ public class UnsubmitHandler {
 		JsonObject inputJson = new JsonObject();
 		inputJson.addProperty("discord_id", user.getId());
 
-		String slug = interaction.event().getOption("slug", OptionMapping::getAsString);
-		inputJson.addProperty("slug", slug);
+		String project = interaction.event().getOption("project", OptionMapping::getAsString);
+		inputJson.addProperty("slug", project);
 		try {
 			HttpResponse<InputStream> stream = ModGardenAPIClient.post(
 					"discord/submission/delete",
@@ -82,27 +83,42 @@ public class UnsubmitHandler {
 			var userResult = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
 			var eventResult = ModGardenAPIClient.get("events/current/development", HttpResponse.BodyHandlers.ofInputStream());
 			if (userResult.statusCode() == 200 && eventResult.statusCode() == 200) {
-				ModGardenUser modGardenUser = GardenBot.GSON.fromJson(new InputStreamReader(userResult.body()), ModGardenUser.class);
-				CurrentEvent currentEvent = GardenBot.GSON.fromJson(new InputStreamReader(eventResult.body()), CurrentEvent.class);
-				var submissionsEventResult = ModGardenAPIClient.get("user/" + modGardenUser.id + "/submissions/" + currentEvent.slug, HttpResponse.BodyHandlers.ofInputStream());
-				if (submissionsEventResult.statusCode() == 200) {
-					InputStreamReader activeEventsReader = new InputStreamReader(submissionsEventResult.body());
-					JsonElement submissionsJson = JsonParser.parseReader(activeEventsReader);
-					if (submissionsJson.isJsonArray()) {
-						for (JsonElement submissionJson : submissionsJson.getAsJsonArray()) {
-							if (!submissionJson.isJsonObject())
-								continue;
-							var projectStream = ModGardenAPIClient.get("project/" + submissionJson.getAsJsonObject().get("project_id").getAsString(), HttpResponse.BodyHandlers.ofInputStream());
-							if (projectStream.statusCode() == 200) {
-								JsonElement modGardenProject = JsonParser.parseReader(new InputStreamReader(projectStream.body()));
-								var modrinthStream = ModrinthAPIClient.get("v2/project/" + modGardenProject.getAsJsonObject().getAsJsonPrimitive("modrinth_id").getAsString(), HttpResponse.BodyHandlers.ofInputStream());
-								String slug = modGardenProject.getAsJsonObject().getAsJsonPrimitive("slug").getAsString();
-								String title = slug;
-								if (modrinthStream.statusCode() == 200) {
-									JsonElement modrinthProject = JsonParser.parseReader(new InputStreamReader(modrinthStream.body()));
-									title = modrinthProject.getAsJsonObject().getAsJsonPrimitive("title").getAsString();
-								}
-								choices.add(new Command.Choice(title, slug));
+				try (InputStreamReader userReader = new InputStreamReader(userResult.body());
+					 InputStreamReader eventReader = new InputStreamReader(eventResult.body())) {
+					ModGardenUser modGardenUser = GardenBot.GSON.fromJson(userReader, ModGardenUser.class);
+					ModGardenEvent modGardenEvent = GardenBot.GSON.fromJson(eventReader, ModGardenEvent.class);
+					var submissionsStream = ModGardenAPIClient.get("user/" + modGardenUser.id + "/submissions/" + modGardenEvent.slug, HttpResponse.BodyHandlers.ofInputStream());
+					if (submissionsStream.statusCode() == 200) {
+						try (InputStreamReader submissionsReader = new InputStreamReader(submissionsStream.body())) {
+							JsonElement submissionsJson = JsonParser.parseReader(submissionsReader);
+							if (submissionsJson.isJsonArray()) {
+								return submissionsJson.getAsJsonArray().asList().stream().map(submissionJson -> {
+									try {
+										if (submissionJson.isJsonObject()) {
+											var modGardenStream = ModGardenAPIClient.get("project/" + submissionJson.getAsJsonObject().get("project_id").getAsString(), HttpResponse.BodyHandlers.ofInputStream());
+											if (modGardenStream.statusCode() == 200) {
+												try (InputStreamReader modGardenReader = new InputStreamReader(modGardenStream.body())) {
+													ModGardenProject modGardenProject = GardenBot.GSON.fromJson(modGardenReader, ModGardenProject.class);
+
+													String slug = modGardenProject.slug;
+													String title = slug;
+
+													var modrinthStream = ModrinthAPIClient.get("v2/project/" + modGardenProject.modrinthId, HttpResponse.BodyHandlers.ofInputStream());
+													if (modrinthStream.statusCode() == 200) {
+														try (InputStreamReader modrinthReader = new InputStreamReader(modrinthStream.body())) {
+															ModrinthProject modrinthProject = GardenBot.GSON.fromJson(modrinthReader, ModrinthProject.class);
+															title = modrinthProject.title;
+														}
+													}
+													return new Command.Choice(title, slug);
+												}
+											}
+										}
+									} catch (Exception ex) {
+										GardenBot.LOG.error("Failed to read Modrinth version.", ex);
+									}
+									return null;
+								}).filter(Objects::nonNull).toList();
 							}
 						}
 					}
@@ -119,7 +135,17 @@ public class UnsubmitHandler {
 		String id;
 	}
 
-	private static class CurrentEvent {
+	private static class ModGardenProject {
+		String slug;
+		@SerializedName("modrinth_id")
+		String modrinthId;
+	}
+
+	private static class ModrinthProject {
+		String title;
+	}
+
+	private static class ModGardenEvent {
 		String slug;
 	}
 }

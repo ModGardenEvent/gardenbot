@@ -36,8 +36,6 @@ public class GardenBotEvents extends ListenerAdapter {
 	@Override
 	public void onCommandAutoCompleteInteraction(@NotNull CommandAutoCompleteInteractionEvent event) {
 		var choices = SlashCommandDispatcher.getAutoCompleteChoices(event);
-		if (choices.isEmpty())
-			return;
 		event.replyChoices(choices).queue();
 	}
 

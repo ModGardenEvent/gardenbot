@@ -99,7 +99,7 @@ public class GardenBotCommands {
 						"Unsubmit your project from a current Mod Garden event.",
 						UnsubmitHandler::handleUnsubmit,
 						UnsubmitHandler::getChoices,
-						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the project to unsubmit.", true, true)
+						new SlashCommandOption(OptionType.STRING, "project", "The project to unsubmit.", true, true)
 				),
 				new SlashCommand.SubCommand(
 						"update",
@@ -107,7 +107,7 @@ public class GardenBotCommands {
 						UpdateHandler::handleUpdate,
 						UpdateHandler::getChoices,
 						new SlashCommandOption(OptionType.STRING, "source", "The source of your project.", true, true),
-						new SlashCommandOption(OptionType.STRING, "slug", "The slug of the project to update.", true, true),
+						new SlashCommandOption(OptionType.STRING, "project", "The project to update.", true, true),
 						new SlashCommandOption(OptionType.STRING, "version", "The version of the project to update to.", false, true)
 				)));
 

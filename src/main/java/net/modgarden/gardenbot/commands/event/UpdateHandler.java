@@ -12,15 +12,17 @@ import net.modgarden.gardenbot.interaction.response.EmbedResponse;
 import net.modgarden.gardenbot.interaction.response.Response;
 import net.modgarden.gardenbot.util.ModGardenAPIClient;
 import net.modgarden.gardenbot.util.ModrinthAPIClient;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 public class UpdateHandler {
 	public static Response handleUpdate(SlashCommandInteraction interaction) {
@@ -30,8 +32,8 @@ public class UpdateHandler {
 		JsonObject inputJson = new JsonObject();
 		inputJson.addProperty("discord_id", user.getId());
 
-		String slug = interaction.event().getOption("slug", OptionMapping::getAsString);
-		inputJson.addProperty("slug", slug);
+		String project = interaction.event().getOption("project", OptionMapping::getAsString);
+		inputJson.addProperty("slug", project);
 
 		String version = interaction.event().getOption("version", OptionMapping::getAsString);
 		if (version != null) {
@@ -89,33 +91,47 @@ public class UpdateHandler {
 
 	public static List<Command.Choice> getChoices(String focusedOption, User user,
 												  AbstractSlashCommand.CompletionFunction completionFunction) {
-		if (focusedOption.equals("slug")) {
-			List<Command.Choice> choices = new ArrayList<>();
+		if (focusedOption.equals("project")) {
 			try {
 				var userResult = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
 				var eventResult = ModGardenAPIClient.get("events/current/development", HttpResponse.BodyHandlers.ofInputStream());
 				if (userResult.statusCode() == 200 && eventResult.statusCode() == 200) {
-					ModGardenUser modGardenUser = GardenBot.GSON.fromJson(new InputStreamReader(userResult.body()), ModGardenUser.class);
-					CurrentEvent currentEvent = GardenBot.GSON.fromJson(new InputStreamReader(eventResult.body()), CurrentEvent.class);
-					var submissionsEventResult = ModGardenAPIClient.get("user/" + modGardenUser.id + "/submissions/" + currentEvent.slug, HttpResponse.BodyHandlers.ofInputStream());
-					if (submissionsEventResult.statusCode() == 200) {
-						InputStreamReader activeEventsReader = new InputStreamReader(submissionsEventResult.body());
-						JsonElement submissionsJson = JsonParser.parseReader(activeEventsReader);
-						if (submissionsJson.isJsonArray()) {
-							for (JsonElement submissionJson : submissionsJson.getAsJsonArray()) {
-								if (!submissionJson.isJsonObject())
-									continue;
-								var projectStream = ModGardenAPIClient.get("project/" + submissionJson.getAsJsonObject().get("project_id").getAsString(), HttpResponse.BodyHandlers.ofInputStream());
-								if (projectStream.statusCode() == 200) {
-									JsonElement modGardenProject = JsonParser.parseReader(new InputStreamReader(projectStream.body()));
-									var modrinthStream = ModrinthAPIClient.get("v2/project/" + modGardenProject.getAsJsonObject().getAsJsonPrimitive("modrinth_id").getAsString(), HttpResponse.BodyHandlers.ofInputStream());
-									String slug = modGardenProject.getAsJsonObject().getAsJsonPrimitive("slug").getAsString();
-									String title = slug;
-									if (modrinthStream.statusCode() == 200) {
-										JsonElement modrinthProject = JsonParser.parseReader(new InputStreamReader(modrinthStream.body()));
-										title = modrinthProject.getAsJsonObject().getAsJsonPrimitive("title").getAsString();
-									}
-									choices.add(new Command.Choice(title, slug));
+					try (InputStreamReader userReader = new InputStreamReader(userResult.body());
+						 InputStreamReader eventReader = new InputStreamReader(eventResult.body())) {
+						ModGardenUser modGardenUser = GardenBot.GSON.fromJson(userReader, ModGardenUser.class);
+						ModGardenEvent currentEvent = GardenBot.GSON.fromJson(eventReader, ModGardenEvent.class);
+						var submissionsStream = ModGardenAPIClient.get("user/" + modGardenUser.id + "/submissions/" + currentEvent.slug, HttpResponse.BodyHandlers.ofInputStream());
+						if (submissionsStream.statusCode() == 200) {
+							try (InputStreamReader submissionsReader = new InputStreamReader(submissionsStream.body())) {
+								JsonElement submissionsJson = JsonParser.parseReader(submissionsReader);
+								if (submissionsJson.isJsonArray()) {
+									return submissionsJson.getAsJsonArray().asList().stream().map(submissionJson -> {
+										try {
+											if (submissionJson.isJsonObject()) {
+												var modGardenStream = ModGardenAPIClient.get("project/" + submissionJson.getAsJsonObject().get("project_id").getAsString(), HttpResponse.BodyHandlers.ofInputStream());
+												if (modGardenStream.statusCode() == 200) {
+													try (InputStreamReader modGardenReader = new InputStreamReader(modGardenStream.body())) {
+														ModGardenProject modGardenProject = GardenBot.GSON.fromJson(modGardenReader, ModGardenProject.class);
+
+														String slug = modGardenProject.slug;
+														String title = slug;
+
+														var modrinthStream = ModrinthAPIClient.get("v2/project/" + modGardenProject.modrinthId, HttpResponse.BodyHandlers.ofInputStream());
+														if (modrinthStream.statusCode() == 200) {
+															try (InputStreamReader modrinthReader = new InputStreamReader(modrinthStream.body())) {
+																ModrinthProject modrinthProject = GardenBot.GSON.fromJson(modrinthReader, ModrinthProject.class);
+																title = modrinthProject.title;
+															}
+														}
+														return new Command.Choice(title, slug);
+													}
+												}
+											}
+										} catch (Exception ex) {
+											GardenBot.LOG.error("Failed to read Modrinth version.", ex);
+										}
+										return null;
+									}).filter(Objects::nonNull).toList();
 								}
 							}
 						}
@@ -124,8 +140,62 @@ public class UpdateHandler {
 			} catch (Exception ex) {
 				GardenBot.LOG.error("Could not get Discord user's submitted entries to the current event.", ex);
 			}
-			return choices;
+			return Collections.emptyList();
 		} else if (focusedOption.equals("version")) {
+			String project = completionFunction.getOption("project", OptionMapping::getAsString);
+
+			if (!project.matches("[a-zA-Z0-9!@$()`.+,_\"-]+")) {
+				return Collections.emptyList();
+			}
+
+			try {
+				var eventStream = ModGardenAPIClient.get("events/current/development", HttpResponse.BodyHandlers.ofInputStream());
+				var modrinthStream = ModrinthAPIClient.get("v2/project/" + project, HttpResponse.BodyHandlers.ofInputStream());
+				if (modrinthStream.statusCode() == 200 && eventStream.statusCode() == 200) {
+					try (InputStreamReader modrinthReader = new InputStreamReader(modrinthStream.body());
+						 InputStreamReader eventReader = new InputStreamReader(eventStream.body())) {
+						ModrinthProject modrinthProject = GardenBot.GSON.fromJson(modrinthReader, ModrinthProject.class);
+						ModGardenEvent modGardenEvent = GardenBot.GSON.fromJson(eventReader, ModGardenEvent.class);
+						List<ModrinthVersion> modrinthVersions = modrinthProject.versions.parallelStream().map(versionId -> {
+							try {
+								var versionStream = ModrinthAPIClient.get("v2/version/" + versionId, HttpResponse.BodyHandlers.ofInputStream());
+								if (versionStream.statusCode() != 200)
+									return null;
+
+								try (InputStreamReader versionReader = new InputStreamReader(versionStream.body())) {
+									ModrinthVersion potentialVersion = GardenBot.GSON.fromJson(versionReader, ModrinthVersion.class);
+
+									if (!potentialVersion.gameVersions.contains(modGardenEvent.minecraftVersion))
+										return null;
+
+									// Handle natively supported mods for the event's loader.
+									if (potentialVersion.loaders.contains(modGardenEvent.loader)) {
+										return potentialVersion;
+										// Handle Fabric mods loaded via Connector on NeoForge.
+									} else if (modGardenEvent.loader.equals("neoforge") && potentialVersion.loaders.contains("fabric")) {
+										return potentialVersion;
+									}
+								}
+							} catch (Exception ex) {
+								GardenBot.LOG.error("Failed to read Modrinth version.", ex);
+							}
+							return null;
+						}).filter(Objects::nonNull).collect(Collectors.toCollection(ArrayList::new));
+
+						if (modrinthVersions.stream().anyMatch(v -> v.loaders.contains(modGardenEvent.loader))) {
+							modrinthVersions.removeIf(v -> !v.loaders.contains(modGardenEvent.loader));
+						}
+
+						return modrinthVersions.stream()
+								.sorted(Comparator.<ModrinthVersion>comparingLong(value ->
+										ZonedDateTime.parse(value.datePublished, DateTimeFormatter.ISO_OFFSET_DATE_TIME).getLong(ChronoField.INSTANT_SECONDS)).reversed())
+								.map(modrinthVersion -> new Command.Choice(modrinthVersion.name, modrinthVersion.id))
+								.toList();
+					}
+				}
+			} catch (Exception ex) {
+				GardenBot.LOG.error("Failed to obtain Modrinth versions for project '{}'.", project, ex);
+			}
 			return Collections.emptyList();
 		}
 		return List.of(new Command.Choice("Modrinth", "modrinth"));
@@ -135,7 +205,13 @@ public class UpdateHandler {
 		String id;
 	}
 
-	private static class CurrentEvent {
+	private static class ModGardenProject {
+		String slug;
+		@SerializedName("modrinth_id")
+		String modrinthId;
+	}
+
+	private static class ModGardenEvent {
 		String slug;
 
 		String loader;
@@ -144,10 +220,17 @@ public class UpdateHandler {
 	}
 
 	@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+	private static class ModrinthProject {
+		String title;
+		List<String> versions;
+	}
+
+	@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 	private static class ModrinthVersion {
-		String name;
-		@Nullable
 		String id;
+		String name;
+		@SerializedName("date_published")
+		String datePublished;
 
 		@SerializedName("game_versions")
 		List<String> gameVersions;
