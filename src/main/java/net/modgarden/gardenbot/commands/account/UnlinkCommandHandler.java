@@ -24,6 +24,7 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class UnlinkCommandHandler {
 	public static Response handleModrinthUnlink(SlashCommandInteraction interaction) {
@@ -132,27 +133,25 @@ public class UnlinkCommandHandler {
 		try {
 			var userResult = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
 			if (userResult.statusCode() == 200) {
-				List<Command.Choice> choices = new ArrayList<>();
 				try (InputStreamReader userReader = new InputStreamReader(userResult.body())) {
 					JsonElement userJson = JsonParser.parseReader(userReader);
 					if (userJson.isJsonObject()) {
 						JsonArray minecraftAccounts = userJson.getAsJsonObject().getAsJsonArray("minecraft_accounts");
 						if (minecraftAccounts != null) {
-							for (JsonElement accountJson : minecraftAccounts.getAsJsonArray()) {
+							return minecraftAccounts.getAsJsonArray().asList().parallelStream().map(accountJson -> {
 								if (!accountJson.isJsonPrimitive() || !accountJson.getAsJsonPrimitive().isString())
-									continue;
+									return null;
 								String uuid = accountJson.getAsString();
 								String username = MinecraftAccountUtil.getMinecraftUsernameFromUuid(uuid);
 								if (username != null) {
-									choices.add(new Command.Choice(username, username));
-								} else {
-									choices.add(new Command.Choice(uuid, uuid));
+									return new Command.Choice(username, username);
 								}
-							}
+								return new Command.Choice(uuid, uuid);
+							}).filter(Objects::nonNull).toList();
 						}
 					}
 				}
-				return choices;
+				return Collections.emptyList();
 			}
 		} catch (IOException | InterruptedException ex) {
 			GardenBot.LOG.error("Could not get Minecraft accounts from user.", ex);
