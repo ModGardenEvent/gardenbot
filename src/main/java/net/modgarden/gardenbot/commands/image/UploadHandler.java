@@ -24,7 +24,7 @@ public class UploadHandler {
 	public static Response handleUpload(SlashCommandInteraction interaction) {
 		if (interaction.event().getChannelId() == null || !interaction.event().getChannelId().equals(GardenBot.DOTENV.get("IMAGE_CHANNEL_ID"))) {
 			return new EmbedResponse()
-					.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
+					.setTitle("Failed to upload image to Mod Garden's CDN.")
 					.setDescription("You may not use this command in this channel.")
 					.markEphemeral(true)
 					.setColor(0x5D3E40);
@@ -36,7 +36,7 @@ public class UploadHandler {
 
 		if (attachment == null || !attachment.isImage() || attachment.getContentType() == null || !attachment.getContentType().equals("image/png")) {
 			return new EmbedResponse()
-					.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
+					.setTitle("Failed to upload image to Mod Garden's CDN.")
 					.setDescription("Attachment must be a PNG.")
 					.markEphemeral()
 					.setColor(0x5D3E40);
@@ -46,7 +46,7 @@ public class UploadHandler {
 			var eventResult = ModGardenAPIClient.get("events/current/prefreeze", HttpResponse.BodyHandlers.ofInputStream());
 			if (eventResult.statusCode() != 200) {
 				return new EmbedResponse()
-						.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
+						.setTitle("Failed to upload image to Mod Garden's CDN.")
 						.setDescription("There is no active event to upload images for.")
 						.markEphemeral()
 						.setColor(0x5D3E40);
@@ -57,7 +57,7 @@ public class UploadHandler {
 		} catch (IOException | InterruptedException ex) {
 			GardenBot.LOG.error("", ex);
 			return new EmbedResponse()
-					.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
+					.setTitle("Failed to upload image to Mod Garden's CDN.")
 					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
 					.markEphemeral()
 					.setColor(0xFF0000);
@@ -68,7 +68,7 @@ public class UploadHandler {
 			var userResult = ModGardenAPIClient.get("user/" + interaction.event().getUser().getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
 			if (userResult.statusCode() != 200) {
 				return new EmbedResponse()
-						.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
+						.setTitle("Failed to upload image to Mod Garden's CDN.")
 						.setDescription("You do not have a Mod Garden account. Please create one with **/register**.")
 						.markEphemeral()
 						.setColor(0x5D3E40);
@@ -79,7 +79,7 @@ public class UploadHandler {
 				user = GardenBot.GSON.fromJson(userReader, ModGardenUser.class);
 				if (!user.events.contains(event.id)) {
 					return new EmbedResponse()
-							.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
+							.setTitle("Failed to upload image to Mod Garden's CDN.")
 							.setDescription("You are not associated with any projects within " + event.displayName + ".")
 							.markEphemeral()
 							.setColor(0x5D3E40);
