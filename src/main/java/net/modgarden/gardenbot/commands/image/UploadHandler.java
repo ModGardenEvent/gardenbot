@@ -81,9 +81,7 @@ public class UploadHandler {
 					.setColor(0xFF0000);
 		}
 		StringBuilder fileNameBuilder = new StringBuilder()
-				.append(event.slug)
-				.append("/")
-				.append(user.id);
+				.append(event.slug);
 
 		String hash;
 		try {
@@ -131,7 +129,7 @@ public class UploadHandler {
 
 		return new EmbedResponse()
 				.setTitle("Successfully uploaded image to Mod Garden's CDN")
-				.setDescription("Your image may be found at <https://cdn.modgarden.net/public/" + fileNameBuilder + ">")
+				.setDescription("Your image may be found at\n<https://cdn.modgarden.net/public/" + fileNameBuilder + ">")
 				.setColor(0xA9FFA7);
 	}
 
