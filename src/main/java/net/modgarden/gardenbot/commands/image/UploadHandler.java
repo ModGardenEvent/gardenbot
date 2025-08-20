@@ -22,7 +22,14 @@ import java.util.Random;
 
 public class UploadHandler {
 	public static Response handleUpload(SlashCommandInteraction interaction) {
-		interaction.event().deferReply(false).queue();
+		if (interaction.event().getChannelId() == null || !interaction.event().getChannelId().equals(GardenBot.DOTENV.get("IMAGE_CHANNEL_ID"))) {
+			return new EmbedResponse()
+					.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
+					.setDescription("You may not use this command in this channel.")
+					.markEphemeral(true)
+					.setColor(0x5D3E40);
+		}
+
 
 		ModGardenEvent event;
 		Message.Attachment attachment = interaction.event().getOption("attachment", OptionMapping::getAsAttachment);
@@ -31,6 +38,7 @@ public class UploadHandler {
 			return new EmbedResponse()
 					.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
 					.setDescription("Attachment must be a PNG.")
+					.markEphemeral()
 					.setColor(0x5D3E40);
 		}
 
@@ -40,6 +48,7 @@ public class UploadHandler {
 				return new EmbedResponse()
 						.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
 						.setDescription("There is no active event to upload images for.")
+						.markEphemeral()
 						.setColor(0x5D3E40);
 			}
 			try (InputStreamReader eventReader = new InputStreamReader(eventResult.body())) {
@@ -50,6 +59,7 @@ public class UploadHandler {
 			return new EmbedResponse()
 					.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
 					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
+					.markEphemeral()
 					.setColor(0xFF0000);
 		}
 
@@ -60,6 +70,7 @@ public class UploadHandler {
 				return new EmbedResponse()
 						.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
 						.setDescription("You do not have a Mod Garden account. Please create one with **/register**.")
+						.markEphemeral()
 						.setColor(0x5D3E40);
 			}
 
@@ -70,6 +81,7 @@ public class UploadHandler {
 					return new EmbedResponse()
 							.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
 							.setDescription("You are not associated with any projects within " + event.displayName + ".")
+							.markEphemeral()
 							.setColor(0x5D3E40);
 				}
 			}
@@ -78,6 +90,7 @@ public class UploadHandler {
 			return new EmbedResponse()
 					.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
 					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
+					.markEphemeral()
 					.setColor(0xFF0000);
 		}
 		StringBuilder fileNameBuilder = new StringBuilder()
@@ -91,6 +104,7 @@ public class UploadHandler {
 			return new EmbedResponse()
 					.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
 					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
+					.markEphemeral()
 					.setColor(0xFF0000);
 		}
 
@@ -116,6 +130,7 @@ public class UploadHandler {
 					return new EmbedResponse()
 							.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
 							.setDescription(uploadResponse.statusCode() + ": " + errorMessage + "\nPlease report this to a team member.")
+							.markEphemeral()
 							.setColor(0xFF0000);
 				}
 			}
@@ -124,6 +139,7 @@ public class UploadHandler {
 			return new EmbedResponse()
 					.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
 					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
+					.markEphemeral()
 					.setColor(0xFF0000);
 		}
 
@@ -148,7 +164,6 @@ public class UploadHandler {
 
 	@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 	private static class ModGardenUser {
-		String id;
 		List<String> events;
 	}
 
