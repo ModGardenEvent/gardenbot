@@ -88,18 +88,12 @@ public class UploadHandler {
 		String hash;
 		try {
 			hash = selectUniqueHash(fileNameBuilder.toString());
-		} catch (IOException | InterruptedException ex) {
+		} catch (NullPointerException | IOException | InterruptedException ex) {
 			GardenBot.LOG.error("", ex);
 			return new EmbedResponse()
 					.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
 					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
 					.setColor(0xFF0000);
-		}
-		if (hash.isBlank()) {
-			return new EmbedResponse()
-					.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
-					.setDescription("Failed to generate a unique upload hash. Please try again.")
-					.setColor(0x5D3E40);
 		}
 
 		fileNameBuilder
@@ -151,7 +145,7 @@ public class UploadHandler {
 			if (getResponse.statusCode() != 200)
 				return hash;
 		}
-		return "";
+		throw new NullPointerException("Failed to generate a unique upload hash. You should probably try again.");
 	}
 
 	@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
