@@ -3,6 +3,7 @@ package net.modgarden.gardenbot;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.modgarden.gardenbot.commands.account.*;
 import net.modgarden.gardenbot.commands.event.*;
+import net.modgarden.gardenbot.commands.image.UploadHandler;
 import net.modgarden.gardenbot.interaction.command.SlashCommand;
 import net.modgarden.gardenbot.interaction.command.SlashCommandDispatcher;
 import net.modgarden.gardenbot.interaction.command.SlashCommandOption;
@@ -110,6 +111,15 @@ public class GardenBotCommands {
 						new SlashCommandOption(OptionType.STRING, "project", "The project to update.", true, true),
 						new SlashCommandOption(OptionType.STRING, "version", "The version of the project to update to.", false, true)
 				)));
+
+		SlashCommandDispatcher.register(new SlashCommand("image", "Actions relating to images for Mod Garden's showcase worlds.",
+				new SlashCommand.SubCommand(
+						"upload",
+						"Uploads an image to the public Mod Garden CDN.",
+						UploadHandler::handleUpload,
+						new SlashCommandOption(OptionType.ATTACHMENT, "attachment", "A PNG image to upload.", true)
+				)
+		));
 
 		// TODO: Implement Ban command.
 //		SlashCommandDispatcher.register(new SlashCommand("ban", "Bans a user from the Mod Garden Discord.", BanCommandHandler::handleBan,
