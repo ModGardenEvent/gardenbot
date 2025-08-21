@@ -89,6 +89,7 @@ public class UpdateHandler {
 		}
 	}
 
+	// TODO: Clean this up.
 	public static List<Command.Choice> getChoices(String focusedOption, User user,
 												  AbstractSlashCommand.CompletionFunction completionFunction) {
 		if (focusedOption.equals("project")) {

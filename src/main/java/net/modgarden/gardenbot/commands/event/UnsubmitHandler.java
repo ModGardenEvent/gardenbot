@@ -76,6 +76,7 @@ public class UnsubmitHandler {
 		}
 	}
 
+	// TODO: Clean this up.
 	public static List<Command.Choice> getChoices(String focusedOption, User user,
 												  AbstractSlashCommand.CompletionFunction completionFunction)  {
 		List<Command.Choice> choices = new ArrayList<>();
