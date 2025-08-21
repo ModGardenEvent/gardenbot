@@ -14,14 +14,27 @@ import java.io.InputStream;
 import java.net.http.HttpResponse;
 
 public class RegisterHandler {
+	// TODO: Unhardcode from Mod Garden: Nature and save role data into backend event.
+	// TODO: Rewrite this entire thing too, it's very out of date...
 	public static Response handleEventRegister(SlashCommandInteraction interaction) {
 		interaction.event().deferReply(true).queue();
 		User user = interaction.event().getUser();
 		Guild guild = interaction.event().getGuild();
 
 		try {
-			HttpResponse<InputStream> stream = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
-			if (stream.statusCode() != 200) {
+			HttpResponse<InputStream> currentEventResult = ModGardenAPIClient.get("events/current/development", HttpResponse.BodyHandlers.ofInputStream());
+			if (currentEventResult.statusCode() != 200) {
+				return new MessageResponse()
+						.setMessage("There is no currently active event open for registration.")
+						.markEphemeral();
+			}
+		} catch (Exception ex) {
+			GardenBot.LOG.error("", ex);
+		}
+
+		try {
+			HttpResponse<Void> userResult = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.discarding());
+			if (userResult.statusCode() != 200) {
 				return new MessageResponse()
 						.setMessage("You do not have a Mod Garden account.\nPlease create one with **/account create**.")
 						.markEphemeral();
@@ -31,7 +44,6 @@ public class RegisterHandler {
 		}
 
 		if (guild != null && guild.getId().equals(GardenBot.DOTENV.get("GUILD_ID"))) {
-			// TODO: Unhardcode from Mod Garden: Nature and save data into backend user.
 			Role role = guild.getRoleById("1320329531990741053");
 			if (role == null) {
 				return new MessageResponse()
@@ -49,7 +61,7 @@ public class RegisterHandler {
 					.markEphemeral();
 		}
 		return new MessageResponse()
-				.setMessage("This command needs to be run inside the Mod Garden Discord server.")
+				.setMessage("This command must be run inside the Mod Garden Discord server.")
 				.markEphemeral();
 	}
 }

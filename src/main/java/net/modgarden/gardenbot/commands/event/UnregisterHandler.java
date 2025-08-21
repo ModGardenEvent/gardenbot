@@ -1,5 +1,7 @@
 package net.modgarden.gardenbot.commands.event;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
@@ -16,6 +18,8 @@ import java.io.InputStreamReader;
 import java.net.http.HttpResponse;
 
 public class UnregisterHandler {
+	// TODO: Unhardcode from Mod Garden: Nature and save role data into backend event.
+	// TODO: Rewrite this entire thing too, it's very out of date...
 	public static Response handleEventUnregister(SlashCommandInteraction interaction) {
 		interaction.event().deferReply(true).queue();
 		User discordUser = interaction.event().getUser();
@@ -77,7 +81,7 @@ public class UnregisterHandler {
 					.markEphemeral();
 		}
 		return new MessageResponse()
-				.setMessage("This command needs to be run inside the Mod Garden Discord server.")
+				.setMessage("This command must be run inside the Mod Garden Discord server.")
 				.markEphemeral();
 	}
 
