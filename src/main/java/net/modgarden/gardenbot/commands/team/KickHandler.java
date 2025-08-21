@@ -136,7 +136,7 @@ public class KickHandler {
 			}
 			try (InputStreamReader userStream = new InputStreamReader(userResult.body())) {
 				kicked = GardenBot.GSON.fromJson(JsonParser.parseReader(userStream), ModGardenUser.class);
-				if (!project.authors.contains(user.id) && !project.builders.contains(user.id)) {
+				if (!project.authors.contains(kicked.id) && !project.builders.contains(kicked.id)) {
 					return new EmbedResponse()
 							.setTitle("Could not kick user from your project.")
 							.setDescription(kickedDiscordUser.getEffectiveName() + " is not part of the specified project.")
