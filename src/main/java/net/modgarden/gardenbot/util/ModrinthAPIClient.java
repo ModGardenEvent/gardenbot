@@ -14,8 +14,9 @@ public class ModrinthAPIClient {
 	public static <T> HttpResponse<T> get(String endpoint, HttpResponse.BodyHandler<T> bodyHandler, String... headers) throws IOException, InterruptedException {
 		var req = HttpRequest.newBuilder(URI.create(API_URL + endpoint))
 				.header("User-Agent", USER_AGENT);
-		if (headers.length > 0)
+		if (headers.length > 0) {
 			req.headers(headers);
+		}
 
 		return GardenBot.HTTP_CLIENT.send(req.build(), bodyHandler);
 	}
@@ -23,8 +24,9 @@ public class ModrinthAPIClient {
 	public static <T> HttpResponse<T> post(String endpoint, HttpRequest.BodyPublisher bodyPublisher, HttpResponse.BodyHandler<T> bodyHandler, String... headers) throws IOException, InterruptedException {
 		var req = HttpRequest.newBuilder(URI.create(API_URL + endpoint))
 				.header("User-Agent", USER_AGENT);
-		if (headers.length > 0)
+		if (headers.length > 0) {
 			req.headers(headers);
+		}
 		req.POST(bodyPublisher);
 
 		return GardenBot.HTTP_CLIENT.send(req.build(), bodyHandler);

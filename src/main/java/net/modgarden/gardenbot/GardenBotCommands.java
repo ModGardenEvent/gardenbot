@@ -4,6 +4,9 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.modgarden.gardenbot.commands.account.*;
 import net.modgarden.gardenbot.commands.event.*;
 import net.modgarden.gardenbot.commands.image.UploadHandler;
+import net.modgarden.gardenbot.commands.team.InviteHandler;
+import net.modgarden.gardenbot.commands.team.KickHandler;
+import net.modgarden.gardenbot.commands.team.LeaveHandler;
 import net.modgarden.gardenbot.interaction.command.SlashCommand;
 import net.modgarden.gardenbot.interaction.command.SlashCommandDispatcher;
 import net.modgarden.gardenbot.interaction.command.SlashCommandOption;
@@ -111,6 +114,33 @@ public class GardenBotCommands {
 						new SlashCommandOption(OptionType.STRING, "project", "The project to update.", true, true),
 						new SlashCommandOption(OptionType.STRING, "version", "The version of the project to update to.", false, true)
 				)));
+
+		SlashCommandDispatcher.register(new SlashCommand("team", "Actions relating to your Mod Garden projects.",
+				new SlashCommand.SubCommand(
+						"invite",
+						"Invites a user to your Mod Garden project.",
+						InviteHandler::handleInvite,
+						InviteHandler::getChoices,
+						new SlashCommandOption(OptionType.STRING, "project", "The project to invite the user to.", true, true),
+						new SlashCommandOption(OptionType.STRING, "role", "The role to provide the user.", true, true),
+						new SlashCommandOption(OptionType.USER, "user", "The user to invite.", true, false)
+				),
+				new SlashCommand.SubCommand(
+						"leave",
+						"Leaves a Mod Garden project.",
+						LeaveHandler::handleLeave,
+						LeaveHandler::getChoices,
+						new SlashCommandOption(OptionType.STRING, "project", "The project to leave.", true, true)
+				),
+				new SlashCommand.SubCommand(
+						"kick",
+						"Kicks a user from a Mod Garden project.",
+						KickHandler::handleKick,
+						KickHandler::getChoices,
+						new SlashCommandOption(OptionType.STRING, "project", "The project to kick the user from.", true, true),
+						new SlashCommandOption(OptionType.USER, "user", "The user to kick.", true, false)
+				)
+		));
 
 		SlashCommandDispatcher.register(new SlashCommand("image", "Actions relating to images for Mod Garden's showcase worlds.",
 				new SlashCommand.SubCommand(

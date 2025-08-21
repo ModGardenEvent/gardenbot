@@ -26,6 +26,7 @@ public class GardenBot {
 	public static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
 	private static final int DATABASE_SCHEMA_VERSION = 1;
+	public static final String SAFE_URL_REGEX = "[a-zA-Z0-9!@$()`.+,_\"-]+";
 
 	public static JDA jda;
 
@@ -33,7 +34,7 @@ public class GardenBot {
 		if ("development".equals(System.getenv("env")))
 			((ch.qos.logback.classic.Logger)LOG).setLevel(Level.DEBUG);
 
-		jda = JDABuilder.create(GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT)
+		jda = JDABuilder.create(GatewayIntent.GUILD_MEMBERS, GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT)
 				.disableCache(CacheFlag.ACTIVITY, CacheFlag.VOICE_STATE, CacheFlag.EMOJI, CacheFlag.STICKER, CacheFlag.CLIENT_STATUS, CacheFlag.ONLINE_STATUS, CacheFlag.SCHEDULED_EVENTS)
 				.setToken(DOTENV.get("TOKEN"))
 				.addEventListeners(new GardenBotEvents())

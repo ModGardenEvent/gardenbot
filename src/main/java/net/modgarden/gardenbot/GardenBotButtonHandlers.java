@@ -25,6 +25,9 @@ public class GardenBotButtonHandlers {
 		ButtonDispatcher.register("unlinkModrinth", GardenBotButtonHandlers::unlinkModrinth);
 		ButtonDispatcher.register("linkMinecraft", new ModalResponse(GardenBotModals.LINK_MINECRAFT));
 		ButtonDispatcher.register("unlinkMinecraft?%s", GardenBotButtonHandlers::unlinkMinecraft);
+
+		ButtonDispatcher.register("acceptInvite?%s", GardenBotButtonHandlers::acceptInvite);
+		ButtonDispatcher.register("declineInvite?%s", GardenBotButtonHandlers::declineInvite);
 	}
 
 	public static Response unlinkModrinth(ButtonInteraction interaction) {
@@ -47,13 +50,18 @@ public class GardenBotButtonHandlers {
 						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
 						"Undefined Error.";
 				return new EmbedResponse()
-						.setTitle("Encountered an exception whilst attempting to unlink your Modrinth from your Mod Garden account.")
+						.setTitle("Encountered an exception whilst attempting to unlink your Modrinth account from your Mod Garden account.")
 						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
 						.setColor(0xFF0000)
 						.markEphemeral();
 			}
 		} catch (IOException | InterruptedException ex) {
 			GardenBot.LOG.error("", ex);
+			return new EmbedResponse()
+					.setTitle("Encountered an exception whilst attempting to unlink your Modrinth account from your Mod Garden account.")
+					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
+					.setColor(0xFF0000)
+					.markEphemeral();
 		}
 
 		return new EmbedResponse()
@@ -91,11 +99,16 @@ public class GardenBotButtonHandlers {
 			}
 			if (stream.statusCode() == 200) {
 				return new MessageResponse()
-						.setMessage("You already .")
+						.setMessage("You have already linked this Minecraft account to your Mod Garden account.")
 						.markEphemeral();
 			}
 		} catch (IOException | InterruptedException ex) {
 			GardenBot.LOG.error("", ex);
+			return new EmbedResponse()
+					.setTitle("Encountered an exception whilst attempting to unlink your Minecraft account from your Mod Garden account.")
+					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
+					.setColor(0xFF0000)
+					.markEphemeral();
 		}
 
 		String username = MinecraftAccountUtil.getMinecraftUsernameFromUuid(uuid);
@@ -107,6 +120,75 @@ public class GardenBotButtonHandlers {
 				.setTitle("Successfully unlinked your Minecraft account (" + username + ") from Mod Garden!")
 				.setColor(0xA9FFA7)
 				.markEphemeral();
+	}
 
+	public static Response acceptInvite(ButtonInteraction interaction) {
+		String inviteCode = interaction.arguments()[0];
+
+		JsonObject publisher = new JsonObject();
+		publisher.addProperty("invite_code", inviteCode);
+
+		try {
+			HttpResponse<Void> acceptResult = ModGardenAPIClient.post(
+					"discord/project/user/accept",
+					HttpRequest.BodyPublishers.ofString(publisher.toString()),
+					HttpResponse.BodyHandlers.discarding(),
+					"Content-Type", "application/json"
+			);
+			if (acceptResult.statusCode() != 201) {
+				return new EmbedResponse()
+						.setTitle("Could not accept invite to project.")
+						.setDescription("This invite is invalid or has expired.")
+						.setColor(0x5D3E40)
+						.markEphemeral();
+			}
+		} catch (IOException | InterruptedException ex) {
+			GardenBot.LOG.error("", ex);
+			return new EmbedResponse()
+					.setTitle("Encountered an exception whilst attempting to accept invite.")
+					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
+					.setColor(0xFF0000)
+					.markEphemeral();
+		}
+
+		return new EmbedResponse()
+				.setTitle("Successfully accepted invite to project!")
+				.setColor(0xA9FFA7)
+				.markEphemeral();
+	}
+
+	public static Response declineInvite(ButtonInteraction interaction) {
+		String inviteCode = interaction.arguments()[0];
+
+		JsonObject publisher = new JsonObject();
+		publisher.addProperty("invite_code", inviteCode);
+
+		try {
+			HttpResponse<Void> declineResult = ModGardenAPIClient.post(
+					"discord/project/user/decline",
+					HttpRequest.BodyPublishers.ofString(publisher.toString()),
+					HttpResponse.BodyHandlers.discarding(),
+					"Content-Type", "application/json"
+			);
+			if (declineResult.statusCode() != 201) {
+				return new EmbedResponse()
+						.setTitle("Could not decline invite to project.")
+						.setDescription("This invite is invalid or has expired.")
+						.setColor(0x5D3E40)
+						.markEphemeral();
+			}
+		} catch (IOException | InterruptedException ex) {
+			GardenBot.LOG.error("", ex);
+			return new EmbedResponse()
+					.setTitle("Encountered an exception whilst attempting to decline invite.")
+					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
+					.setColor(0xFF0000)
+					.markEphemeral();
+		}
+
+		return new EmbedResponse()
+				.setTitle("Successfully declined invite to project!")
+				.setColor(0xA9FFA7)
+				.markEphemeral();
 	}
 }

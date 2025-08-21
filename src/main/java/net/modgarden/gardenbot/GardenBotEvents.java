@@ -103,7 +103,13 @@ public class GardenBotEvents extends ListenerAdapter {
 
 	@Override
 	public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-		if (GardenBot.DOTENV.get("MODERATION_LOGS_CHANNEL_ID") == null || !event.getGuild().getId().equals(GardenBot.DOTENV.get("GUILD_ID")) || event.getAuthor().isSystem() || event.getAuthor().isBot() || event.getMessage().getContentRaw().isEmpty() || event.isWebhookMessage())
+		if (GardenBot.DOTENV.get("MODERATION_LOGS_CHANNEL_ID") == null ||
+				!event.isFromGuild() ||
+				!event.getGuild().getId().equals(GardenBot.DOTENV.get("GUILD_ID")) ||
+				event.getAuthor().isSystem() ||
+				event.getAuthor().isBot() ||
+				event.getMessage().getContentRaw().isEmpty() ||
+				event.getMessage().isWebhookMessage())
 			return;
 
 		MessageCacheUtil.cacheMessage(event.getAuthor().getId(), event.getMessageId(), event.getMessage().getContentRaw());
@@ -111,7 +117,15 @@ public class GardenBotEvents extends ListenerAdapter {
 
 	@Override
 	public void onMessageUpdate(@NotNull MessageUpdateEvent event) {
-		if (GardenBot.DOTENV.get("MODERATION_LOGS_CHANNEL_ID") == null || !event.getGuild().getId().equals(GardenBot.DOTENV.get("GUILD_ID")) || event.getAuthor().isSystem() || event.getAuthor().isBot() || event.getMessage().getContentRaw().isEmpty() || event.getMessage().isWebhookMessage())
+		if (
+				GardenBot.DOTENV.get("MODERATION_LOGS_CHANNEL_ID") == null ||
+				!event.isFromGuild() ||
+				!event.getGuild().getId().equals(GardenBot.DOTENV.get("GUILD_ID")) ||
+				event.getAuthor().isSystem() ||
+				event.getAuthor().isBot() ||
+				event.getMessage().getContentRaw().isEmpty() ||
+				event.getMessage().isWebhookMessage()
+		)
 			return;
 
 		String moderationLogsChannelId = GardenBot.DOTENV.get("MODERATION_LOGS_CHANNEL_ID");

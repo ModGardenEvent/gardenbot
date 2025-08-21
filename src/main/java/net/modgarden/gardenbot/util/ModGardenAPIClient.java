@@ -14,8 +14,9 @@ public class ModGardenAPIClient {
 		var req = HttpRequest.newBuilder(URI.create(GardenBot.API_URL + endpoint))
 				.header("User-Agent", USER_AGENT)
 				.header("Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"));
-		if (headers.length > 0)
+		if (headers.length > 0) {
 			req.headers(headers);
+		}
 
 		return GardenBot.HTTP_CLIENT.send(req.build(), bodyHandler);
 	}
@@ -24,8 +25,9 @@ public class ModGardenAPIClient {
 		var req = HttpRequest.newBuilder(URI.create(GardenBot.API_URL + endpoint))
 				.header("User-Agent", USER_AGENT)
 				.header("Authorization", "Basic " + GardenBot.DOTENV.get("OAUTH_SECRET"));
-		if (headers.length > 0)
+		if (headers.length > 0) {
 			req.headers(headers);
+		}
 		req.POST(bodyPublisher);
 
 		return GardenBot.HTTP_CLIENT.send(req.build(), bodyHandler);
