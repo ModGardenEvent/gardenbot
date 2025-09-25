@@ -93,8 +93,11 @@ public class UploadHandler {
 					.markEphemeral()
 					.setColor(0xFF0000);
 		}
+
+		// FIXME: Remove this casing when Backend V2. Although tbf, we'll have to rewrite anyways.
+		String slug = event.slug.equals("mod-garden-nature") ? "mod-garden/nature" : event.slug;
 		StringBuilder fileNameBuilder = new StringBuilder()
-				.append(event.slug);
+				.append(slug);
 
 		String hash;
 		try {
