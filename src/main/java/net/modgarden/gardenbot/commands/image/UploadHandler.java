@@ -15,6 +15,7 @@ import net.modgarden.gardenbot.util.ModGardenAPIClient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
@@ -34,7 +35,7 @@ public class UploadHandler {
 		ModGardenEvent event;
 		Message.Attachment attachment = interaction.event().getOption("attachment", OptionMapping::getAsAttachment);
 
-		if (attachment == null || !attachment.isImage() || attachment.getContentType() == null || !attachment.getContentType().equals("image/png")) {
+		if (attachment == null || !attachment.isImage() || attachment.getContentType() == null || (!attachment.getContentType().equals("image/png") && !attachment.getContentType().equals("image/webp"))) {
 			return new EmbedResponse()
 					.setTitle("Failed to upload image to Mod Garden's CDN.")
 					.setDescription("Attachment must be a PNG.")
@@ -116,25 +117,34 @@ public class UploadHandler {
 				.append(hash)
 				.append(".png");
 
-		try (InputStream attachmentStream = attachment.getProxy().download(attachment.getWidth(), attachment.getHeight()).join()) {
-			HttpResponse<InputStream> uploadResponse = BunnyCDNAPIClient.put(
-					"public/" + fileNameBuilder,
-					HttpRequest.BodyPublishers.ofInputStream(() -> attachmentStream),
-					HttpResponse.BodyHandlers.ofInputStream(),
-					"Content-Type", "application/octet-stream",
-					"Accept", "image/png"
-			);
-			try (InputStreamReader streamReader = new InputStreamReader(uploadResponse.body())) {
-				if (uploadResponse.statusCode() != 201) {
-					JsonElement json = JsonParser.parseReader(streamReader);
-					String errorMessage = json.isJsonObject() && json.getAsJsonObject().has("Message") ?
-							json.getAsJsonObject().getAsJsonPrimitive("Message").getAsString() :
-							"Undefined Error.";
-					return new EmbedResponse()
-							.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
-							.setDescription(uploadResponse.statusCode() + ": " + errorMessage + "\nPlease report this to a team member.")
-							.markEphemeral()
-							.setColor(0xFF0000);
+		try (
+				InputStream attachmentStream = attachment.getProxy().download().join()
+		) {
+			try (
+					// This is a hack to avoid the image being considered a webp instead of a png.
+					InputStream finalAttachmentStream = attachment.getContentType().equals("image/webp") ?
+							GardenBot.HTTP_CLIENT.send(HttpRequest.newBuilder(URI.create(attachment.getUrl() + "&format=png")).build(), HttpResponse.BodyHandlers.ofInputStream()).body() :
+							attachmentStream
+			) {
+				HttpResponse<InputStream> uploadResponse = BunnyCDNAPIClient.put(
+						"public/" + fileNameBuilder,
+						HttpRequest.BodyPublishers.ofInputStream(() -> finalAttachmentStream),
+						HttpResponse.BodyHandlers.ofInputStream(),
+						"Content-Type", "application/octet-stream",
+						"Accept", "image/png"
+				);
+				try (InputStreamReader streamReader = new InputStreamReader(uploadResponse.body())) {
+					if (uploadResponse.statusCode() != 201) {
+						JsonElement json = JsonParser.parseReader(streamReader);
+						String errorMessage = json.isJsonObject() && json.getAsJsonObject().has("Message") ?
+								json.getAsJsonObject().getAsJsonPrimitive("Message").getAsString() :
+								"Undefined Error.";
+						return new EmbedResponse()
+								.setTitle("Encountered an exception whilst attempting to upload an image to Mod Garden's CDN.")
+								.setDescription(uploadResponse.statusCode() + ": " + errorMessage + "\nPlease report this to a team member.")
+								.markEphemeral()
+								.setColor(0xFF0000);
+					}
 				}
 			}
 		} catch (IOException | InterruptedException ex) {
