@@ -109,24 +109,19 @@ public class UpdateHandler {
 									return submissionsJson.getAsJsonArray().asList().stream().map(submissionJson -> {
 										try {
 											if (submissionJson.isJsonObject()) {
-												var modGardenStream = ModGardenAPIClient.get("project/" + submissionJson.getAsJsonObject().get("project_id").getAsString(), HttpResponse.BodyHandlers.ofInputStream());
-												if (modGardenStream.statusCode() == 200) {
-													try (InputStreamReader modGardenReader = new InputStreamReader(modGardenStream.body())) {
-														ModGardenProject modGardenProject = GardenBot.GSON.fromJson(modGardenReader, ModGardenProject.class);
+												ModGardenProject modGardenProject = GardenBot.GSON.fromJson(submissionJson.getAsJsonObject().get("project"), ModGardenProject.class);
 
-														String slug = modGardenProject.slug;
-														String title = slug;
+												String slug = modGardenProject.slug;
+												String title = slug;
 
-														var modrinthStream = ModrinthAPIClient.get("v2/project/" + modGardenProject.modrinthId, HttpResponse.BodyHandlers.ofInputStream());
-														if (modrinthStream.statusCode() == 200) {
-															try (InputStreamReader modrinthReader = new InputStreamReader(modrinthStream.body())) {
-																ModrinthProject modrinthProject = GardenBot.GSON.fromJson(modrinthReader, ModrinthProject.class);
-																title = modrinthProject.title;
-															}
-														}
-														return new Command.Choice(title, slug);
+												var modrinthStream = ModrinthAPIClient.get("v2/project/" + modGardenProject.modrinthId, HttpResponse.BodyHandlers.ofInputStream());
+												if (modrinthStream.statusCode() == 200) {
+													try (InputStreamReader modrinthReader = new InputStreamReader(modrinthStream.body())) {
+														ModrinthProject modrinthProject = GardenBot.GSON.fromJson(modrinthReader, ModrinthProject.class);
+														title = modrinthProject.title;
 													}
 												}
+												return new Command.Choice(title, slug);
 											}
 										} catch (Exception ex) {
 											GardenBot.LOG.error("Failed to read Modrinth version.", ex);
