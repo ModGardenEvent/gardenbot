@@ -34,8 +34,21 @@ public class GardenBot {
 		if ("development".equals(System.getenv("env")))
 			((ch.qos.logback.classic.Logger)LOG).setLevel(Level.DEBUG);
 
-		jda = JDABuilder.create(GatewayIntent.GUILD_MEMBERS, GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT)
-				.disableCache(CacheFlag.ACTIVITY, CacheFlag.VOICE_STATE, CacheFlag.EMOJI, CacheFlag.STICKER, CacheFlag.CLIENT_STATUS, CacheFlag.ONLINE_STATUS, CacheFlag.SCHEDULED_EVENTS)
+		jda = JDABuilder.create(
+						GatewayIntent.GUILD_MEMBERS,
+						GatewayIntent.DIRECT_MESSAGES,
+						GatewayIntent.GUILD_MESSAGES,
+						GatewayIntent.MESSAGE_CONTENT
+				)
+				.disableCache(
+						CacheFlag.ACTIVITY,
+						CacheFlag.VOICE_STATE,
+						CacheFlag.EMOJI,
+						CacheFlag.STICKER,
+						CacheFlag.CLIENT_STATUS,
+						CacheFlag.ONLINE_STATUS,
+						CacheFlag.SCHEDULED_EVENTS
+				)
 				.setToken(DOTENV.get("TOKEN"))
 				.addEventListeners(new GardenBotEvents())
 				.build();
