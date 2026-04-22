@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
+import static javax.management.timer.Timer.ONE_DAY;
 import static net.modgarden.gardenbot.util.TimeUtil.DAY_MS;
 
 public class MessageCacheUtil {
@@ -59,7 +60,7 @@ public class MessageCacheUtil {
 
 	private static void removeExpiredMessages(JDA jda) {
 		GardenBot.LOG.info("Attempting to remove expired messages...");
-		long currentTime = System.currentTimeMillis() + DAY_MS;
+		long expiryTime = System.currentTimeMillis() - DAY_MS;
 		TextChannel channel = jda.getTextChannelById(GardenBot.DOTENV.get("MODERATION_LOGS_CHANNEL_ID"));
 
 		if (channel != null) {
@@ -77,7 +78,7 @@ public class MessageCacheUtil {
 				WHERE CAST(removal_timestamp AS INTEGER) < ?
 				""")
 		) {
-			deleteStatement.setLong(1, currentTime);
+			deleteStatement.setLong(1, expiryTime);
 			deleteStatement.execute();
 			int updateCount = deleteStatement.getUpdateCount();
 			if (updateCount == 0) {
@@ -95,7 +96,7 @@ public class MessageCacheUtil {
 		List<Message> allowedMessages = channel.getHistoryFromBeginning(100).complete()
 				.getRetrievedHistory()
 				.stream()
-				.filter(message -> message.getTimeCreated().toInstant().toEpochMilli() >= System.currentTimeMillis())
+				.filter(message -> message.getTimeCreated().toInstant().toEpochMilli() >= System.currentTimeMillis() - ONE_DAY)
 				.toList();
 		Message returnValue = null;
 		while (!allowedMessages.isEmpty()) {
@@ -110,7 +111,7 @@ public class MessageCacheUtil {
 					.complete()
 					.getRetrievedHistory()
 					.stream()
-					.filter(message -> message.getTimeCreated().toInstant().toEpochMilli() < System.currentTimeMillis())
+					.filter(message -> message.getTimeCreated().toInstant().toEpochMilli() < System.currentTimeMillis() - ONE_DAY)
 					.toList();
 		}
 		return channel.getHistoryBefore(referenceMessage.getId(), 100)
