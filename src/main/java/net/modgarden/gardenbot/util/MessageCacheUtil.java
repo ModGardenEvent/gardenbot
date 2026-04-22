@@ -106,8 +106,15 @@ public class MessageCacheUtil {
 
 	private static List<Message> getLatestExpiredMessages(TextChannel channel, @Nullable Message referenceMessage) {
 		if (referenceMessage == null) {
-			return channel.getHistoryFromBeginning(100).complete().getRetrievedHistory();
+			return channel.getHistoryFromBeginning(100)
+					.complete()
+					.getRetrievedHistory()
+					.stream()
+					.filter(message -> message.getTimeCreated().toInstant().toEpochMilli() < System.currentTimeMillis())
+					.toList();
 		}
-		return channel.getHistoryBefore(referenceMessage.getId(), 100).complete().getRetrievedHistory();
+		return channel.getHistoryBefore(referenceMessage.getId(), 100)
+				.complete()
+				.getRetrievedHistory();
 	}
 }
