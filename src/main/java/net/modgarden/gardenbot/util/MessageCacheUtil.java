@@ -1,18 +1,20 @@
 package net.modgarden.gardenbot.util;
 
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.MessageHistory;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.modgarden.gardenbot.GardenBot;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
+
+import static net.modgarden.gardenbot.util.TimeUtil.DAY_MS;
 
 public class MessageCacheUtil {
 	public static void cacheMessage(String userId, String messageId, String content) {
-		long removalTimestamp = System.currentTimeMillis() + TimeUtil.DAY;
+		long removalTimestamp = System.currentTimeMillis() + DAY_MS;
 		try (var connection = GardenBot.createDatabaseConnection();
 			 PreparedStatement statement = connection.prepareStatement("INSERT INTO message_cache (message_id, user_id, content, removal_timestamp) VALUES (?, ?, ?, ?) ON CONFLICT (message_id) DO UPDATE SET content = ?, removal_timestamp = ?")) {
 			statement.setString(1, messageId);
@@ -57,35 +59,24 @@ public class MessageCacheUtil {
 
 	private static void removeExpiredMessages(JDA jda) {
 		GardenBot.LOG.info("Attempting to remove expired messages...");
-		long currentTime = System.currentTimeMillis() + TimeUtil.DAY;
+		long currentTime = System.currentTimeMillis() + DAY_MS;
 		TextChannel channel = jda.getTextChannelById(GardenBot.DOTENV.get("MODERATION_LOGS_CHANNEL_ID"));
 
+		if (channel != null) {
+			Message referenceMessage = getEarliestNonExpiredMessages(channel);
+			List<Message> expiredMessages = getLatestExpiredMessages(channel, referenceMessage);
+			while (!expiredMessages.isEmpty()) {
+				channel.deleteMessages(expiredMessages).complete();
+				expiredMessages = getLatestExpiredMessages(channel, referenceMessage);
+			}
+		}
+
 		try (var connection = GardenBot.createDatabaseConnection();
-			 PreparedStatement selectStatement = connection.prepareStatement("""
-				SELECT message_id
-				FROM message_cache
-				WHERE CAST(removal_timestamp AS INTEGER) >= ?
-				ORDER BY (removal_timestamp)
-				LIMIT = 1
-				""");
 			 PreparedStatement deleteStatement = connection.prepareStatement("""
 				DELETE FROM message_cache
 				WHERE CAST(removal_timestamp AS INTEGER) < ?
 				""")
 		) {
-			if (channel != null) {
-				selectStatement.setLong(1, currentTime);
-				ResultSet oldestValidMessageQuery = selectStatement.executeQuery();
-				String referenceMessage = !oldestValidMessageQuery.isBeforeFirst()
-						? null
-						: oldestValidMessageQuery.getString("message_id");
-				MessageHistory history = getMessagesBeforeCurrent(channel, referenceMessage);
-				while (!history.isEmpty()) {
-					channel.deleteMessages(history.getRetrievedHistory()).complete();
-					history = getMessagesBeforeCurrent(channel, referenceMessage);
-				}
-			}
-
 			deleteStatement.setLong(1, currentTime);
 			deleteStatement.execute();
 			int updateCount = deleteStatement.getUpdateCount();
@@ -99,11 +90,24 @@ public class MessageCacheUtil {
 		}
 	}
 
-	private static MessageHistory getMessagesBeforeCurrent(TextChannel channel, @Nullable String referenceMessage) {
-		if (referenceMessage == null) {
-			return channel.getHistoryFromBeginning(100).complete();
-		} else {
-			return channel.getHistoryBefore(referenceMessage, 100).complete();
+	@Nullable
+	private static Message getEarliestNonExpiredMessages(TextChannel channel) {
+		List<Message> allowedMessages = channel.getHistoryFromBeginning(100).complete()
+				.getRetrievedHistory()
+				.stream()
+				.filter(message -> message.getTimeCreated().toInstant().toEpochMilli() >= System.currentTimeMillis())
+				.toList();
+		Message returnValue = null;
+		while (!allowedMessages.isEmpty()) {
+			returnValue = allowedMessages.getLast();
 		}
+		return returnValue;
+	}
+
+	private static List<Message> getLatestExpiredMessages(TextChannel channel, @Nullable Message referenceMessage) {
+		if (referenceMessage == null) {
+			return channel.getHistoryFromBeginning(100).complete().getRetrievedHistory();
+		}
+		return channel.getHistoryBefore(referenceMessage.getId(), 100).complete().getRetrievedHistory();
 	}
 }

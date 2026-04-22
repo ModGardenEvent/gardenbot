@@ -7,7 +7,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class TimeUtil {
-	public static final long DAY = 86400000;
+	public static final long DAY_MS = 86400000;
 
 	public static void runEachHour(Runnable runnable) {
 		long now = System.currentTimeMillis();
