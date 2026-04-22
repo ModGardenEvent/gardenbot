@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import net.modgarden.gardenbot.util.MessageCacheUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +18,7 @@ import java.sql.*;
 public class GardenBot {
 	public static final Logger LOG = LoggerFactory.getLogger("GardenBot");
 	public static final String API_URL = "development".equals(System.getenv("env")) ? "http://localhost:7070/v1/" : "https://api.modgarden.net/v1/";
-	public static final String VERSION = "1.1.1";
+	public static final String VERSION = "1.2.2"; // TODO: Automatically update this from gradle.properties.
 	public static final Gson GSON = new Gson();
 
 	public static final Dotenv DOTENV = Dotenv.load();
@@ -65,8 +64,6 @@ public class GardenBot {
 
 		GardenBotCommands.registerAll();
 		GardenBotButtonHandlers.registerAll();
-
-		MessageCacheUtil.removeExpiredMessagesEachHour(jda);
 
 		LOG.info("GardenBot has been initialized.");
     }

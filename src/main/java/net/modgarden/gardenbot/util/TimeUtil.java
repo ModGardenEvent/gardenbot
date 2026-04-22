@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public class TimeUtil {
 	public static final long DAY_MS = 86400000;
+	public static final long WEEK_MS = DAY_MS * 7;
 
 	public static void runEachHour(Runnable runnable) {
 		long now = System.currentTimeMillis();

@@ -55,7 +55,9 @@ public class GardenBotEvents extends ListenerAdapter {
 		if (!event.getGuild().getId().equals(GardenBot.DOTENV.get("GUILD_ID")))
 			return;
 
+
 		SlashCommandDispatcher.addCommands(event.getGuild());
+		MessageCacheUtil.removeExpiredMessagesEachHour(event.getGuild());
 	}
 
 	@Override
@@ -77,7 +79,9 @@ public class GardenBotEvents extends ListenerAdapter {
 						.setDescription(
 								"Welcome <@" + user.getId() + "> (" + user.getGlobalName() +")\n" +
 								"**ID:** " + user.getId())
-				.build()).setAllowedMentions(List.of()).queue();
+				.build())
+				.setAllowedMentions(List.of())
+				.queue();
 	}
 
 	@Override
