@@ -64,7 +64,7 @@ public class MessageCacheUtil {
 		TextChannel channel = jda.getTextChannelById(GardenBot.DOTENV.get("MODERATION_LOGS_CHANNEL_ID"));
 
 		if (channel != null) {
-			Message referenceMessage = getEarliestNonExpiredMessages(channel);
+			Message referenceMessage = getEarliestNonExpiredMessage(channel);
 			List<Message> expiredMessages = getLatestExpiredMessages(channel, referenceMessage);
 			while (!expiredMessages.isEmpty()) {
 				channel.deleteMessages(expiredMessages).complete();
@@ -92,7 +92,7 @@ public class MessageCacheUtil {
 	}
 
 	@Nullable
-	private static Message getEarliestNonExpiredMessages(TextChannel channel) {
+	private static Message getEarliestNonExpiredMessage(TextChannel channel) {
 		List<Message> allowedMessages = channel.getHistoryFromBeginning(100).complete()
 				.getRetrievedHistory()
 				.stream()
