@@ -52,7 +52,8 @@ public class GardenBot {
 
 		GardenBotCommands.registerAll();
 		GardenBotButtonHandlers.registerAll();
-		MessageCacheUtil.removeExpiredMessagesStartOfDay();
+
+		MessageCacheUtil.removeExpiredMessagesEachHour(jda);
 
 		LOG.info("GardenBot has been initialized.");
     }

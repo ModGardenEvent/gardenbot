@@ -11,7 +11,6 @@ import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
@@ -194,13 +193,5 @@ public class GardenBotEvents extends ListenerAdapter {
 			builder.setAuthor("Message Deleted!");
 
 		channel.sendMessageEmbeds(builder.build()).setAllowedMentions(List.of()).queue();
-
-		MessageCacheUtil.deleteCachedMessage(event.getMessageId());
-	}
-
-	@Override
-	public void onMessageBulkDelete(MessageBulkDeleteEvent event) {
-		for (String messageId : event.getMessageIds())
-			MessageCacheUtil.deleteCachedMessage(messageId);
 	}
 }
