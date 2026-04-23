@@ -15,7 +15,7 @@ public class TimeUtil {
 		long etaMs = HOUR_MS - now % HOUR_MS;
 
 		try (ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor()) {
-			service.scheduleAtFixedRate(runnable, etaMs, 1, TimeUnit.HOURS);
+			service.scheduleAtFixedRate(runnable, etaMs, HOUR_MS, TimeUnit.MILLISECONDS);
 		}
 	}
 }
