@@ -31,8 +31,8 @@ dependencies {
 }
 
 tasks {
-	distZip.configure {
-		archiveFileName.set("gardenbot.zip")
+	withType<AbstractCopyTask>().configureEach {
+		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	}
 	jar.configure {
 		manifest {
@@ -40,9 +40,9 @@ tasks {
 		}
 		archiveFileName.set("gardenbot.jar")
 	}
-    withType<Zip>().configureEach {
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    }
+	distZip.configure {
+		archiveFileName.set("gardenbot.zip")
+	}
 }
 
 distributions {
