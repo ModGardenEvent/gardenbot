@@ -18,7 +18,7 @@ import java.sql.*;
 public class GardenBot {
 	public static final Logger LOG = LoggerFactory.getLogger("GardenBot");
 	public static final String API_URL = "development".equals(System.getenv("env")) ? "http://localhost:7070/v1/" : "https://api.modgarden.net/v1/";
-	public static final String VERSION = "1.2.2"; // TODO: Automatically update this from gradle.properties.
+	public static final String VERSION = "1.2.3"; // TODO: Automatically update this from gradle.properties.
 	public static final Gson GSON = new Gson();
 
 	public static final Dotenv DOTENV = Dotenv.load();
