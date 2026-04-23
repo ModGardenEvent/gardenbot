@@ -3,7 +3,6 @@ package net.modgarden.gardenbot.interaction.dispatcher;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
-import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 import net.modgarden.gardenbot.command.AbstractSlashCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.modgarden.gardenbot.GardenBot;
@@ -20,30 +19,26 @@ public class SlashCommandDispatcher {
 		COMMANDS.put(slashCommand.name, slashCommand);
 	}
 
-	public static List<Command.Choice> getAutoCompleteChoices(CommandAutoCompleteInteractionEvent event) {
-		var slashCommand = COMMANDS.get(event.getName());
-		return slashCommand.getAutoCompleteChoices(event.getFocusedOption().getName(), event.getUser(), event::getOption, event.getSubcommandGroup(), event.getSubcommandName());
-	}
-
-	public static void apply(CommandListUpdateAction action) {
-		action.addCommands(COMMANDS.values().stream().map(AbstractSlashCommand::asData).toList()).queue();
-	}
-
 	public static Response dispatch(SlashCommandInteraction command) {
 		var slashCommand = COMMANDS.get(command.event().getName());
 		return slashCommand.respond(command);
+	}
+
+	public static List<Command.Choice> getAutoCompleteChoices(CommandAutoCompleteInteractionEvent event) {
+		var slashCommand = COMMANDS.get(event.getName());
+		return slashCommand.getAutoCompleteChoices(event.getFocusedOption().getName(), event.getUser(), event::getOption, event.getSubcommandGroup(), event.getSubcommandName());
 	}
 
 	public static void addCommands(Guild guild) {
 		if (Boolean.parseBoolean(GardenBot.DOTENV.get("GARDENBOT_UPSERT_COMMANDS", "false"))) {
 			List<SlashCommandData> commandData = COMMANDS.values()
 					.stream()
-					.map(AbstractSlashCommand::getData)
+					.map(AbstractSlashCommand::asData)
 					.toList();
 
 			guild.updateCommands()
 					.addCommands(commandData)
-					.complete();
+					.queue();
 
 			GardenBot.LOG.info("Successfully upserted GardenBot commands!");
 		}
