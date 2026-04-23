@@ -5,14 +5,18 @@ on:
     branches:
       - master
 jobs:
-  build-and-deploy:
+  upsert-build-and-deploy:
     runs-on: ubuntu-latest
+    name: Upsert Commands, Build and Deploy
     steps:
-      - name: SSH Remote Commands
-        uses: appleboy/ssh-action@v1.2.2
+      - name: Build GardenBot whilst Upserting Commands
+        env:
+          GARDENBOT_UPSERT_COMMANDS: ${{ contains(github.event.head_commit.message, '[upsert]') }}
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           key: ${{ secrets.SSH_KEY }}
-          script: sh ./update_gardenbot.sh
+          script: |
+            sh ./update_gardenbot.sh

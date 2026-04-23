@@ -3,7 +3,8 @@ package net.modgarden.gardenbot.interaction.command;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
-import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.interaction.response.Response;
 
@@ -22,17 +23,23 @@ public class SlashCommandDispatcher {
 		return slashCommand.getAutoCompleteChoices(event.getFocusedOption().getName(), event.getUser(), event::getOption, event.getSubcommandGroup(), event.getSubcommandName());
 	}
 
-	public static void apply(CommandListUpdateAction action) {
-		action.addCommands(COMMANDS.values().stream().map(AbstractSlashCommand::getData).toList()).queue();
-	}
-
 	public static Response dispatch(SlashCommandInteraction command) {
 		var slashCommand = COMMANDS.get(command.event().getName());
 		return slashCommand.respond(command);
 	}
 
 	public static void addCommands(Guild guild) {
-		// TODO: Only upsert when a commit has [upsert] in its name if possible.
-		guild.updateCommands().addCommands(COMMANDS.values().stream().map(AbstractSlashCommand::getData).toList()).complete();
+		if (Boolean.parseBoolean(GardenBot.DOTENV.get("GARDENBOT_UPSERT_COMMANDS", "false"))) {
+			List<SlashCommandData> commandData = COMMANDS.values()
+					.stream()
+					.map(AbstractSlashCommand::getData)
+					.toList();
+
+			guild.updateCommands()
+					.addCommands(commandData)
+					.complete();
+
+			GardenBot.LOG.info("Successfully upserted GardenBot commands!");
+		}
 	}
 }
