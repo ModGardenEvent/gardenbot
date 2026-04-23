@@ -65,7 +65,7 @@ public class GardenBot {
 		GardenBotCommands.registerAll();
 		GardenBotButtonHandlers.registerAll();
 
-		LOG.info("GardenBot has been initialized.");
+		LOG.info("GardenBot v{} has been initialized.", VERSION);
     }
 
 	public static Connection createDatabaseConnection() throws SQLException {
