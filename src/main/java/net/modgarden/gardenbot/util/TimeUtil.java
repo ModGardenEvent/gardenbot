@@ -5,6 +5,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class TimeUtil {
+	private static final ScheduledExecutorService EXECUTOR = Executors.newScheduledThreadPool(4);
+
 	public static final long HOUR_MS = 3600000;
 	public static final long DAY_MS = HOUR_MS * 24;
 	public static final long WEEK_MS = DAY_MS * 7;
@@ -14,8 +16,6 @@ public class TimeUtil {
 
 		long etaMs = HOUR_MS - now % HOUR_MS;
 
-		try (ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor()) {
-			service.scheduleAtFixedRate(runnable, etaMs, HOUR_MS, TimeUnit.MILLISECONDS);
-		}
+		EXECUTOR.scheduleAtFixedRate(runnable, etaMs, HOUR_MS, TimeUnit.MILLISECONDS);
 	}
 }
