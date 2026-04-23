@@ -58,7 +58,6 @@ public class MessageCacheUtil {
 
 	public static void removeExpiredMessagesEachHour(Guild guild) {
 		TimeUtil.runEachHour(() -> {
-			removeExpiredMessagesFromChannel(guild.getTextChannelById(GardenBot.DOTENV.get("JOIN_LOGS_CHANNEL_ID")));
 			removeExpiredMessagesFromChannel(guild.getTextChannelById(GardenBot.DOTENV.get("MODERATION_LOGS_CHANNEL_ID")));
 			removeExpiredMessagesFromDatabase();
 		});
