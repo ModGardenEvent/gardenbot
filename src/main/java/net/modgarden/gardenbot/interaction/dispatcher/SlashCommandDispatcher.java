@@ -5,6 +5,8 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 import net.modgarden.gardenbot.command.AbstractSlashCommand;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.Response;
 
@@ -33,7 +35,17 @@ public class SlashCommandDispatcher {
 	}
 
 	public static void addCommands(Guild guild) {
-		// TODO: Only upsert when a commit has [upsert] in its name if possible.
-		guild.updateCommands().addCommands(COMMANDS.values().stream().map(AbstractSlashCommand::asData).toList()).complete();
+		if (Boolean.parseBoolean(GardenBot.DOTENV.get("GARDENBOT_UPSERT_COMMANDS", "false"))) {
+			List<SlashCommandData> commandData = COMMANDS.values()
+					.stream()
+					.map(AbstractSlashCommand::getData)
+					.toList();
+
+			guild.updateCommands()
+					.addCommands(commandData)
+					.complete();
+
+			GardenBot.LOG.info("Successfully upserted GardenBot commands!");
+		}
 	}
 }

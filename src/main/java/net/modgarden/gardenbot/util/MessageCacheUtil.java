@@ -83,9 +83,9 @@ public class MessageCacheUtil {
 					break;
 
 				RestAction<Void> deleteAction = channel.deleteMessageById(message.getId());
-				// Get past rate limits by delaying the interaction by a second every 5 messages.
+				// Get past rate limits by delaying the interaction by 5 seconds every 5 messages.
 				if ((messagesCopy.indexOf(message) + 1) % 5 == 0) {
-					deleteAction = deleteAction.delay(Duration.ofSeconds(1));
+					deleteAction = deleteAction.delay(Duration.ofSeconds(5));
 				}
 				deleteAction.complete();
 				expiredMessages.remove(message);
