@@ -5,18 +5,19 @@ on:
     branches:
       - master
 jobs:
-  upsert-build-and-deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    name: Upsert Commands, Build and Deploy
+    name: Build and Deploy
     steps:
-      - name: Build GardenBot whilst Upserting Commands
-        env:
-          GARDENBOT_UPSERT_COMMANDS: ${{ contains(github.event.head_commit.message, '[upsert]') }}
+      - name: Build GardenBot
         uses: appleboy/ssh-action@v1.2.5
+        env:
+          GARDENBOT_UPSERT_COMMANDS: "${{ contains(github.event.head_commit.message, '[upsert]') }}"
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           key: ${{ secrets.SSH_KEY }}
+          envs: GARDENBOT_UPSERT_COMMANDS
           script: |
             sh ./update_gardenbot.sh
