@@ -18,4 +18,8 @@ public class TimeUtil {
 
 		EXECUTOR.scheduleAtFixedRate(runnable, etaMs, HOUR_MS, TimeUnit.MILLISECONDS);
 	}
+
+	public static void closeScheduledExecutor() {
+		EXECUTOR.close();
+	}
 }

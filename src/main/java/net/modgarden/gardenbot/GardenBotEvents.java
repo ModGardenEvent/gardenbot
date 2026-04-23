@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
+import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.modgarden.gardenbot.interaction.ModalInteraction;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
@@ -21,6 +22,7 @@ import net.modgarden.gardenbot.interaction.button.ButtonDispatcher;
 import net.modgarden.gardenbot.interaction.command.SlashCommandDispatcher;
 import net.modgarden.gardenbot.interaction.modal.ModalDispatcher;
 import net.modgarden.gardenbot.util.MessageCacheUtil;
+import net.modgarden.gardenbot.util.TimeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -58,6 +60,11 @@ public class GardenBotEvents extends ListenerAdapter {
 
 		SlashCommandDispatcher.addCommands(event.getGuild());
 		MessageCacheUtil.removeExpiredMessagesEachHour(event.getGuild());
+	}
+
+	@Override
+	public void onShutdown(@NotNull ShutdownEvent event) {
+		TimeUtil.closeScheduledExecutor();
 	}
 
 	@Override
