@@ -18,9 +18,9 @@ import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.modgarden.gardenbot.interaction.ModalInteraction;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
-import net.modgarden.gardenbot.interaction.button.ButtonDispatcher;
-import net.modgarden.gardenbot.interaction.command.SlashCommandDispatcher;
-import net.modgarden.gardenbot.interaction.modal.ModalDispatcher;
+import net.modgarden.gardenbot.interaction.dispatcher.ButtonDispatcher;
+import net.modgarden.gardenbot.interaction.dispatcher.SlashCommandDispatcher;
+import net.modgarden.gardenbot.interaction.dispatcher.ModalDispatcher;
 import net.modgarden.gardenbot.util.MessageCacheUtil;
 import net.modgarden.gardenbot.util.TimeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ public class GardenBotEvents extends ListenerAdapter {
 	@Override
 	public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
 		var response = SlashCommandDispatcher.dispatch(new SlashCommandInteraction(event));
-		response.send(event).queue();
+		response.replyToSlashCommand(event).queue();
 	}
 
 	@Override
@@ -43,13 +43,13 @@ public class GardenBotEvents extends ListenerAdapter {
 	@Override
 	public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
 		var response = ButtonDispatcher.dispatch(event);
-		response.send(event).queue();
+		response.replyToButton(event).queue();
 	}
 
 	@Override
 	public void onModalInteraction(@NotNull ModalInteractionEvent event) {
 		var response = ModalDispatcher.dispatch(new ModalInteraction(event));
-		response.send(event).queue();
+		response.replyToModal(event).queue();
 	}
 
 	@Override

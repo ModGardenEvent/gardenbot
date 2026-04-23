@@ -1,10 +1,10 @@
 package net.modgarden.gardenbot;
 
-import net.modgarden.gardenbot.modals.account.LinkMinecraftModal;
-import net.modgarden.gardenbot.modals.account.LinkModrinthModal;
-import net.modgarden.gardenbot.modals.account.RegisterModal;
+import net.modgarden.gardenbot.modal.account.link.LinkMinecraftModal;
+import net.modgarden.gardenbot.modal.account.link.LinkModrinthModal;
+import net.modgarden.gardenbot.modal.account.RegisterModal;
 
-import static net.modgarden.gardenbot.interaction.modal.ModalDispatcher.register;
+import static net.modgarden.gardenbot.interaction.dispatcher.ModalDispatcher.register;
 
 public class GardenBotModals {
 	public static final RegisterModal REGISTER = register(new RegisterModal());

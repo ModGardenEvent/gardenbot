@@ -5,11 +5,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.dv8tion.jda.api.entities.User;
 import net.modgarden.gardenbot.interaction.ButtonInteraction;
-import net.modgarden.gardenbot.interaction.button.ButtonDispatcher;
-import net.modgarden.gardenbot.interaction.response.EmbedResponse;
-import net.modgarden.gardenbot.interaction.response.MessageResponse;
-import net.modgarden.gardenbot.interaction.response.ModalResponse;
-import net.modgarden.gardenbot.interaction.response.Response;
+import net.modgarden.gardenbot.interaction.dispatcher.ButtonDispatcher;
+import net.modgarden.gardenbot.response.EmbedResponse;
+import net.modgarden.gardenbot.response.MessageResponse;
+import net.modgarden.gardenbot.response.ModalResponse;
+import net.modgarden.gardenbot.response.Response;
 import net.modgarden.gardenbot.util.MinecraftAccountUtil;
 import net.modgarden.gardenbot.util.ModGardenAPIClient;
 
@@ -98,8 +98,7 @@ public class GardenBotButtonHandlers {
 						.markEphemeral();
 			}
 			if (stream.statusCode() == 200) {
-				return new MessageResponse()
-						.setMessage("You have already linked this Minecraft account to your Mod Garden account.")
+				return new MessageResponse("You have already linked this Minecraft account to your Mod Garden account.")
 						.markEphemeral();
 			}
 		} catch (IOException | InterruptedException ex) {
