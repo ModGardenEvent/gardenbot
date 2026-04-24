@@ -36,7 +36,6 @@ public abstract class GroupSlashCommand<T extends AbstractSlashCommand> extends 
 		validateSubCommandsOrThrow();
 	}
 
-
 	@NotNull
 	@Override
 	public Response respond(SlashCommandInteraction interaction) {
