@@ -59,7 +59,7 @@ public final class DatabaseAccess implements AutoCloseable {
 	public TeamInvite getTeamInvite(String id) throws SQLException {
 		try (
 				var statement = getConnection().prepareStatement("""
-						SELECT user_id, project_id, project_name, role, expiration_time
+						SELECT user_id, project_id, role, expiration_time
 						FROM team_invites
 						WHERE id = ?""")
 		) {
@@ -74,21 +74,35 @@ public final class DatabaseAccess implements AutoCloseable {
 					id,
 					resultSet.getString("user_id"),
 					resultSet.getString("project_id"),
-					resultSet.getString("project_name"),
 					resultSet.getString("role"),
 					resultSet.getLong("expiration_time")
 			);
 		}
 	}
 
+	public boolean updateTeamInvite(String userId,
+									String projectId,
+									String role) throws SQLException {
+		try (
+				var insertStatement = getConnection().prepareStatement("""
+						UPDATE team_invites
+						SET expiration_time = ?
+						WHERE user_id = ? AND project_id = ? AND role = ?""")
+		) {
+			insertStatement.setString(1, userId);
+			insertStatement.setString(2, projectId);
+			insertStatement.setString(3, role);
+			return insertStatement.executeUpdate() > 0;
+		}
+	}
+
 	public String createTeamInvite(String userId,
 								   String projectId,
-								   String projectName,
 								   String role) throws SQLException {
 		try (
 				var insertStatement = getConnection().prepareStatement("""
-						INSERT INTO team_invites(id, user_id, project_id, project_name, role, expiration_time)
-						VALUES (?, ?, ?, ?, ?, ?)""")
+						INSERT INTO team_invites(id, user_id, project_id, role, expiration_time)
+						VALUES (?, ?, ?, ?, ?)""")
 		) {
 			String id = NaturalId.generate("team_invites", "id", null, 5);
 			long expirationTime = Instant.now().toEpochMilli() + TimeUtil.DAY_MS;
@@ -96,9 +110,8 @@ public final class DatabaseAccess implements AutoCloseable {
 			insertStatement.setString(1, id);
 			insertStatement.setString(2, userId);
 			insertStatement.setString(3, projectId);
-			insertStatement.setString(4, projectName);
-			insertStatement.setString(5, role);
-			insertStatement.setLong(6, expirationTime);
+			insertStatement.setString(4, role);
+			insertStatement.setLong(5, expirationTime);
 			insertStatement.executeUpdate();
 
 			return id;

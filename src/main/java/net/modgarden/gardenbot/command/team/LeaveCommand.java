@@ -12,6 +12,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static net.modgarden.gardenbot.command.team.TeamCommand.getProjectAutoCompleteChoices;
+
 public class LeaveCommand extends SlashCommand {
 	public LeaveCommand() {
 		super(
@@ -37,6 +39,6 @@ public class LeaveCommand extends SlashCommand {
 	public List<Command.Choice> getAutoCompleteChoices(String focusedOption,
 													   User user,
 													   AutoCompletionGetter autoCompletionGetter) {
-		return TeamCommand.getProjectAutoCompleteChoices(user, autoCompletionGetter);
+		return getProjectAutoCompleteChoices(user);
 	}
 }

@@ -39,10 +39,7 @@ public class AcceptTeamInviteButton extends Button {
 			TeamInvite invite = db.getTeamInvite(inviteId);
 
 			if (invite == null) {
-				return new EmbedResponse()
-						.setTitle("Could not accept invite to Mod Garden project.")
-						.setDescription("This invite is invalid or has expired.")
-						.setColor(0x5D3E40)
+				return new MessageResponse("This invite is invalid or has expired.")
 						.markEphemeral();
 			}
 
@@ -50,6 +47,38 @@ public class AcceptTeamInviteButton extends Button {
 			request.put(invite.userId(), invite.role());
 
 			JsonElement requestJson = GardenBot.GSON.toJsonTree(request, Map.class);
+
+			HttpResponse<InputStream> projectStream = ModGardenAPIClient.get(
+					"v2/projects/" + invite.projectId(),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+			if (projectStream.statusCode() != 200) {
+				db.revokeTeamInvite(inviteId);
+				// Not an internal error in the case of unsubmitted projects.
+				return new MessageResponse("The project you were invited to does not exist.")
+						.markEphemeral();
+			}
+			JsonElement projectJson = JsonParser.parseReader(new InputStreamReader(projectStream.body()));
+			ModGardenProject modGardenProject = GardenBot.GSON.fromJson(projectJson, ModGardenProject.class);
+
+			HttpResponse<InputStream> getInvitedUserStream = ModGardenAPIClient.get("v2/users/" + interaction.event().getUser().getId() + "?by=integration_discord", HttpResponse.BodyHandlers.ofInputStream());
+			if (getInvitedUserStream.statusCode() != 200) {
+				db.revokeTeamInvite(inviteId);
+				// Also not an internal error in the case of deleted Mod Garden accounts.
+				return new MessageResponse("""
+						You do not have a Mod Garden account.
+						Please create one with **/account create** inside the Mod Garden server.""")
+						.markEphemeral();
+			}
+			JsonElement invitedUserJson = JsonParser.parseReader(new InputStreamReader(getInvitedUserStream.body()));
+			String invitedUserId = GardenBot.GSON.fromJson(invitedUserJson, ModGardenUser.class).id;
+
+			if (modGardenProject.team.containsKey(invitedUserId)) {
+				db.revokeTeamInvite(inviteId);
+
+				return new MessageResponse("You are already a member of the Mod Garden project '" + modGardenProject.metadata.name + "'.")
+						.markEphemeral();
+			}
 
 			HttpResponse<InputStream> modifyMembers = ModGardenAPIClient.patch(
 					"v2/projects/" + invite.projectId() + "/members",
@@ -67,7 +96,7 @@ public class AcceptTeamInviteButton extends Button {
 
 			db.revokeTeamInvite(inviteId);
 
-			return new MessageResponse("You are now a member of the Mod Garden project '" + invite.projectName() + "'.")
+			return new MessageResponse("You are now a member of the Mod Garden project '" + modGardenProject.metadata.name + "'.")
 					.markEphemeral();
 		} catch (Exception ex) {
 			GardenBot.LOG.error("", ex);
@@ -77,5 +106,18 @@ public class AcceptTeamInviteButton extends Button {
 					.setColor(0xFF0000)
 					.markEphemeral();
 		}
+	}
+
+	private static class ModGardenUser {
+		public String id;
+	}
+
+	private static class ModGardenProject {
+		public ProjectMetadata metadata;
+		public Map<String, String> team;
+	}
+
+	private static class ProjectMetadata {
+		public String name;
 	}
 }

@@ -100,7 +100,6 @@ public class GardenBot {
 						id TEXT UNIQUE NOT NULL,
 						user_id TEXT NOT NULL,
 						project_id TEXT NOT NULL,
-						project_name TEXT NOT NULL,
 						role TEXT NOT NULL,
 						expiration_time INTEGER NOT NULL,
 						PRIMARY KEY(id)

@@ -1,7 +1,5 @@
 package net.modgarden.gardenbot.command.team;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
@@ -11,7 +9,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
-import net.dv8tion.jda.api.requests.RestAction;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.GardenBotButtons;
 import net.modgarden.gardenbot.command.AutoCompletionGetter;
@@ -22,17 +19,13 @@ import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.EmbedResponse;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
-import net.modgarden.gardenbot.util.ModGardenAPIClient;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
-import java.net.http.HttpResponse;
 import java.util.*;
 
-public class InviteCommand extends SlashCommand {
-	private static final int ADMINISTRATOR_PERMISSION_BITS = 0x1;
-	private static final int EDIT_PROJECT_PERMISSION_BITS = 0x20;
+import static net.modgarden.gardenbot.command.team.TeamCommand.*;
 
+public class InviteCommand extends SlashCommand {
 	public InviteCommand() {
 		super(
 				"invite",
@@ -41,6 +34,7 @@ public class InviteCommand extends SlashCommand {
 						OptionType.STRING,
 						"project",
 						"The project to invite the user to.",
+						true,
 						true
 				),
 				new SlashCommandOption(
@@ -72,32 +66,25 @@ public class InviteCommand extends SlashCommand {
 		assert invitedUser != null;
 
 		try {
-			HttpResponse<InputStream> getUserStream = ModGardenAPIClient.get("v2/users/" + user.getId() + "?by=integration_discord", HttpResponse.BodyHandlers.ofInputStream());
-			if (getUserStream.statusCode() != 200) {
+			TeamCommand.ModGardenUser modGardenUser = getModGardenUser(user);
+			if (modGardenUser == null) {
 				return new MessageResponse("""
 						You do not have a Mod Garden account.
-						Please create one with **/account create**.""")
-						.markEphemeral();
+						Please create one with **/account create**."""
+				).markEphemeral();
 			}
-			JsonElement userJson = JsonParser.parseReader(new InputStreamReader(getUserStream.body()));
-			ModGardenUser modGardenUser = GardenBot.GSON.fromJson(userJson, ModGardenUser.class);
 
-			HttpResponse<InputStream> getInvitedUserStream = ModGardenAPIClient.get("v2/users/" + invitedUser.getId() + "?by=integration_discord", HttpResponse.BodyHandlers.ofInputStream());
-			if (getInvitedUserStream.statusCode() != 200) {
+			TeamCommand.ModGardenUser invitedModGardenUser = getModGardenUser(invitedUser);
+			if (invitedModGardenUser == null) {
 				return new MessageResponse("The user you attempted to invite does not have a Mod Garden account.")
 						.markEphemeral();
 			}
-			JsonElement invitedUserJson = JsonParser.parseReader(new InputStreamReader(getInvitedUserStream.body()));
-			ModGardenUser invitedModGardenUser = GardenBot.GSON.fromJson(invitedUserJson, ModGardenUser.class);
 
-			ModGardenProject modGardenProject;
-			HttpResponse<InputStream> byIdProjectStream = ModGardenAPIClient.get("v2/projects/" + project, HttpResponse.BodyHandlers.ofInputStream());
-			if (byIdProjectStream.statusCode() != 200) {
+			TeamCommand.ModGardenProject modGardenProject = getProject(project);
+			if (modGardenProject == null) {
 				return new MessageResponse("Could not find project '" + project + "'.")
 						.markEphemeral();
 			}
-			JsonElement projectJson = JsonParser.parseReader(new InputStreamReader(byIdProjectStream.body()));
-			modGardenProject = GardenBot.GSON.fromJson(projectJson, ModGardenProject.class);
 
 			if (!modGardenProject.permissions.containsKey(modGardenUser.id)) {
 				return new MessageResponse("You are not a member of project '" + project + "'.")
@@ -116,15 +103,25 @@ public class InviteCommand extends SlashCommand {
 			}
 
 			DatabaseAccess db = DatabaseAccess.get();
-			String inviteCode = db.createTeamInvite(invitedModGardenUser.id, modGardenProject.id, modGardenProject.metadata.name, role);
+
+			if (db.updateTeamInvite(invitedModGardenUser.id, modGardenProject.id, role)) {
+				return new EmbedResponse()
+						.setTitle("Updated the expiry date invited " + invitedUser.getGlobalName() + " to your project.")
+						.setDescription("They should use the existing DM .")
+						.markEphemeral()
+						.setColor(0xA9FFA7);
+			}
+
+			String inviteCode = db.createTeamInvite(invitedModGardenUser.id, modGardenProject.id, role);
+			String vowelN = startsWithVowel(role) ? "n" : "";
 
 			EmbedBuilder embedBuilder = new EmbedBuilder()
-					.setTitle("You have been invited to project " + modGardenProject.metadata.name + " as a(n) " + role)
+					.setTitle("You have been invited to project " + modGardenProject.metadata.name + " as a" + vowelN + " " + role)
 					.setDescription("""
-						*You were invited by <@%s>*
+						*You were invited by %s*
 
 						You may either Accept or Decline by using the buttons below."""
-							.formatted(interaction.event().getUser().getId())
+							.formatted(interaction.event().getUser().getAsMention())
 					).setColor(0xA9FFA7);
 
 
@@ -170,34 +167,22 @@ public class InviteCommand extends SlashCommand {
 		}
 	}
 
-	private boolean hasPermissions(long userPermissions) {
-		boolean hasPermissions = (EDIT_PROJECT_PERMISSION_BITS & userPermissions) > 0;
-		boolean hasAdministrator = (ADMINISTRATOR_PERMISSION_BITS & userPermissions) != 0;
-		return hasAdministrator || hasPermissions;
+	private boolean startsWithVowel(String value) {
+		return value.startsWith("a")
+				|| value.startsWith("e")
+				|| value.startsWith("i")
+				|| value.startsWith("o")
+				|| value.startsWith("u");
 	}
 
 	@Override
 	public List<Command.Choice> getAutoCompleteChoices(String focusedOption,
-	                                              User user,
-	                                              AutoCompletionGetter autoCompletionGetter) {
+													   User user,
+													   AutoCompletionGetter autoCompletionGetter) {
 		if (focusedOption.equals("user")) {
 			return Collections.emptyList();
 		}
 
-		return TeamCommand.getProjectAutoCompleteChoices(user, autoCompletionGetter);
-	}
-
-	private static class ModGardenUser {
-		public String id;
-	}
-
-	private static class ModGardenProject {
-		public String id;
-		public ProjectMetadata metadata;
-		public Map<String, String> permissions;
-	}
-
-	private static class ProjectMetadata {
-		public String name;
+		return getEditableProjectAutoCompleteChoices(user);
 	}
 }

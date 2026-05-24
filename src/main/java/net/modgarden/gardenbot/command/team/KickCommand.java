@@ -12,6 +12,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static net.modgarden.gardenbot.command.team.TeamCommand.getEditableProjectAutoCompleteChoices;
+
 public class KickCommand extends SlashCommand {
 	public KickCommand() {
 		super(
@@ -45,6 +47,6 @@ public class KickCommand extends SlashCommand {
 			return Collections.emptyList();
 		}
 
-		return TeamCommand.getProjectAutoCompleteChoices(user, autoCompletionGetter);
+		return getEditableProjectAutoCompleteChoices(user);
 	}
 }
