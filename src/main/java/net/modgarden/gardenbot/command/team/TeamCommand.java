@@ -20,7 +20,6 @@ import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 	private static final int ADMINISTRATOR_PERMISSION_BITS = 0x1;
@@ -119,18 +118,18 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 				.toList();
 	}
 
-	private static List<ModGardenEvent> getActiveEvents() throws IOException, InterruptedException {
+	@Nullable
+	private static ModGardenEvent getActiveEvent() throws IOException, InterruptedException {
 		// TODO: Make an Active Events Endpoint
 		HttpResponse<InputStream> eventsStream = ModGardenAPIClient.get(
 				"v2/events/mod-garden",
 				HttpResponse.BodyHandlers.ofInputStream()
 		);
 		if (eventsStream.statusCode() != 200) {
-			return Collections.emptyList();
+			return null;
 		}
-		List<ModGardenEvent> events = new ArrayList<>();
-		JsonElement eventsJson = JsonParser.parseReader(new InputStreamReader(eventsStream.body()));
 
+		JsonElement eventsJson = JsonParser.parseReader(new InputStreamReader(eventsStream.body()));
 		for (JsonElement element : eventsJson.getAsJsonArray()) {
 			ModGardenEvent event = GardenBot.GSON.fromJson(element, ModGardenEvent.class);
 
@@ -140,30 +139,19 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 			long packFreeze = Long.parseLong(event.times.packFreeze);
 
 			if (registrationOpen >= now && packFreeze < now) {
-				events.add(event);
+				return event;
 			}
 		}
 
-		return events;
+		return null;
 	}
 
 	private static List<ModGardenSubmission> getActiveSubmissions() throws IOException, InterruptedException {
-		return getActiveEvents()
-				.stream()
-				.flatMap(modGardenEvent -> {
-					try {
-						return getSubmissions("mod-garden", modGardenEvent.slug).stream();
-					} catch (Exception e) {
-						GardenBot.LOG.error(
-								"Failed to get submissions from event '{}/{}'.",
-								"mod-garden",
-								modGardenEvent.slug,
-								e
-						);
-						return Stream.empty();
-					}
-				})
-				.toList();
+		ModGardenEvent event = getActiveEvent();
+		if (event == null) {
+			return Collections.emptyList();
+		}
+		return getSubmissions("mod-garden", event.slug);
 	}
 
 	private static List<ModGardenSubmission> getSubmissions(String genreSlug, String eventSlug) throws IOException, InterruptedException {
