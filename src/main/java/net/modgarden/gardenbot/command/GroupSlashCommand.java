@@ -12,27 +12,31 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class GroupSlashCommand<T extends AbstractSlashCommand> extends AbstractSlashCommand {
-	private final Map<String, T> subCommands;
+	private final Map<String, ? extends T> subCommands;
 	private final boolean isGroup;
 
 	@SafeVarargs
 	public GroupSlashCommand(String name,
 	                         String description,
-	                         T... subCommands) {
+	                         Supplier<T>... subCommands) {
 		super(name, description);
 		this.subCommands = Arrays.stream(subCommands)
-				.map(subCommand -> Map.entry(subCommand.name, subCommand))
+				.map(supplier -> {
+					T subCommand = supplier.get();
+					return Map.entry(subCommand.name, subCommand);
+				})
 				.collect(
 						Collectors.toMap(
 								Map.Entry::getKey,
 								Map.Entry::getValue,
-								(oldMap, newMap) -> newMap
+								(_, newMap) -> newMap
 						)
 				);
-		this.isGroup = subCommands[0] instanceof GroupSlashCommand<?>;
+		this.isGroup = subCommands.length > 0 && subCommands[0] instanceof GroupSlashCommand<?>;
 		validateSubCommandsOrThrow();
 	}
 

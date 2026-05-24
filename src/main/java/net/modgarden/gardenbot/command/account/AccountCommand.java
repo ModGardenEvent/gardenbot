@@ -8,7 +8,7 @@ public class AccountCommand extends GroupSlashCommand<SlashCommand> {
 		super(
 				"account",
 				"Manage your Mod Garden account.",
-				new AccountCreateCommand()
+				AccountCreateCommand::new
 		);
 	}
 }

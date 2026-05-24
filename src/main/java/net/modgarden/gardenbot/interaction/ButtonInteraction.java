@@ -2,6 +2,8 @@ package net.modgarden.gardenbot.interaction;
 
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
-public record ButtonInteraction(ButtonInteractionEvent event, String... arguments) implements Interaction {
+import java.util.Map;
+
+public record ButtonInteraction(ButtonInteractionEvent event, Map<String, String> arguments) implements Interaction {
 
 }

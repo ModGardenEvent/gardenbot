@@ -1,9 +1,8 @@
 package net.modgarden.gardenbot.modal.account;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.dv8tion.jda.api.entities.User;
+import com.google.gson.annotations.SerializedName;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
@@ -21,7 +20,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Objects;
 
 public class RegisterModal extends Modal {
 	public RegisterModal() {
@@ -37,58 +35,62 @@ public class RegisterModal extends Modal {
 								.setPlaceholder("Leave blank to use your Discord username.")
 								.setMinLength(3)
 								.setMaxLength(32).build()
-				),
-				ActionRow.of(
-						TextInput.create("displayName",
-										"Display Name",
-										TextInputStyle.SHORT
-								)
-								.setRequired(false)
-								.setPlaceholder("Leave blank to use your Discord display name.")
-								.setMaxLength(32).build()
 				));
 	}
 
 	@NotNull
 	@Override
 	public Response respond(ModalInteraction interaction) {
-		User user = interaction.event().getUser();
-
-		ModalMapping username = Objects.requireNonNull(interaction.event().getValue("username"));
-		ModalMapping displayName = Objects.requireNonNull(interaction.event().getValue("displayName"));
-
-		JsonObject inputJson = new JsonObject();
-		inputJson.addProperty("id", user.getId());
-		if (!username.getAsString().isEmpty())
-			inputJson.addProperty("username", username.getAsString());
-		if (!displayName.getAsString().isEmpty())
-			inputJson.addProperty("display_name", displayName.getAsString());
+		ModalMapping username = interaction.event().getValue("username");
+		JsonElement createUserInput = createUserInput(
+				username != null
+						? username.getAsString()
+						: interaction.event().getUser().getGlobalName()
+		);
 
 		try {
-			HttpResponse<InputStream> stream = ModGardenAPIClient.post(
-					"discord/register",
-					HttpRequest.BodyPublishers.ofString(inputJson.toString()),
+			HttpResponse<InputStream> postCreateUser = ModGardenAPIClient.post(
+					"internal/user/create",
+					HttpRequest.BodyPublishers.ofString(createUserInput.toString()),
 					HttpResponse.BodyHandlers.ofInputStream(),
 					"Content-Type", "application/json"
 			);
-			if (stream.statusCode() < 200 || stream.statusCode() > 299) {
-				JsonElement json = JsonParser.parseReader(new InputStreamReader(stream.body()));
-				String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
-						json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
-						"Undefined Error.";
-				if (stream.statusCode() == 422) {
-					return new EmbedResponse()
-							.setTitle("Could not register your Mod Garden account.")
-							.setDescription(errorDescription)
-							.setColor(0x5D3E40)
-							.markEphemeral();
+			if (postCreateUser.statusCode() == 201) {
+				String location = postCreateUser.headers()
+						.firstValue("Location")
+						.orElse(null);
+				if (location == null) {
+					throw new IOException("Unable to obtain user ID upon creating account");
 				}
+				String userId = location.substring("/v2/users/".length());
+
+				JsonElement patchDiscordInput = modifyDiscordIntegrationInput(interaction.event().getUser().getId());
+				HttpResponse<InputStream> patchDiscord = ModGardenAPIClient.patch(
+						"internal/user/modify/" + userId,
+						HttpRequest.BodyPublishers.ofString(patchDiscordInput.toString()),
+						HttpResponse.BodyHandlers.ofInputStream(),
+						"Content-Type", "application/json"
+				);
+
+				if (patchDiscord.statusCode() != 200) {
+					JsonElement json = JsonParser.parseReader(new InputStreamReader(patchDiscord.body()));
+					String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
+							json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
+							"Undefined Error.";
+					throw new IOException(errorDescription);
+				}
+
 				return new EmbedResponse()
-						.setTitle("Encountered an exception whilst attempting to register your Mod Garden account.")
-						.setDescription(stream.statusCode() + ": " + errorDescription + "\nPlease report this to a team member.")
-						.setColor(0xFF0000)
+						.setTitle("Your Mod Garden account has successfully been registered!")
+						.setColor(0xA9FFA7)
 						.markEphemeral();
 			}
+
+			JsonElement json = JsonParser.parseReader(new InputStreamReader(postCreateUser.body()));
+			String errorDescription = json.isJsonObject() && json.getAsJsonObject().has("description") ?
+					json.getAsJsonObject().getAsJsonPrimitive("description").getAsString() :
+					"Undefined Error.";
+			throw new IOException(errorDescription);
 		} catch (IOException | InterruptedException ex) {
 			GardenBot.LOG.error("", ex);
 			return new EmbedResponse()
@@ -98,9 +100,34 @@ public class RegisterModal extends Modal {
 					.markEphemeral();
 		}
 
-		return new EmbedResponse()
-				.setTitle("Your Mod Garden account has successfully been registered!")
-				.setColor(0xA9FFA7)
-				.markEphemeral();
+	}
+
+	private static JsonElement createUserInput(String username) {
+		CreateUser data = new CreateUser();
+		data.username = username;
+		return GardenBot.GSON.toJsonTree(data, CreateUser.class);
+	}
+
+	private static JsonElement modifyDiscordIntegrationInput(String discordUserId) {
+		ModifyUserData data = new ModifyUserData();
+		data.integrations.discord.userId = discordUserId;
+		return GardenBot.GSON.toJsonTree(data, ModifyUserData.class);
+	}
+
+	private static class CreateUser {
+		public String username;
+	}
+
+	private static class ModifyUserData {
+		public Integrations integrations = new Integrations();
+	}
+
+	private static class Integrations {
+		public DiscordIntegration discord = new DiscordIntegration();
+	}
+
+	private static class DiscordIntegration {
+		@SerializedName("user_id")
+		private String userId;
 	}
 }

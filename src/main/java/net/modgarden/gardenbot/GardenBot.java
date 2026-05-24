@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import net.modgarden.gardenbot.util.TeamInviteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +18,7 @@ import java.sql.*;
 
 public class GardenBot {
 	public static final Logger LOG = LoggerFactory.getLogger("GardenBot");
-	public static final String API_URL = "development".equals(System.getenv("env")) ? "http://localhost:7070/v1/" : "https://api.modgarden.net/v1/";
+	public static final String API_URL = "development".equals(System.getenv("env")) ? "http://localhost:7070/" : "https://api.modgarden.net/";
 	public static final String VERSION = "2.0.0"; // TODO: Automatically update this from gradle.properties.
 	public static final Gson GSON = new Gson();
 
@@ -25,7 +26,6 @@ public class GardenBot {
 	public static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
 	private static final int DATABASE_SCHEMA_VERSION = 1;
-	public static final String SAFE_URL_REGEX = "[a-zA-Z0-9!@$()`.+,_\"-]+";
 
 	public static JDA jda;
 
@@ -63,7 +63,10 @@ public class GardenBot {
 		}
 
 		GardenBotCommands.registerAll();
-		GardenBotButtonHandlers.registerAll();
+		GardenBotButtons.registerAll();
+		GardenBotModals.registerAll();
+
+		TeamInviteUtil.revokeExpiredInvitesEachHour();
 
 		LOG.info("GardenBot v{} has been initialized.", VERSION);
     }
@@ -76,20 +79,32 @@ public class GardenBot {
 	private static void createDatabaseContents() {
 		try (Connection connection = createDatabaseConnection();
 			 Statement statement = connection.createStatement()) {
-			statement.addBatch("CREATE TABLE IF NOT EXISTS bans (" +
-					"id TEXT UNIQUE NOT NULL," +
-					"username TEXT NOT NULL," +
-					"unban_time TEXT NOT NULL," +
-					"reason TEXT NOT NULL," +
-					"PRIMARY KEY(id)" +
-					")");
-			statement.addBatch("CREATE TABLE IF NOT EXISTS message_cache (" +
-					"message_id TEXT UNIQUE NOT NULL," +
-					"user_id TEXT NOT NULL," +
-					"content TEXT NOT NULL," +
-					"removal_timestamp TEXT NOT NULL," +
-					"PRIMARY KEY(message_id)" +
-					")");
+			statement.addBatch("""
+					CREATE TABLE IF NOT EXISTS bans (
+						id TEXT UNIQUE NOT NULL,
+						username TEXT NOT NULL,
+						unban_time TEXT NOT NULL,
+						reason TEXT NOT NULL,
+						PRIMARY KEY(id)
+					)""");
+			statement.addBatch("""
+					CREATE TABLE IF NOT EXISTS message_cache (
+						message_id TEXT UNIQUE NOT NULL,
+						user_id TEXT NOT NULL,
+						content TEXT NOT NULL,
+						removal_timestamp TEXT NOT NULL,
+						PRIMARY KEY(message_id)
+					)""");
+			statement.addBatch("""
+					CREATE TABLE IF NOT EXISTS team_invites (
+						id TEXT UNIQUE NOT NULL,
+						user_id TEXT NOT NULL,
+						project_id TEXT NOT NULL,
+						project_name TEXT NOT NULL,
+						role TEXT NOT NULL,
+						expiration_time INTEGER NOT NULL,
+						PRIMARY KEY(id)
+					)""");
 			statement.executeBatch();
 		} catch (SQLException ex) {
 			LOG.error("Failed to create database tables. ", ex);

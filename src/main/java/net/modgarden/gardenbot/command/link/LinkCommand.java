@@ -8,8 +8,7 @@ public class LinkCommand extends GroupSlashCommand<SlashCommand> {
 		super(
 				"link",
 				"Link different services to your Mod Garden account.",
-				new LinkMinecraftCommand(),
-				new LinkModrinthCommand()
+				LinkModrinthCommand::new
 		);
 	}
 }

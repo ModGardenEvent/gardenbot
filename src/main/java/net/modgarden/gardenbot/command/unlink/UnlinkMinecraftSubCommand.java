@@ -28,7 +28,7 @@ import java.io.InputStreamReader;
 import java.net.http.HttpResponse;
 import java.util.*;
 
-// TODO: Rewrite for Backend V2.
+// TODO: Add functionality to Backend V2.
 public class UnlinkMinecraftSubCommand extends SlashCommand {
 	public UnlinkMinecraftSubCommand() {
 		super(

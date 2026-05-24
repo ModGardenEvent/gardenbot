@@ -17,6 +17,7 @@ import net.modgarden.gardenbot.response.EmbedResponse;
 import net.modgarden.gardenbot.response.Response;
 import net.modgarden.gardenbot.util.ModGardenAPIClient;
 import net.modgarden.gardenbot.util.ModrinthAPIClient;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +38,7 @@ public class UnsubmitCommand extends SlashCommand {
 		);
 	}
 
+	@NotNull
 	@Override
 	public Response respond(SlashCommandInteraction interaction) {
 		interaction.event().deferReply(true).queue();

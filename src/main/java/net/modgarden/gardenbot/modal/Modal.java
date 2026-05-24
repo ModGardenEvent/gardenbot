@@ -1,7 +1,5 @@
 package net.modgarden.gardenbot.modal;
 
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.LayoutComponent;
 import net.modgarden.gardenbot.interaction.InteractionHandler;
 import net.modgarden.gardenbot.interaction.ModalInteraction;

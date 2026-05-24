@@ -8,7 +8,7 @@ public class SubmitCommand extends GroupSlashCommand<SlashCommand> {
 		super(
 				"submit",
 				"Submit your project to a current Mod Garden event.",
-				new SubmitModrinthCommand()
+				SubmitModrinthCommand::new
 		);
 	}
 }

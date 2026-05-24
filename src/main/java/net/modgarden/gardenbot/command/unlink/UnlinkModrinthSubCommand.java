@@ -20,11 +20,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.http.HttpResponse;
 
-// TODO: Rewrite for Backend V2.
+// TODO: Add functionality to Backend V2.
 public class UnlinkModrinthSubCommand extends SlashCommand {
 	public UnlinkModrinthSubCommand() {
 		super(
-				"minecraft",
+				"modrinth",
 				"Unlinks your Modrinth account from Mod Garden"
 		);
 	}

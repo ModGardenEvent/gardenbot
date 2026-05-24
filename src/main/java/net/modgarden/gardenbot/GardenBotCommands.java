@@ -3,6 +3,7 @@ package net.modgarden.gardenbot;
 import net.modgarden.gardenbot.command.account.*;
 import net.modgarden.gardenbot.command.link.LinkCommand;
 import net.modgarden.gardenbot.command.submit.SubmitCommand;
+import net.modgarden.gardenbot.command.team.TeamCommand;
 import net.modgarden.gardenbot.command.unlink.UnlinkCommand;
 import net.modgarden.gardenbot.command.unsubmit.UnsubmitCommand;
 
@@ -11,12 +12,10 @@ import static net.modgarden.gardenbot.interaction.dispatcher.SlashCommandDispatc
 public class GardenBotCommands {
 
 	public static void registerAll() {
-		register(new AccountCommand());
-		register(new LinkCommand());
-		register(new UnlinkCommand());
-		register(new SubmitCommand());
-		register(new UnsubmitCommand());
-
+		register(AccountCommand::new);
+		register(TeamCommand::new);
+		register(SubmitCommand::new);
+		register(UnsubmitCommand::new);
 
 //		SlashCommandDispatcher.register(new SlashCommand("profile", "Actions relating to your visible Mod Garden profile.",
 //				new SlashCommand.SubCommandGroup(
@@ -78,8 +77,8 @@ public class GardenBotCommands {
 //				new SlashCommand.SubCommand(
 //						"invite",
 //						"Invites a user to your Mod Garden project.",
-//						InviteHandler::handleInvite,
-//						InviteHandler::getChoices,
+//						InviteCommand::handleInvite,
+//						InviteCommand::getChoices,
 //						new SlashCommandOption(OptionType.STRING, "project", "The project to invite the user to.", true, true),
 //						new SlashCommandOption(OptionType.STRING, "role", "The role to provide the user.", true, true),
 //						new SlashCommandOption(OptionType.USER, "user", "The user to invite.", true, false)
@@ -87,15 +86,15 @@ public class GardenBotCommands {
 //				new SlashCommand.SubCommand(
 //						"leave",
 //						"Leaves a Mod Garden project.",
-//						LeaveHandler::handleLeave,
-//						LeaveHandler::getChoices,
+//						LeaveCommand::handleLeave,
+//						LeaveCommand::getChoices,
 //						new SlashCommandOption(OptionType.STRING, "project", "The project to leave.", true, true)
 //				),
 //				new SlashCommand.SubCommand(
 //						"kick",
 //						"Kicks a user from a Mod Garden project.",
-//						KickHandler::handleKick,
-//						KickHandler::getChoices,
+//						KickCommand::handleKick,
+//						KickCommand::getChoices,
 //						new SlashCommandOption(OptionType.STRING, "project", "The project to kick the user from.", true, true),
 //						new SlashCommandOption(OptionType.USER, "user", "The user to kick.", true, false)
 //				)

@@ -6,22 +6,24 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import net.modgarden.gardenbot.command.AbstractSlashCommand;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.modgarden.gardenbot.GardenBot;
+import net.modgarden.gardenbot.database.DatabaseAccess;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.Response;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class SlashCommandDispatcher {
 	private static final HashMap<String, AbstractSlashCommand> COMMANDS = new HashMap<>();
 
-	public static void register(AbstractSlashCommand slashCommand) {
-		COMMANDS.put(slashCommand.name, slashCommand);
+	public static void register(Supplier<AbstractSlashCommand> supplier) {
+		AbstractSlashCommand command = supplier.get();
+		COMMANDS.put(command.name, command);
 	}
 
 	public static Response dispatch(SlashCommandInteraction command) {
-		var slashCommand = COMMANDS.get(command.event().getName());
-		return slashCommand.respond(command);
+		return DatabaseAccess.bind().call(() -> COMMANDS.get(command.event().getName()).respond(command));
 	}
 
 	public static List<Command.Choice> getAutoCompleteChoices(CommandAutoCompleteInteractionEvent event) {
