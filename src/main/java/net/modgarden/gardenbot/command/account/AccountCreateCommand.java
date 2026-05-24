@@ -49,7 +49,7 @@ public class AccountCreateCommand extends SlashCommand {
 			}
 		} catch (IOException | InterruptedException ex) {
 			return new EmbedResponse()
-					.setTitle("Encountered an exception whilst attempting to invite user to your project.")
+					.setTitle("Encountered an exception!")
 					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
 					.markEphemeral()
 					.setColor(0xFF0000);

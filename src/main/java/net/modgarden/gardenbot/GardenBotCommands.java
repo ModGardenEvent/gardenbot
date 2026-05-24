@@ -1,10 +1,9 @@
 package net.modgarden.gardenbot;
 
 import net.modgarden.gardenbot.command.account.*;
-import net.modgarden.gardenbot.command.link.LinkCommand;
+import net.modgarden.gardenbot.command.event.EventCommand;
 import net.modgarden.gardenbot.command.submit.SubmitCommand;
 import net.modgarden.gardenbot.command.team.TeamCommand;
-import net.modgarden.gardenbot.command.unlink.UnlinkCommand;
 import net.modgarden.gardenbot.command.unsubmit.UnsubmitCommand;
 
 import static net.modgarden.gardenbot.interaction.dispatcher.SlashCommandDispatcher.register;
@@ -13,6 +12,7 @@ public class GardenBotCommands {
 
 	public static void registerAll() {
 		register(AccountCommand::new);
+		register(EventCommand::new);
 		register(TeamCommand::new);
 		register(SubmitCommand::new);
 		register(UnsubmitCommand::new);
@@ -52,11 +52,11 @@ public class GardenBotCommands {
 //		));
 //
 //
-//		SlashCommandDispatcher.register(new SlashCommand("event", "Actions relating to Mod Garden events.",
+//		SlashCommandDispatcher.register(new SlashCommand("event",
 //				new SlashCommand.SubCommand(
 //						"register",
-//						"Registers you to a current Mod Garden event.",
-//						RegisterHandler::handleEventRegister
+//						"",
+//						RegisterCommand::handleEventRegister
 //				),
 //				new SlashCommand.SubCommand(
 //						"unregister",

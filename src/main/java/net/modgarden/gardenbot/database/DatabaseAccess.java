@@ -131,7 +131,7 @@ public final class DatabaseAccess implements AutoCloseable {
 	public int revokeInvalidTeamInvites() throws SQLException {
 		try (var deleteStatement = this.getConnection().prepareStatement("""
 					DELETE FROM team_invites
-					WHERE expiration_time > ?
+					WHERE expiration_time < ?
 				""")) {
 			deleteStatement.setLong(1, Instant.now().toEpochMilli());
 			return deleteStatement.executeUpdate();

@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 import static net.modgarden.gardenbot.command.team.TeamCommand.*;
+import static net.modgarden.gardenbot.util.MiscUtil.aOrAn;
 
 public class InviteCommand extends SlashCommand {
 	public InviteCommand() {
@@ -113,11 +114,11 @@ public class InviteCommand extends SlashCommand {
 			}
 
 			String inviteCode = db.createTeamInvite(invitedModGardenUser.id, modGardenProject.id, role);
-			String vowelN = startsWithVowel(role) ? "n" : "";
 
 			EmbedBuilder embedBuilder = new EmbedBuilder()
-					.setTitle("You have been invited to project " + modGardenProject.metadata.name + " as a" + vowelN + " " + role)
-					.setDescription("""
+					.setTitle("You have been invited to project %s as %s %s"
+							.formatted(modGardenProject.metadata.name, aOrAn(role), role)
+					).setDescription("""
 						*You were invited by %s*
 
 						You may either Accept or Decline by using the buttons below."""
@@ -160,19 +161,11 @@ public class InviteCommand extends SlashCommand {
 		} catch (Exception ex) {
 			GardenBot.LOG.error("", ex);
 			return new EmbedResponse()
-					.setTitle("Encountered an exception whilst attempting to invite user to your project.")
+					.setTitle("Encountered an exception!")
 					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
 					.markEphemeral()
 					.setColor(0xFF0000);
 		}
-	}
-
-	private boolean startsWithVowel(String value) {
-		return value.startsWith("a")
-				|| value.startsWith("e")
-				|| value.startsWith("i")
-				|| value.startsWith("o")
-				|| value.startsWith("u");
 	}
 
 	@Override
