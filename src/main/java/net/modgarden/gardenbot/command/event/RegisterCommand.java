@@ -79,7 +79,7 @@ public class RegisterCommand extends SlashCommand {
 				guild.addRoleToMember(user, discordRole).queue();
 
 				return new MessageResponse(
-						"Successfully added you as a participant to %s."
+						"Successfully registered you as a participant to %s."
 								.formatted(modGardenEvent.metadata.name)
 				).markEphemeral();
 			}
