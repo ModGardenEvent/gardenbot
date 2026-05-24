@@ -19,8 +19,11 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import static net.modgarden.gardenbot.util.MiscUtil.aOrAn;
 
@@ -40,7 +43,6 @@ public class RegisterCommand extends SlashCommand {
 		Guild guild = interaction.event().getGuild();
 
 		try {
-
 			ModGardenEvent modGardenEvent = getActiveEvent();
 			if (modGardenEvent == null) {
 				return new MessageResponse("No Mod Garden event is currently active.")
@@ -61,18 +63,21 @@ public class RegisterCommand extends SlashCommand {
 			}
 
 			if (guild != null && guild.getId().equals(GardenBot.DOTENV.get("GUILD_ID"))) {
-				Role role = guild.getRoleById(participantRole.integrations.discord.roleId);
-				if (role == null) {
+				Role discordRole = guild.getRoleById(participantRole.integrations.discord.roleId);
+				if (discordRole == null) {
 					throw new IllegalStateException("The Discord integration for the event's role does not exist within the Mod Garden Discord '" + modGardenEvent.metadata.name + "'.");
 				}
 
-				if (guild.getMembersWithRoles(role).contains(interaction.event().getMember())) {
+				if (guild.getMembersWithRoles(discordRole).contains(interaction.event().getMember())) {
 					return new MessageResponse(
 							"You are already %s %s participant."
 									.formatted(aOrAn(modGardenEvent.metadata.name), modGardenEvent.metadata.name)
 					).markEphemeral();
 				}
-				guild.addRoleToMember(user, role).complete();
+
+				addUserRole(modGardenUser, participantRole);
+				guild.addRoleToMember(user, discordRole).queue();
+
 				return new MessageResponse(
 						"Successfully added you as a participant to %s."
 								.formatted(modGardenEvent.metadata.name)
@@ -88,6 +93,25 @@ public class RegisterCommand extends SlashCommand {
 					.setDescription(e.getMessage() + "\nPlease report this to a team member.")
 					.markEphemeral()
 					.setColor(0xFF0000);
+		}
+	}
+
+	private static void addUserRole(ModGardenUser user, ModGardenUserRole role) throws IOException, InterruptedException {
+		ModifyUserRequest request = new ModifyUserRequest();
+		request.roles.add(role.id);
+		JsonElement requestJson = GardenBot.GSON.toJsonTree(request, ModifyUserRequest.class);
+
+		HttpResponse<InputStream> modifyStream = ModGardenAPIClient.patch(
+				"internal/user/modify/" + user.id,
+				HttpRequest.BodyPublishers.ofString(requestJson.toString()),
+				HttpResponse.BodyHandlers.ofInputStream()
+		);
+		if (modifyStream.statusCode() != 200) {
+			JsonElement errorJson = JsonParser.parseReader(new InputStreamReader(modifyStream.body()));
+			String errorDescription = errorJson.isJsonObject() && errorJson.getAsJsonObject().has("description")
+					? errorJson.getAsJsonObject().getAsJsonPrimitive("description").getAsString()
+					: "Undefined Error.";
+			throw new IllegalStateException(errorDescription);
 		}
 	}
 
@@ -185,5 +209,9 @@ public class RegisterCommand extends SlashCommand {
 
 		@SerializedName("pack_freeze")
 		public String packFreeze;
+	}
+
+	private static class ModifyUserRequest {
+		public List<String> roles = new ArrayList<>();
 	}
 }
