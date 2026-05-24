@@ -138,7 +138,7 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 			long registrationOpen = Long.parseLong(event.times.registrationOpen);
 			long packFreeze = Long.parseLong(event.times.packFreeze);
 
-			if (registrationOpen >= now && packFreeze < now) {
+			if (now >= registrationOpen && now < packFreeze) {
 				return event;
 			}
 		}
