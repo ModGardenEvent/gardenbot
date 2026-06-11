@@ -26,8 +26,8 @@ import java.util.*;
 import static net.modgarden.gardenbot.command.team.TeamCommand.*;
 import static net.modgarden.gardenbot.util.MiscUtil.aOrAn;
 
-public class InviteCommand extends SlashCommand {
-	public InviteCommand() {
+public class TeamInviteCommand extends SlashCommand {
+	public TeamInviteCommand() {
 		super(
 				"invite",
 				"Invite a user to a Mod Garden project's team.",

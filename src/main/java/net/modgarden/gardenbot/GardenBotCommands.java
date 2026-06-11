@@ -2,7 +2,8 @@ package net.modgarden.gardenbot;
 
 import net.modgarden.gardenbot.command.account.*;
 import net.modgarden.gardenbot.command.event.EventCommand;
-import net.modgarden.gardenbot.command.submit.SubmitCommand;
+import net.modgarden.gardenbot.command.image.ImageCommand;
+import net.modgarden.gardenbot.command.submission.SubmissionCommand;
 import net.modgarden.gardenbot.command.team.TeamCommand;
 import net.modgarden.gardenbot.command.unsubmit.UnsubmitCommand;
 
@@ -13,8 +14,9 @@ public class GardenBotCommands {
 	public static void registerAll() {
 		register(AccountCommand::new);
 		register(EventCommand::new);
+		register(ImageCommand::new);
 		register(TeamCommand::new);
-		register(SubmitCommand::new);
+		register(SubmissionCommand::new);
 		register(UnsubmitCommand::new);
 
 //		SlashCommandDispatcher.register(new SlashCommand("profile", "Actions relating to your visible Mod Garden profile.",
@@ -56,12 +58,12 @@ public class GardenBotCommands {
 //				new SlashCommand.SubCommand(
 //						"register",
 //						"",
-//						RegisterCommand::handleEventRegister
+//						EventRegisterCommand::handleEventRegister
 //				),
 //				new SlashCommand.SubCommand(
 //						"unregister",
 //						"Unregisters you from a current Mod Garden event.",
-//						UnregisterHandler::handleEventUnregister
+//						EventUnregisterCommand::handleEventUnregister
 //				),
 //				new SlashCommand.SubCommand(
 //						"update",
@@ -77,8 +79,8 @@ public class GardenBotCommands {
 //				new SlashCommand.SubCommand(
 //						"invite",
 //						"Invites a user to your Mod Garden project.",
-//						InviteCommand::handleInvite,
-//						InviteCommand::getChoices,
+//						TeamInviteCommand::handleInvite,
+//						TeamInviteCommand::getChoices,
 //						new SlashCommandOption(OptionType.STRING, "project", "The project to invite the user to.", true, true),
 //						new SlashCommandOption(OptionType.STRING, "role", "The role to provide the user.", true, true),
 //						new SlashCommandOption(OptionType.USER, "user", "The user to invite.", true, false)
@@ -86,15 +88,15 @@ public class GardenBotCommands {
 //				new SlashCommand.SubCommand(
 //						"leave",
 //						"Leaves a Mod Garden project.",
-//						LeaveCommand::handleLeave,
-//						LeaveCommand::getChoices,
+//						TeamLeaveCommand::handleLeave,
+//						TeamLeaveCommand::getChoices,
 //						new SlashCommandOption(OptionType.STRING, "project", "The project to leave.", true, true)
 //				),
 //				new SlashCommand.SubCommand(
 //						"kick",
 //						"Kicks a user from a Mod Garden project.",
-//						KickCommand::handleKick,
-//						KickCommand::getChoices,
+//						TeamKickCommand::handleKick,
+//						TeamKickCommand::getChoices,
 //						new SlashCommandOption(OptionType.STRING, "project", "The project to kick the user from.", true, true),
 //						new SlashCommandOption(OptionType.USER, "user", "The user to kick.", true, false)
 //				)
@@ -104,7 +106,7 @@ public class GardenBotCommands {
 //				new SlashCommand.SubCommand(
 //						"upload",
 //						"Uploads an image to the public Mod Garden CDN.",
-//						UploadHandler::handleUpload,
+//						ImageUploadCommand::handleUpload,
 //						new SlashCommandOption(OptionType.ATTACHMENT, "attachment", "A PNG image to upload.", true)
 //				)
 //		));

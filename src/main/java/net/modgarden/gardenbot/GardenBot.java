@@ -13,17 +13,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.http.HttpClient;
 import java.sql.*;
 
 public class GardenBot {
 	public static final Logger LOG = LoggerFactory.getLogger("GardenBot");
-	public static final String API_URL = "development".equals(System.getenv("env")) ? "http://localhost:7070/" : "https://api.modgarden.net/";
 	public static final String VERSION = "2.0.0"; // TODO: Automatically update this from gradle.properties.
 	public static final Gson GSON = new Gson();
 
 	public static final Dotenv DOTENV = Dotenv.load();
-	public static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
 	private static final int DATABASE_SCHEMA_VERSION = 1;
 

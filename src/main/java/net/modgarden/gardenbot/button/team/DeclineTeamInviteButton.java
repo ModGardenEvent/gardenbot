@@ -1,21 +1,16 @@
 package net.modgarden.gardenbot.button.team;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.button.Button;
+import net.modgarden.gardenbot.client.modgarden.project.ModGardenProject;
 import net.modgarden.gardenbot.database.DatabaseAccess;
 import net.modgarden.gardenbot.database.data.TeamInvite;
 import net.modgarden.gardenbot.interaction.ButtonInteraction;
 import net.modgarden.gardenbot.response.EmbedResponse;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
-import net.modgarden.gardenbot.util.ModGardenAPIClient;
+import net.modgarden.gardenbot.client.ModGarden;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.http.HttpResponse;
 
 public class DeclineTeamInviteButton extends Button {
 	public DeclineTeamInviteButton() {
@@ -41,18 +36,9 @@ public class DeclineTeamInviteButton extends Button {
 
 			db.revokeTeamInvite(inviteId);
 
-			HttpResponse<InputStream> projectStream = ModGardenAPIClient.get(
-					"v2/projects/" + invite.projectId(),
-					HttpResponse.BodyHandlers.ofInputStream()
-			);
-			if (projectStream.statusCode() != 200) {
-				return new MessageResponse("No action necessary. The project you were invited to does not exist.")
-						.markEphemeral();
-			}
-			JsonElement projectJson = JsonParser.parseReader(new InputStreamReader(projectStream.body()));
-			ModGardenProject modGardenProject = GardenBot.GSON.fromJson(projectJson, ModGardenProject.class);
+			ModGardenProject modGardenProject = ModGarden.getProject(invite.projectId());
 
-			return new MessageResponse("You have declined the invite to the Mod Garden project '" + modGardenProject.metadata.name + "'.")
+			return new MessageResponse("You have declined the invite to the Mod Garden project '" + modGardenProject.metadata().name() + "'.")
 					.markEphemeral();
 		} catch (Exception ex) {
 			GardenBot.LOG.error("", ex);
@@ -62,13 +48,5 @@ public class DeclineTeamInviteButton extends Button {
 					.setColor(0xFF0000)
 					.markEphemeral();
 		}
-	}
-
-	private static class ModGardenProject {
-		public ProjectMetadata metadata;
-	}
-
-	private static class ProjectMetadata {
-		public String name;
 	}
 }

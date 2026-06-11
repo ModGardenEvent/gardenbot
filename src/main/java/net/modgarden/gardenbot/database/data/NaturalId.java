@@ -1,7 +1,7 @@
 package net.modgarden.gardenbot.database.data;
 
 import net.modgarden.gardenbot.GardenBot;
-import net.modgarden.gardenbot.util.BunnyCDNAPIClient;
+import net.modgarden.gardenbot.client.BunnyCdn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,16 +73,16 @@ public final class NaturalId {
 		return id;
 	}
 
-	public static String generateCdnLink(String basePath, int length) throws Exception {
+	public static String generateCdnLink(String basePath, String fileExtension, int length) throws Exception {
 		String id = null;
 		while (id == null) {
 			String naturalId = generateUnchecked(length);
-			HttpResponse<Void> response = BunnyCDNAPIClient.get(basePath + "/" + naturalId, HttpResponse.BodyHandlers.discarding());
+			HttpResponse<Void> response = BunnyCdn.get(basePath + "/" + naturalId + "." + fileExtension, HttpResponse.BodyHandlers.discarding());
 			if (response.statusCode() == 404) {
 				id = naturalId;
 			}
 		}
-		return basePath + "/" + id;
+		return basePath + "/" + id + "." + fileExtension;
 	}
 
 	public static String getMissingno() {

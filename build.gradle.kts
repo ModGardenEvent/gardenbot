@@ -19,6 +19,9 @@ java {
 
 repositories {
     mavenCentral()
+	maven("https://libraries.minecraft.net") {
+		name = "Minecraft Libraries"
+	}
 }
 
 dependencies {
@@ -62,7 +65,7 @@ idea {
 			create("Run", org.jetbrains.gradle.ext.Application::class.java) {
 				workingDirectory = "${rootProject.projectDir}/run"
 				mainClass = "net.modgarden.gardenbot.GardenBot"
-				moduleName = project.idea.module.name + ".main"
+				moduleName = "${project.idea.module.name}.main"
 				includeProvidedDependencies = true
 				envs = mapOf(
 					"env" to "development"

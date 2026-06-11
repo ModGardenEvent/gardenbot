@@ -15,8 +15,8 @@ import net.modgarden.gardenbot.command.SlashCommandOption;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.EmbedResponse;
 import net.modgarden.gardenbot.response.Response;
-import net.modgarden.gardenbot.util.ModGardenAPIClient;
-import net.modgarden.gardenbot.util.ModrinthAPIClient;
+import net.modgarden.gardenbot.client.ModGarden;
+import net.modgarden.gardenbot.client.Modrinth;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -50,7 +50,7 @@ public class UnsubmitCommand extends SlashCommand {
 		String project = interaction.event().getOption("project", OptionMapping::getAsString);
 		inputJson.addProperty("slug", project);
 		try {
-			HttpResponse<InputStream> stream = ModGardenAPIClient.post(
+			HttpResponse<InputStream> stream = ModGarden.post(
 					"discord/submission/delete",
 					HttpRequest.BodyPublishers.ofString(inputJson.toString()),
 					HttpResponse.BodyHandlers.ofInputStream(),
@@ -97,14 +97,14 @@ public class UnsubmitCommand extends SlashCommand {
 													   AutoCompletionGetter optionCompletionGetter) {
 		List<Command.Choice> choices = new ArrayList<>();
 		try {
-			var userResult = ModGardenAPIClient.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
-			var eventResult = ModGardenAPIClient.get("events/current/development", HttpResponse.BodyHandlers.ofInputStream());
+			var userResult = ModGarden.get("user/" + user.getId() + "?service=discord", HttpResponse.BodyHandlers.ofInputStream());
+			var eventResult = ModGarden.get("events/current/development", HttpResponse.BodyHandlers.ofInputStream());
 			if (userResult.statusCode() == 200 && eventResult.statusCode() == 200) {
 				try (InputStreamReader userReader = new InputStreamReader(userResult.body());
 				     InputStreamReader eventReader = new InputStreamReader(eventResult.body())) {
 					ModGardenUser modGardenUser = GardenBot.GSON.fromJson(userReader, ModGardenUser.class);
 					ModGardenEvent modGardenEvent = GardenBot.GSON.fromJson(eventReader, ModGardenEvent.class);
-					var submissionsStream = ModGardenAPIClient.get("user/" + modGardenUser.id + "/submissions/" + modGardenEvent.slug, HttpResponse.BodyHandlers.ofInputStream());
+					var submissionsStream = ModGarden.get("user/" + modGardenUser.id + "/submissions/" + modGardenEvent.slug, HttpResponse.BodyHandlers.ofInputStream());
 					if (submissionsStream.statusCode() == 200) {
 						try (InputStreamReader submissionsReader = new InputStreamReader(submissionsStream.body())) {
 							JsonElement submissionsJson = JsonParser.parseReader(submissionsReader);
@@ -112,7 +112,7 @@ public class UnsubmitCommand extends SlashCommand {
 								return submissionsJson.getAsJsonArray().asList().stream().map(submissionJson -> {
 									try {
 										if (submissionJson.isJsonObject()) {
-											var modGardenStream = ModGardenAPIClient.get("project/" + submissionJson.getAsJsonObject().get("project_id").getAsString(), HttpResponse.BodyHandlers.ofInputStream());
+											var modGardenStream = ModGarden.get("project/" + submissionJson.getAsJsonObject().get("project_id").getAsString(), HttpResponse.BodyHandlers.ofInputStream());
 											if (modGardenStream.statusCode() == 200) {
 												try (InputStreamReader modGardenReader = new InputStreamReader(modGardenStream.body())) {
 													ModGardenProject modGardenProject = GardenBot.GSON.fromJson(modGardenReader, ModGardenProject.class);
@@ -120,7 +120,7 @@ public class UnsubmitCommand extends SlashCommand {
 													String slug = modGardenProject.slug;
 													String title = slug;
 
-													var modrinthStream = ModrinthAPIClient.get("v2/project/" + modGardenProject.modrinthId, HttpResponse.BodyHandlers.ofInputStream());
+													var modrinthStream = Modrinth.get("v2/project/" + modGardenProject.modrinthId, HttpResponse.BodyHandlers.ofInputStream());
 													if (modrinthStream.statusCode() == 200) {
 														try (InputStreamReader modrinthReader = new InputStreamReader(modrinthStream.body())) {
 															ModrinthProject modrinthProject = GardenBot.GSON.fromJson(modrinthReader, ModrinthProject.class);

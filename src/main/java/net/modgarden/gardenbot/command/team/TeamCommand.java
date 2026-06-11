@@ -6,18 +6,20 @@ import com.google.gson.annotations.SerializedName;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.modgarden.gardenbot.GardenBot;
+import net.modgarden.gardenbot.client.exception.HypertextException;
+import net.modgarden.gardenbot.client.modgarden.event.GenreAndEvent;
+import net.modgarden.gardenbot.client.modgarden.project.ModGardenProject;
+import net.modgarden.gardenbot.client.modgarden.project.ModGardenSubmission;
+import net.modgarden.gardenbot.client.modgarden.user.ModGardenUser;
 import net.modgarden.gardenbot.command.GroupSlashCommand;
 import net.modgarden.gardenbot.command.SlashCommand;
-import net.modgarden.gardenbot.util.ModGardenAPIClient;
+import net.modgarden.gardenbot.client.ModGarden;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.http.HttpResponse;
-import java.time.Instant;
 import java.util.*;
 import java.util.List;
 
@@ -29,9 +31,9 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 		super(
 			"team",
 			"Modify the team of a Mod Garden project.",
-				InviteCommand::new,
-				KickCommand::new,
-				LeaveCommand::new
+				TeamInviteCommand::new,
+				TeamKickCommand::new,
+				TeamLeaveCommand::new
 		);
 	}
 
@@ -73,7 +75,7 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 
 	@Nullable
 	protected static ModGardenUser getModGardenUser(User user) throws IOException, InterruptedException {
-		HttpResponse<InputStream> userStream = ModGardenAPIClient.get(
+		HttpResponse<InputStream> userStream = ModGarden.get(
 				"v2/users/" + user.getId() + "?by=integration_discord",
 				HttpResponse.BodyHandlers.ofInputStream()
 		);
@@ -86,10 +88,8 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 
 	@Nullable
 	protected static ModGardenProject getProject(String projectId) throws IOException, InterruptedException {
-		HttpResponse<InputStream> byIdProjectStream = ModGardenAPIClient.get(
-				"v2/projects/" + projectId,
-				HttpResponse.BodyHandlers.ofInputStream()
-		);
+		HttpResponse<InputStream> byIdProjectStream = ModGarden.getProject(projectId);
+
 		if (byIdProjectStream.statusCode() != 200) {
 			return null;
 		}
@@ -104,7 +104,7 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 	}
 
 	private static List<ModGardenProject> getUserProjects(ModGardenUser user) throws IOException, InterruptedException {
-		return user.projects
+		return user.projects()
 				.parallelStream()
 				.map(s -> {
 					try {
@@ -118,60 +118,12 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 				.toList();
 	}
 
-	@Nullable
-	private static ModGardenEvent getActiveEvent() throws IOException, InterruptedException {
-		// TODO: Make an Active Events Endpoint
-		HttpResponse<InputStream> eventsStream = ModGardenAPIClient.get(
-				"v2/events/mod-garden",
-				HttpResponse.BodyHandlers.ofInputStream()
-		);
-		if (eventsStream.statusCode() != 200) {
-			return null;
-		}
-
-		JsonElement eventsJson = JsonParser.parseReader(new InputStreamReader(eventsStream.body()));
-		for (JsonElement element : eventsJson.getAsJsonArray()) {
-			ModGardenEvent event = GardenBot.GSON.fromJson(element, ModGardenEvent.class);
-
-			long now = Instant.now().toEpochMilli();
-
-			long registrationOpen = Long.parseLong(event.times.registrationOpen);
-			long packFreeze = Long.parseLong(event.times.packFreeze);
-
-			if (now >= registrationOpen && now < packFreeze) {
-				return event;
-			}
-		}
-
-		return null;
-	}
-
-	private static List<ModGardenSubmission> getActiveSubmissions() throws IOException, InterruptedException {
-		ModGardenEvent event = getActiveEvent();
-		if (event == null) {
+	private static List<ModGardenSubmission> getActiveSubmissions() throws HypertextException {
+		GenreAndEvent genreAndEvent = ModGarden.getActiveEvent();
+		if (genreAndEvent == null) {
 			return Collections.emptyList();
 		}
-		return getSubmissions("mod-garden", event.slug);
-	}
-
-	private static List<ModGardenSubmission> getSubmissions(String genreSlug, String eventSlug) throws IOException, InterruptedException {
-		HttpResponse<InputStream> submissionsStream = ModGardenAPIClient.get(
-				"v2/events/%s/%s/submissions"
-						.formatted(genreSlug, eventSlug),
-				HttpResponse.BodyHandlers.ofInputStream()
-		);
-		if (submissionsStream.statusCode() != 200) {
-			return Collections.emptyList();
-		}
-		List<ModGardenSubmission> submissions = new ArrayList<>();
-		JsonElement submissionsJson = JsonParser.parseReader(new InputStreamReader(submissionsStream.body()));
-
-		for (JsonElement element : submissionsJson.getAsJsonArray()) {
-			ModGardenSubmission submission = GardenBot.GSON.fromJson(element, ModGardenSubmission.class);
-			submissions.add(submission);
-		}
-
-		return submissions;
+		return ModGarden.getSubmissions(genreAndEvent.genre().slug(), genreAndEvent.event().slug());
 	}
 
 	private static Comparator<ModGardenProject> projectComparator(List<ModGardenSubmission> activeSubmissions) {
@@ -179,11 +131,18 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 			boolean isActive = false;
 			boolean otherIsActive = false;
 
+			boolean isEmpty = project.submissions().isEmpty();
+			boolean isOtherEmpty = otherProject.submissions().isEmpty();
+
+			if (isEmpty != isOtherEmpty) {
+				return Boolean.compare(isEmpty, isOtherEmpty);
+			}
+
 			for (ModGardenSubmission submission : activeSubmissions) {
-				if (project.submissions.contains(submission.project.id)) {
+				if (project.submissions().contains(submission.project().id())) {
 					isActive = true;
 				}
-				if (otherProject.submissions.contains(submission.project.id)) {
+				if (otherProject.submissions().contains(submission.project().id())) {
 					otherIsActive = true;
 				}
 			}
@@ -192,47 +151,7 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 				return Boolean.compare(isActive, otherIsActive);
 			}
 
-			boolean isEmpty = project.submissions.isEmpty();
-			boolean isOtherEmpty = otherProject.submissions.isEmpty();
-
-			if (isEmpty != isOtherEmpty) {
-				return Boolean.compare(isEmpty, isOtherEmpty);
-			}
-
-			return project.metadata.name.compareTo(otherProject.metadata.name);
+			return project.metadata().name().compareTo(otherProject.metadata().name());
 		};
-	}
-
-	protected static class ModGardenUser {
-		public String id;
-		public List<String> projects;
-	}
-
-	protected static class ModGardenProject {
-		public String id;
-		public ProjectMetadata metadata;
-		public Map<String, String> permissions;
-		public List<String> submissions;
-	}
-
-	protected static class ProjectMetadata {
-		public String name;
-	}
-
-	private static class ModGardenEvent {
-		public String slug;
-		public EventTimes times;
-	}
-
-	private static class ModGardenSubmission {
-		public ModGardenProject project;
-	}
-
-	private static class EventTimes {
-		@SerializedName("registration_open")
-		public String registrationOpen;
-
-		@SerializedName("pack_freeze")
-		public String packFreeze;
 	}
 }
