@@ -33,7 +33,7 @@ public class EventRegisterCommand extends SlashCommand {
 		Guild guild = interaction.event().getGuild();
 
 		try {
-			ModGardenEvent event = ModGarden.getRegistrableEvent();
+			ModGardenEvent event = ModGarden.getRegistrableEvent().event();
 			if (event == null) {
 				return new MessageResponse("No Mod Garden event is currently open for registration.")
 						.markEphemeral();

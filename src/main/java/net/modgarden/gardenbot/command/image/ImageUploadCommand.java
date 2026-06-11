@@ -40,6 +40,7 @@ public class ImageUploadCommand extends SlashCommand {
 	@NotNull
 	@Override
 	public Response respond(SlashCommandInteraction interaction) {
+		interaction.event().deferReply(true).queue();
 		User user = interaction.event().getUser();
 
 		if (interaction.event().getChannelId() == null || !interaction.event().getChannelId().equals(GardenBot.DOTENV.get("IMAGE_CHANNEL_ID"))) {
