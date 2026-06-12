@@ -11,7 +11,8 @@ import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 import static net.modgarden.gardenbot.command.team.TeamCommand.getEditableProjectAutoCompleteChoices;
 
@@ -29,7 +30,7 @@ public class TeamKickCommand extends SlashCommand {
 				new SlashCommandOption(
 						OptionType.USER,
 						"user",
-						"The user to kic from the project.",
+						"The user to kick from the project.",
 						true
 				)
 		);
@@ -38,7 +39,7 @@ public class TeamKickCommand extends SlashCommand {
 	@NotNull
 	@Override
 	public Response respond(SlashCommandInteraction interaction) {
-		return new MessageResponse("Kicking team members not currently implemented.");
+		return new MessageResponse("Kicking team members is not yet implemented.");
 	}
 
 

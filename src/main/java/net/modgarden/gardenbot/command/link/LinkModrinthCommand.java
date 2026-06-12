@@ -1,6 +1,5 @@
 package net.modgarden.gardenbot.command.link;
 
-import net.dv8tion.jda.api.entities.User;
 import net.modgarden.gardenbot.command.SlashCommand;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.MessageResponse;
@@ -19,7 +18,7 @@ public class LinkModrinthCommand extends SlashCommand {
 	@NotNull
 	@Override
 	public Response respond(SlashCommandInteraction interaction) {
-		return new MessageResponse("Account integrations not currently implemented.");
+		return new MessageResponse("Account integrations are not yet implemented.");
 //		return new EmbedResponse()
 //				.setTitle("Link your Modrinth Account!")
 //				.setDescription(

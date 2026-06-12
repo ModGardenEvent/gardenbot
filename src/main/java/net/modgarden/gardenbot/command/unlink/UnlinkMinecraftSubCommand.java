@@ -1,32 +1,12 @@
 package net.modgarden.gardenbot.command.unlink;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.commands.Command;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
-import net.modgarden.gardenbot.GardenBot;
-import net.modgarden.gardenbot.command.AutoCompletionGetter;
 import net.modgarden.gardenbot.command.SlashCommand;
 import net.modgarden.gardenbot.command.SlashCommandOption;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
-import net.modgarden.gardenbot.response.EmbedResponse;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
-import net.modgarden.gardenbot.util.MinecraftAccountUtil;
-import net.modgarden.gardenbot.client.ModGarden;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.http.HttpResponse;
-import java.util.*;
 
 // TODO: Add functionality to Backend V2.
 public class UnlinkMinecraftSubCommand extends SlashCommand {
@@ -47,7 +27,7 @@ public class UnlinkMinecraftSubCommand extends SlashCommand {
 	@NotNull
 	@Override
 	public Response respond(SlashCommandInteraction interaction) {
-		return new MessageResponse("Account integrations not currently implemented.");
+		return new MessageResponse("Account integrations are not yet implemented.");
 
 //		return new EmbedResponse()
 //				.setTitle("Are you sure?")
@@ -95,8 +75,8 @@ public class UnlinkMinecraftSubCommand extends SlashCommand {
 //							}).filter(Objects::nonNull).toList();
 //				}
 //			}
-//		} catch (IOException | InterruptedException ex) {
-//			GardenBot.LOG.error("Could not get Minecraft accounts from user.", ex);
+//		} catch (IOException | InterruptedException e) {
+//			GardenBot.LOG.error("Could not get Minecraft accounts from user.", e);
 //		}
 //		return Collections.emptyList();
 //	}

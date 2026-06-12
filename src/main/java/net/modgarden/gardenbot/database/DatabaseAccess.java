@@ -8,7 +8,9 @@ import net.modgarden.gardenbot.util.LazyValue;
 import net.modgarden.gardenbot.util.TimeUtil;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Instant;
 
 /// Centralized access to database operations.
@@ -81,8 +83,8 @@ public final class DatabaseAccess implements AutoCloseable {
 	}
 
 	public boolean updateTeamInvite(String userId,
-									String projectId,
-									String role) throws SQLException {
+	                                String projectId,
+	                                String role) throws SQLException {
 		try (
 				var insertStatement = getConnection().prepareStatement("""
 						UPDATE team_invites
@@ -97,8 +99,8 @@ public final class DatabaseAccess implements AutoCloseable {
 	}
 
 	public String createTeamInvite(String userId,
-								   String projectId,
-								   String role) throws SQLException {
+	                               String projectId,
+	                               String role) throws SQLException {
 		try (
 				var insertStatement = getConnection().prepareStatement("""
 						INSERT INTO team_invites(id, user_id, project_id, role, expiration_time)

@@ -101,8 +101,8 @@ public class UpdateHandler {
 //												}
 //												return new Command.Choice(title, slug);
 //											}
-//										} catch (Exception ex) {
-//											GardenBot.LOG.error("Failed to read Modrinth version.", ex);
+//										} catch (Exception e) {
+//											GardenBot.LOG.error("Failed to read Modrinth version.", e);
 //										}
 //										return null;
 //									}).filter(Objects::nonNull).toList();
@@ -111,8 +111,8 @@ public class UpdateHandler {
 //						}
 //					}
 //				}
-//			} catch (Exception ex) {
-//				GardenBot.LOG.error("Could not get Discord user's submitted entries to the current event.", ex);
+//			} catch (Exception e) {
+//				GardenBot.LOG.error("Could not get Discord user's submitted entries to the current event.", e);
 //			}
 //			return Collections.emptyList();
 //		} else if (focusedOption.equals("version")) {
@@ -147,8 +147,8 @@ public class UpdateHandler {
 //										return potentialVersion;
 //									}
 //								}
-//							} catch (Exception ex) {
-//								GardenBot.LOG.error("Failed to read Modrinth version.", ex);
+//							} catch (Exception e) {
+//								GardenBot.LOG.error("Failed to read Modrinth version.", e);
 //							}
 //							return null;
 //						}).filter(Objects::nonNull).collect(Collectors.toCollection(ArrayList::new));
@@ -164,8 +164,8 @@ public class UpdateHandler {
 //								.toList();
 //					}
 //				}
-//			} catch (Exception ex) {
-//				GardenBot.LOG.error("Failed to obtain Modrinth versions for project '{}'.", project, ex);
+//			} catch (Exception e) {
+//				GardenBot.LOG.error("Failed to obtain Modrinth versions for project '{}'.", project, e);
 //			}
 //			return Collections.emptyList();
 //		}

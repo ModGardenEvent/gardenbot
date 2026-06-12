@@ -24,7 +24,8 @@ public final class NaturalId {
 	private static final String ALPHABET = "abcdefghijklmnopqrstuvwxyz";
 	private static final String MISSINGNO = "noacc";
 
-	private NaturalId() {}
+	private NaturalId() {
+	}
 
 	public static boolean isReserved(String id) {
 		return RESERVED_PATTERN.matcher(id).hasMatch();
@@ -45,9 +46,9 @@ public final class NaturalId {
 
 	@NotNull
 	public static String generate(String table,
-								  String key,
-								  @Nullable String key2,
-								  int length) throws SQLException {
+	                              String key,
+	                              @Nullable String key2,
+	                              int length) throws SQLException {
 		String id = null;
 		try (Connection connection1 = GardenBot.createDatabaseConnection()) {
 			while (id == null) {

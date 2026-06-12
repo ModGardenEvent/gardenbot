@@ -19,8 +19,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.modgarden.gardenbot.interaction.ModalInteraction;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.interaction.dispatcher.ButtonDispatcher;
-import net.modgarden.gardenbot.interaction.dispatcher.SlashCommandDispatcher;
 import net.modgarden.gardenbot.interaction.dispatcher.ModalDispatcher;
+import net.modgarden.gardenbot.interaction.dispatcher.SlashCommandDispatcher;
 import net.modgarden.gardenbot.util.MessageCacheUtil;
 import net.modgarden.gardenbot.util.TimeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -84,9 +84,9 @@ public class GardenBotEvents extends ListenerAdapter {
 						.setColor(0x00FF02)
 						.setAuthor("User joined the server!", null, user.getEffectiveAvatarUrl())
 						.setDescription(
-								"Welcome <@" + user.getId() + "> (" + user.getGlobalName() +")\n" +
-								"**ID:** " + user.getId())
-				.build())
+								"Welcome <@" + user.getId() + "> (" + user.getGlobalName() + ")\n" +
+										"**ID:** " + user.getId())
+						.build())
 				.setAllowedMentions(List.of())
 				.queue();
 	}
@@ -106,7 +106,7 @@ public class GardenBotEvents extends ListenerAdapter {
 		channel.sendMessageEmbeds(new EmbedBuilder()
 				.setColor(0x00FF02)
 				.setAuthor("User left the server!", null, user.getEffectiveAvatarUrl())
-				.setDescription("Goodbye <@" + user.getId() + "> (" + user.getGlobalName() +")\n" +
+				.setDescription("Goodbye <@" + user.getId() + "> (" + user.getGlobalName() + ")\n" +
 						"**ID:** " + user.getId())
 				.build()).setAllowedMentions(List.of()).queue();
 	}
@@ -195,9 +195,9 @@ public class GardenBotEvents extends ListenerAdapter {
 			if (member != null && (member.getUser().isBot() || member.getUser().isSystem()))
 				return;
 			String globalName = member != null && member.getUser().getGlobalName() != null ? member.getUser().getName() : "unknown";
-				description = description + "\n" +
-						"**Author:** <@" + userId + "> (" + globalName + ")\n" +
-						"**Author ID:** " + userId;
+			description = description + "\n" +
+					"**Author:** <@" + userId + "> (" + globalName + ")\n" +
+					"**Author ID:** " + userId;
 		}
 
 		var builder = new EmbedBuilder()

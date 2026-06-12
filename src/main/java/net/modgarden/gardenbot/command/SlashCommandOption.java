@@ -4,10 +4,10 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 public record SlashCommandOption(OptionType type,
-								 String name,
-								 String description,
-								 boolean required,
-								 boolean isAutoComplete) {
+                                 String name,
+                                 String description,
+                                 boolean required,
+                                 boolean isAutoComplete) {
 	public SlashCommandOption(OptionType type,
 	                          String name,
 	                          String description,

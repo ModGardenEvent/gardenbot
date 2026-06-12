@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.http.HttpClient;
 import java.sql.*;
 
 public class GardenBot {
@@ -21,6 +22,7 @@ public class GardenBot {
 	public static final Gson GSON = new Gson();
 
 	public static final Dotenv DOTENV = Dotenv.load();
+	public static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
 	private static final int DATABASE_SCHEMA_VERSION = 1;
 
@@ -28,7 +30,7 @@ public class GardenBot {
 
 	public static void main(String[] args) {
 		if ("development".equals(System.getenv("env")))
-			((ch.qos.logback.classic.Logger)LOG).setLevel(Level.DEBUG);
+			((ch.qos.logback.classic.Logger) LOG).setLevel(Level.DEBUG);
 
 		jda = JDABuilder.create(
 						GatewayIntent.GUILD_MEMBERS,
@@ -55,8 +57,8 @@ public class GardenBot {
 			}
 			createDatabaseContents();
 			updateSchemaVersion();
-		} catch (IOException ex) {
-			LOG.error("Failed to create database file.", ex);
+		} catch (IOException e) {
+			LOG.error("Failed to create database file.", e);
 		}
 
 		GardenBotCommands.registerAll();
@@ -66,7 +68,7 @@ public class GardenBot {
 		TeamInviteUtil.revokeExpiredInvitesEachHour();
 
 		LOG.info("GardenBot v{} has been initialized.", VERSION);
-    }
+	}
 
 	public static Connection createDatabaseConnection() throws SQLException {
 		String url = "jdbc:sqlite:database.db";
@@ -75,7 +77,7 @@ public class GardenBot {
 
 	private static void createDatabaseContents() {
 		try (Connection connection = createDatabaseConnection();
-			 Statement statement = connection.createStatement()) {
+		     Statement statement = connection.createStatement()) {
 			statement.addBatch("""
 					CREATE TABLE IF NOT EXISTS bans (
 						id TEXT UNIQUE NOT NULL,
@@ -102,8 +104,8 @@ public class GardenBot {
 						PRIMARY KEY(id)
 					)""");
 			statement.executeBatch();
-		} catch (SQLException ex) {
-			LOG.error("Failed to create database tables. ", ex);
+		} catch (SQLException e) {
+			LOG.error("Failed to create database tables. ", e);
 			return;
 		}
 		LOG.debug("Created database tables.");
@@ -111,7 +113,7 @@ public class GardenBot {
 
 	private static void updateSchemaVersion() {
 		try (Connection connection = createDatabaseConnection();
-			 Statement statement = connection.createStatement()) {
+		     Statement statement = connection.createStatement()) {
 			statement.addBatch("CREATE TABLE IF NOT EXISTS schema (version INTEGER NOT NULL, PRIMARY KEY(version))");
 			statement.addBatch("DELETE FROM schema");
 			statement.executeBatch();
@@ -119,8 +121,8 @@ public class GardenBot {
 				prepared.setInt(1, DATABASE_SCHEMA_VERSION);
 				prepared.execute();
 			}
-		} catch (SQLException ex) {
-			LOG.error("Failed to update database schema version. ", ex);
+		} catch (SQLException e) {
+			LOG.error("Failed to update database schema version. ", e);
 			return;
 		}
 		LOG.debug("Updated database schema version.");

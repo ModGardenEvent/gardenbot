@@ -4,22 +4,25 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.modgarden.gardenbot.GardenBot;
+import net.modgarden.gardenbot.client.ModGarden;
 import net.modgarden.gardenbot.client.exception.HypertextException;
-import net.modgarden.gardenbot.client.modgarden.event.ModGardenEvent;
-import net.modgarden.gardenbot.client.modgarden.role.ModGardenRole;
-import net.modgarden.gardenbot.client.modgarden.user.ModGardenUser;
+import net.modgarden.gardenbot.client.mod_garden.event.ModGardenEvent;
+import net.modgarden.gardenbot.client.mod_garden.role.ModGardenRole;
+import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.command.SlashCommand;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
-import net.modgarden.gardenbot.client.ModGarden;
 import org.jetbrains.annotations.NotNull;
 
 import static net.modgarden.gardenbot.util.MiscUtil.aOrAn;
 
 public class EventUnregisterCommand extends SlashCommand {
 	public EventUnregisterCommand() {
-		super("unregister", "Unregisters you from the current Mod Garden event.");
+		super(
+				"unregister",
+				"Unregisters you from the current Mod Garden event."
+		);
 	}
 
 	@NotNull
@@ -30,10 +33,12 @@ public class EventUnregisterCommand extends SlashCommand {
 		Guild guild = interaction.event().getGuild();
 
 		try {
-			ModGardenUser mgUser = ModGarden.getUserByDiscordId(user);
+			ModGardenUser mgUser = ModGarden.getUserByDiscordUser(user);
 
 			if (mgUser == null) {
-				return new MessageResponse("You do not have a Mod Garden account.\nPlease create one with **/account create**.")
+				return new MessageResponse("""
+						You do not have a Mod Garden account.
+						Please create one with **/account create**.""")
 						.markEphemeral();
 			}
 
@@ -69,9 +74,9 @@ public class EventUnregisterCommand extends SlashCommand {
 						.formatted(aOrAn(event.metadata().name()), event.metadata().name())
 				).markEphemeral();
 			}
-		} catch (HypertextException ex) {
-			GardenBot.LOG.error("", ex);
-			return exceptionResponse(ex.getMessage());
+		} catch (HypertextException e) {
+			GardenBot.LOG.error("", e);
+			return exceptionResponse(e.getMessage());
 		}
 
 		return new MessageResponse("This command must be run inside the Mod Garden Discord server.")

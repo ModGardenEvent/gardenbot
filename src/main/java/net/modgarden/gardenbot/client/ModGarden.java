@@ -1,29 +1,36 @@
 package net.modgarden.gardenbot.client;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.dv8tion.jda.api.entities.User;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.exception.HypertextException;
-import net.modgarden.gardenbot.client.modgarden.event.EventTimes;
-import net.modgarden.gardenbot.client.modgarden.event.GenreAndEvent;
-import net.modgarden.gardenbot.client.modgarden.event.ModGardenEvent;
-import net.modgarden.gardenbot.client.modgarden.event.ModGardenGenre;
-import net.modgarden.gardenbot.client.modgarden.project.ModGardenProject;
-import net.modgarden.gardenbot.client.modgarden.project.ModGardenSubmission;
-import net.modgarden.gardenbot.client.modgarden.request.CreateUserRequestBody;
-import net.modgarden.gardenbot.client.modgarden.request.ModifyUserRequestBody;
-import net.modgarden.gardenbot.client.modgarden.role.ModGardenRole;
-import net.modgarden.gardenbot.client.modgarden.user.ModGardenUser;
-import net.modgarden.gardenbot.client.modgarden.user.UserBio;
-import net.modgarden.gardenbot.client.modgarden.user.UserIntegrations;
+import net.modgarden.gardenbot.client.mod_garden.event.EventTimes;
+import net.modgarden.gardenbot.client.mod_garden.event.GenreAndEvent;
+import net.modgarden.gardenbot.client.mod_garden.event.ModGardenEvent;
+import net.modgarden.gardenbot.client.mod_garden.event.ModGardenGenre;
+import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
+import net.modgarden.gardenbot.client.mod_garden.project.ModGardenSubmission;
+import net.modgarden.gardenbot.client.mod_garden.project.ModrinthSubmissionPlatform;
+import net.modgarden.gardenbot.client.mod_garden.project.ProjectMetadata;
+import net.modgarden.gardenbot.client.mod_garden.request.CreateModrinthSubmissionRequestBody;
+import net.modgarden.gardenbot.client.mod_garden.request.CreateProjectRequestBody;
+import net.modgarden.gardenbot.client.mod_garden.request.CreateUserRequestBody;
+import net.modgarden.gardenbot.client.mod_garden.request.ModifyUserRequestBody;
+import net.modgarden.gardenbot.client.mod_garden.role.ModGardenRole;
+import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
+import net.modgarden.gardenbot.client.mod_garden.user.UserBio;
+import net.modgarden.gardenbot.client.mod_garden.user.UserIntegrations;
+import net.modgarden.gardenbot.client.modrinth.ModrinthProject;
+import net.modgarden.gardenbot.client.modrinth.ModrinthVersion;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
@@ -32,13 +39,13 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static net.modgarden.gardenbot.GardenBot.HTTP_CLIENT;
+
 public class ModGarden {
 	public static final String API_URL = "development".equals(System.getenv("env"))
 			? "http://localhost:7070/"
 			: "https://api.modgarden.net/";
-
 	private static final String USER_AGENT = "ModGardenEvent/gardenbot/" + GardenBot.VERSION + " (modgarden.net)";
-	private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
 	private final static String GARDEN_BOT_CREDENTIALS = Base64.getEncoder().encodeToString(("grbot:" + GardenBot.DOTENV.get("OAUTH_SECRET")).getBytes(StandardCharsets.UTF_8));
 
@@ -46,7 +53,7 @@ public class ModGarden {
 	}
 
 	@Nullable
-	public static ModGardenUser getUserByDiscordId(User discordUser) throws HypertextException {
+	public static ModGardenUser getUserByDiscordUser(User discordUser) throws HypertextException {
 		HttpResponse<InputStream> response;
 		try {
 			response = get(
@@ -109,10 +116,46 @@ public class ModGarden {
 		throw hypertextException(response);
 	}
 
-	public static ModGardenProject getProject(String projectId) throws HypertextException {
+	public static ModGardenProject createProject(String name) throws HypertextException {
+		String body = GardenBot.GSON.toJson(new CreateProjectRequestBody(new ProjectMetadata(name)), CreateUserRequestBody.class);
+
+		HttpResponse<InputStream> response;
+
+		try {
+			response = post(
+					"v2/projects",
+					HttpRequest.BodyPublishers.ofString(body),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+			String location = response.headers().firstValue("Location").orElseThrow();
+			return getProject(location.substring("/v2/projects/".length()));
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+	}
+
+	public static void deleteProject(ModGardenProject project) throws HypertextException {
 		HttpResponse<InputStream> response;
 		try {
 			response = get(
+					"v2/projects/" + project.id(),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+
+		if (response.statusCode() == 200) {
+			return;
+		}
+
+		throw hypertextException(response);
+	}
+
+	public static ModGardenProject getProject(String projectId) throws HypertextException {
+		HttpResponse<InputStream> response;
+		try {
+			response = delete(
 					"v2/projects/" + projectId,
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
@@ -122,6 +165,67 @@ public class ModGarden {
 
 		if (response.statusCode() == 200) {
 			return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), ModGardenProject.class);
+		}
+
+		return null;
+	}
+
+	public static void createModrinthSubmission(ModGardenProject modGardenProject,
+	                                            ModGardenEvent event,
+	                                            ModrinthProject modrinthProject,
+	                                            ModrinthVersion modrinthVersion) throws HypertextException {
+		String body = GardenBot.GSON.toJson(
+				new CreateModrinthSubmissionRequestBody(
+						modGardenProject.id(),
+						event.id(),
+						new ModrinthSubmissionPlatform(modrinthProject.id(), modrinthVersion.id())
+				),
+				ModrinthSubmissionPlatform.class
+		);
+
+		try {
+			post(
+					"v2/submissions",
+					HttpRequest.BodyPublishers.ofString(body),
+					HttpResponse.BodyHandlers.discarding()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+	}
+
+	public static void deleteSubmission(ModGardenSubmission submission) throws HypertextException {
+		HttpResponse<InputStream> response;
+		try {
+			response = delete(
+					"v2/submissions/" + submission.id(),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+
+		if (response.statusCode() == 200) {
+			return;
+		}
+
+		throw hypertextException(response);
+	}
+
+	@Nullable
+	public static ModGardenSubmission getSubmission(String submissionId) throws HypertextException {
+		HttpResponse<InputStream> response;
+		try {
+			response = get(
+					"v2/submissions/%s".formatted(submissionId),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+
+		if (response.statusCode() == 200) {
+			return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), ModGardenSubmission.class);
 		}
 
 		return null;
@@ -161,11 +265,47 @@ public class ModGarden {
 		);
 	}
 
+	public static GenreAndEvent getDevelopmentTimeEvent() throws HypertextException {
+		return getEventWithinTimeframe(
+				EventTimes::registrationOpen,
+				EventTimes::packFreeze
+		);
+	}
+
 	public static GenreAndEvent getActiveEvent() throws HypertextException {
 		return getEventWithinTimeframe(
 				EventTimes::registrationOpen,
 				EventTimes::packFreeze
 		);
+	}
+
+	public static void transferProjectOwnership(ModGardenProject project, ModGardenUser user) throws HypertextException {
+		JsonObject teamJson = new JsonObject();
+
+
+		try {
+			JsonObject addUserJson = new JsonObject();
+			addUserJson.addProperty(user.id(), "Member");
+			teamJson.add("team", addUserJson);
+
+			patch(
+					"v2/projects/" + project.id(),
+					HttpRequest.BodyPublishers.ofString(teamJson.toString()),
+					HttpResponse.BodyHandlers.discarding()
+			);
+
+			JsonObject removeGardenBotJson = new JsonObject();
+			addUserJson.add("grbot", JsonNull.INSTANCE);
+			teamJson.add("team", removeGardenBotJson);
+
+			patch(
+					"v2/projects/" + project.id(),
+					HttpRequest.BodyPublishers.ofString(teamJson.toString()),
+					HttpResponse.BodyHandlers.discarding()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
 	}
 
 	public static void addTeamMembers(ModGardenProject project, Map<ModGardenUser, String> usersToRole) throws HypertextException {
@@ -342,6 +482,17 @@ public class ModGarden {
 		return HTTP_CLIENT.send(req.build(), bodyHandler);
 	}
 
+	private static <T> HttpResponse<T> delete(String endpoint, HttpResponse.BodyHandler<T> bodyHandler, String... headers) throws IOException, InterruptedException {
+		var req = HttpRequest.newBuilder(URI.create(API_URL + endpoint))
+				.header("User-Agent", USER_AGENT)
+				.header("Authorization", "Basic " + GARDEN_BOT_CREDENTIALS);
+		if (headers.length > 0) {
+			req.headers(headers);
+		}
+		req.method("DELETE", HttpRequest.BodyPublishers.noBody());
+
+		return HTTP_CLIENT.send(req.build(), bodyHandler);
+	}
 
 	private record ExceptionPage(String description) {
 	}

@@ -3,8 +3,8 @@ package net.modgarden.gardenbot.button.team;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.button.Button;
 import net.modgarden.gardenbot.client.ModGarden;
-import net.modgarden.gardenbot.client.modgarden.project.ModGardenProject;
-import net.modgarden.gardenbot.client.modgarden.user.ModGardenUser;
+import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
+import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.database.DatabaseAccess;
 import net.modgarden.gardenbot.database.data.TeamInvite;
 import net.modgarden.gardenbot.interaction.ButtonInteraction;
@@ -48,12 +48,14 @@ public class AcceptTeamInviteButton extends Button {
 						.markEphemeral();
 			}
 
-			ModGardenUser invitedUser = ModGarden.getUserByDiscordId(interaction.event().getUser());
+			ModGardenUser invitedUser = ModGarden.getUserByDiscordUser(interaction.event().getUser());
 
 			if (invitedUser == null) {
 				db.revokeTeamInvite(inviteId);
 				// Not an error in the case of deleted users in the future.
-				return new MessageResponse("You do not have a Mod Garden account.\nPlease create one with **/account create**.")
+				return new MessageResponse("""
+						You do not have a Mod Garden account.
+						Please create one with **/account create**.""")
 						.markEphemeral();
 			}
 
@@ -73,11 +75,11 @@ public class AcceptTeamInviteButton extends Button {
 
 			return new MessageResponse("You are now a member of the Mod Garden project '" + mgProject.metadata().name() + "'.")
 					.markEphemeral();
-		} catch (Exception ex) {
-			GardenBot.LOG.error("", ex);
+		} catch (Exception e) {
+			GardenBot.LOG.error("", e);
 			return new EmbedResponse()
 					.setTitle("Encountered an exception whilst attempting to accept invite.")
-					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
+					.setDescription(e.getMessage() + "\nPlease report this to a team member.")
 					.setColor(0xFF0000)
 					.markEphemeral();
 		}

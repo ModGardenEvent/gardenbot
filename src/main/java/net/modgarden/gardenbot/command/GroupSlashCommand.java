@@ -57,10 +57,10 @@ public abstract class GroupSlashCommand<T extends AbstractSlashCommand> extends 
 
 	@Override
 	public List<Command.Choice> getAutoCompleteChoices(String focusedOption,
-													   User user,
-													   AutoCompletionGetter autoCompletionGetter,
-													   @Nullable String groupName,
-													   @Nullable String subCommandName) {
+	                                                   User user,
+	                                                   AutoCompletionGetter autoCompletionGetter,
+	                                                   @Nullable String groupName,
+	                                                   @Nullable String subCommandName) {
 		String lookupName = isGroup
 				? groupName
 				: subCommandName;

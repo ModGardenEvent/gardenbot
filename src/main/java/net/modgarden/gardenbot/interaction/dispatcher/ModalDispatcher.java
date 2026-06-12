@@ -2,8 +2,8 @@ package net.modgarden.gardenbot.interaction.dispatcher;
 
 import net.modgarden.gardenbot.database.DatabaseAccess;
 import net.modgarden.gardenbot.interaction.ModalInteraction;
-import net.modgarden.gardenbot.response.Response;
 import net.modgarden.gardenbot.modal.Modal;
+import net.modgarden.gardenbot.response.Response;
 
 import java.util.HashMap;
 import java.util.function.Supplier;

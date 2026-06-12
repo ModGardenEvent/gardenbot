@@ -11,6 +11,9 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.GardenBotButtons;
+import net.modgarden.gardenbot.client.ModGarden;
+import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
+import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.command.AutoCompletionGetter;
 import net.modgarden.gardenbot.command.SlashCommand;
 import net.modgarden.gardenbot.command.SlashCommandOption;
@@ -21,9 +24,11 @@ import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
-import static net.modgarden.gardenbot.command.team.TeamCommand.*;
+import static net.modgarden.gardenbot.command.team.TeamCommand.getEditableProjectAutoCompleteChoices;
+import static net.modgarden.gardenbot.command.team.TeamCommand.hasPermissions;
 import static net.modgarden.gardenbot.util.MiscUtil.aOrAn;
 
 public class TeamInviteCommand extends SlashCommand {
@@ -67,7 +72,7 @@ public class TeamInviteCommand extends SlashCommand {
 		assert invitedUser != null;
 
 		try {
-			TeamCommand.ModGardenUser modGardenUser = getModGardenUser(user);
+			ModGardenUser modGardenUser = ModGarden.getUserByDiscordUser(user);
 			if (modGardenUser == null) {
 				return new MessageResponse("""
 						You do not have a Mod Garden account.
@@ -75,37 +80,37 @@ public class TeamInviteCommand extends SlashCommand {
 				).markEphemeral();
 			}
 
-			TeamCommand.ModGardenUser invitedModGardenUser = getModGardenUser(invitedUser);
+			ModGardenUser invitedModGardenUser = ModGarden.getUserByDiscordUser(invitedUser);
 			if (invitedModGardenUser == null) {
 				return new MessageResponse("The user you attempted to invite does not have a Mod Garden account.")
 						.markEphemeral();
 			}
 
-			TeamCommand.ModGardenProject modGardenProject = getProject(project);
+			ModGardenProject modGardenProject = ModGarden.getProject(project);
 			if (modGardenProject == null) {
 				return new MessageResponse("Could not find project '" + project + "'.")
 						.markEphemeral();
 			}
 
-			if (!modGardenProject.permissions.containsKey(modGardenUser.id)) {
+			if (!modGardenProject.permissions().containsKey(modGardenUser.id())) {
 				return new MessageResponse("You are not a member of project '" + project + "'.")
 						.markEphemeral();
 			}
 
-			long userPermissions = Long.parseLong(modGardenProject.permissions.get(modGardenUser.id));
+			long userPermissions = Long.parseLong(modGardenProject.permissions().get(modGardenUser.id()));
 			if (!hasPermissions(userPermissions)) {
 				return new MessageResponse("You are not allowed to invite users to project '" + project + "'.")
 						.markEphemeral();
 			}
 
-			if (modGardenProject.permissions.containsKey(invitedModGardenUser.id)) {
+			if (modGardenProject.permissions().containsKey(invitedModGardenUser.id())) {
 				return new MessageResponse("User " + invitedUser.getAsMention() + " is already a member of project '" + project + "'.")
 						.markEphemeral();
 			}
 
 			DatabaseAccess db = DatabaseAccess.get();
 
-			if (db.updateTeamInvite(invitedModGardenUser.id, modGardenProject.id, role)) {
+			if (db.updateTeamInvite(invitedModGardenUser.id(), modGardenProject.id(), role)) {
 				return new EmbedResponse()
 						.setTitle("Updated the expiry date invited " + invitedUser.getGlobalName() + " to your project.")
 						.setDescription("They should use the existing DM .")
@@ -113,15 +118,15 @@ public class TeamInviteCommand extends SlashCommand {
 						.setColor(0xA9FFA7);
 			}
 
-			String inviteCode = db.createTeamInvite(invitedModGardenUser.id, modGardenProject.id, role);
+			String inviteCode = db.createTeamInvite(invitedModGardenUser.id(), modGardenProject.id(), role);
 
 			EmbedBuilder embedBuilder = new EmbedBuilder()
 					.setTitle("You have been invited to project %s as %s %s"
-							.formatted(modGardenProject.metadata.name, aOrAn(role), role)
+							.formatted(modGardenProject.metadata().name(), aOrAn(role), role)
 					).setDescription("""
-						*You were invited by %s*
+							*You were invited by %s*
 
-						You may either Accept or Decline by using the buttons below."""
+							You may either Accept or Decline by using the buttons below."""
 							.formatted(interaction.event().getUser().getAsMention())
 					).setColor(0xA9FFA7);
 
@@ -158,11 +163,11 @@ public class TeamInviteCommand extends SlashCommand {
 					.setDescription("They have received a DM that will let them either accept or deny the invitation.")
 					.markEphemeral()
 					.setColor(0xA9FFA7);
-		} catch (Exception ex) {
-			GardenBot.LOG.error("", ex);
+		} catch (Exception e) {
+			GardenBot.LOG.error("", e);
 			return new EmbedResponse()
 					.setTitle("Encountered an exception!")
-					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
+					.setDescription(e.getMessage() + "\nPlease report this to a team member.")
 					.markEphemeral()
 					.setColor(0xFF0000);
 		}
@@ -170,8 +175,8 @@ public class TeamInviteCommand extends SlashCommand {
 
 	@Override
 	public List<Command.Choice> getAutoCompleteChoices(String focusedOption,
-													   User user,
-													   AutoCompletionGetter autoCompletionGetter) {
+	                                                   User user,
+	                                                   AutoCompletionGetter autoCompletionGetter) {
 		if (focusedOption.equals("user")) {
 			return Collections.emptyList();
 		}

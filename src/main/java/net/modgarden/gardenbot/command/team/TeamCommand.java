@@ -1,27 +1,21 @@
 package net.modgarden.gardenbot.command.team;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.annotations.SerializedName;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.modgarden.gardenbot.GardenBot;
+import net.modgarden.gardenbot.client.ModGarden;
 import net.modgarden.gardenbot.client.exception.HypertextException;
-import net.modgarden.gardenbot.client.modgarden.event.GenreAndEvent;
-import net.modgarden.gardenbot.client.modgarden.project.ModGardenProject;
-import net.modgarden.gardenbot.client.modgarden.project.ModGardenSubmission;
-import net.modgarden.gardenbot.client.modgarden.user.ModGardenUser;
+import net.modgarden.gardenbot.client.mod_garden.event.GenreAndEvent;
+import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
+import net.modgarden.gardenbot.client.mod_garden.project.ModGardenSubmission;
+import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.command.GroupSlashCommand;
 import net.modgarden.gardenbot.command.SlashCommand;
-import net.modgarden.gardenbot.client.ModGarden;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.http.HttpResponse;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 	private static final int ADMINISTRATOR_PERMISSION_BITS = 0x1;
@@ -29,17 +23,15 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 
 	public TeamCommand() {
 		super(
-			"team",
-			"Modify the team of a Mod Garden project.",
-				TeamInviteCommand::new,
-				TeamKickCommand::new,
-				TeamLeaveCommand::new
+				"team",
+				"Modify the team of a Mod Garden project.",
+				TeamInviteCommand::new
 		);
 	}
 
 	protected static List<Command.Choice> getProjectAutoCompleteChoices(User user) {
 		try {
-			ModGardenUser modGardenUser = getModGardenUser(user);
+			ModGardenUser modGardenUser = ModGarden.getUserByDiscordUser(user);
 			if (modGardenUser == null) {
 				return Collections.emptyList();
 			}
@@ -47,7 +39,7 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 			return getUserProjects(modGardenUser)
 					.parallelStream()
 					.sorted(projectComparator(activeSubmissions))
-					.map(modGardenProject -> new Command.Choice(modGardenProject.metadata.name, modGardenProject.id))
+					.map(modGardenProject -> new Command.Choice(modGardenProject.metadata().name(), modGardenProject.id()))
 					.toList();
 		} catch (Exception ignored) {
 			return Collections.emptyList();
@@ -57,44 +49,20 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 
 	protected static List<Command.Choice> getEditableProjectAutoCompleteChoices(User user) {
 		try {
-			ModGardenUser modGardenUser = getModGardenUser(user);
+			ModGardenUser modGardenUser = ModGarden.getUserByDiscordUser(user);
 			if (modGardenUser == null) {
 				return Collections.emptyList();
 			}
 			List<ModGardenSubmission> activeSubmissions = getActiveSubmissions();
 			return getUserProjects(modGardenUser)
 					.parallelStream()
+					.filter(modGardenProject -> hasPermissions(Long.parseLong(modGardenProject.permissions().getOrDefault(modGardenUser.id(), "0"))))
 					.sorted(projectComparator(activeSubmissions))
-					.filter(modGardenProject -> hasPermissions(Long.parseLong(modGardenProject.permissions.getOrDefault(modGardenUser.id, "0"))))
-					.map(modGardenProject -> new Command.Choice(modGardenProject.metadata.name, modGardenProject.id))
+					.map(modGardenProject -> new Command.Choice(modGardenProject.metadata().name(), modGardenProject.id()))
 					.toList();
 		} catch (Exception ignored) {
 			return Collections.emptyList();
 		}
-	}
-
-	@Nullable
-	protected static ModGardenUser getModGardenUser(User user) throws IOException, InterruptedException {
-		HttpResponse<InputStream> userStream = ModGarden.get(
-				"v2/users/" + user.getId() + "?by=integration_discord",
-				HttpResponse.BodyHandlers.ofInputStream()
-		);
-		if (userStream.statusCode() != 200) {
-			return null;
-		}
-		JsonElement userJson = JsonParser.parseReader(new InputStreamReader(userStream.body()));
-		return GardenBot.GSON.fromJson(userJson, ModGardenUser.class);
-	}
-
-	@Nullable
-	protected static ModGardenProject getProject(String projectId) throws IOException, InterruptedException {
-		HttpResponse<InputStream> byIdProjectStream = ModGarden.getProject(projectId);
-
-		if (byIdProjectStream.statusCode() != 200) {
-			return null;
-		}
-		JsonElement projectJson = JsonParser.parseReader(new InputStreamReader(byIdProjectStream.body()));
-		return GardenBot.GSON.fromJson(projectJson, ModGardenProject.class);
 	}
 
 	protected static boolean hasPermissions(long userPermissions) {
@@ -103,13 +71,13 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 		return hasAdministrator || hasPermissions;
 	}
 
-	private static List<ModGardenProject> getUserProjects(ModGardenUser user) throws IOException, InterruptedException {
+	private static List<ModGardenProject> getUserProjects(ModGardenUser user) {
 		return user.projects()
 				.parallelStream()
 				.map(s -> {
 					try {
-						return getProject(s);
-					} catch (Exception value) {
+						return ModGarden.getProject(s);
+					} catch (HypertextException e) {
 						GardenBot.LOG.error("Failed to get project from ID '{}'.", s);
 						return null;
 					}

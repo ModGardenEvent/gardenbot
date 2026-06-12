@@ -3,12 +3,10 @@ package net.modgarden.gardenbot.interaction.dispatcher;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.modgarden.gardenbot.button.Button;
 import net.modgarden.gardenbot.database.DatabaseAccess;
-import net.modgarden.gardenbot.interaction.ButtonInteraction;
 import net.modgarden.gardenbot.response.Response;
 
 import java.util.HashMap;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ButtonDispatcher {

@@ -8,16 +8,17 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.ExecutionException;
 
+import static net.modgarden.gardenbot.GardenBot.HTTP_CLIENT;
+
 public class Discord {
 	private static final String USER_AGENT = "ModGardenEvent/gardenbot/" + GardenBot.VERSION + " (modgarden.net)";
-	private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
 	/// Hack to avoid Discord converting PNGs to WEBP when uploading an attachment.
+	///
 	/// @param attachment The uploaded attachment.
 	@Nullable
 	public static InputStream attachmentToPngStream(Message.Attachment attachment) throws HypertextException {

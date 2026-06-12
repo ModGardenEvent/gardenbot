@@ -1,23 +1,21 @@
 package net.modgarden.gardenbot.modal.account;
 
-import com.google.gson.JsonElement;
-import com.google.gson.annotations.SerializedName;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.modgarden.gardenbot.GardenBot;
+import net.modgarden.gardenbot.client.ModGarden;
 import net.modgarden.gardenbot.client.exception.HypertextException;
-import net.modgarden.gardenbot.client.modgarden.user.ModGardenUser;
-import net.modgarden.gardenbot.client.modgarden.user.UserBio;
-import net.modgarden.gardenbot.client.modgarden.user.UserIntegrations;
-import net.modgarden.gardenbot.client.modgarden.user.integration.DiscordUserIntegration;
+import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
+import net.modgarden.gardenbot.client.mod_garden.user.UserBio;
+import net.modgarden.gardenbot.client.mod_garden.user.UserIntegrations;
+import net.modgarden.gardenbot.client.mod_garden.user.integration.DiscordUserIntegration;
 import net.modgarden.gardenbot.interaction.ModalInteraction;
 import net.modgarden.gardenbot.modal.Modal;
 import net.modgarden.gardenbot.response.EmbedResponse;
 import net.modgarden.gardenbot.response.Response;
-import net.modgarden.gardenbot.client.ModGarden;
 import org.jetbrains.annotations.NotNull;
 
 public class RegisterModal extends Modal {
@@ -29,22 +27,23 @@ public class RegisterModal extends Modal {
 						TextInput.create("username",
 										"Username",
 										TextInputStyle.SHORT
-								)
-								.setRequired(false)
-								.setPlaceholder("Leave this blank to use your Discord username.")
-								.setMinLength(2)
-								.setMaxLength(32)
-								.build(),
-						TextInput.create("display_name",
-										"Display Name",
-										TextInputStyle.SHORT
-								)
-								.setRequired(false)
-								.setPlaceholder("Leave this blank to use your Discord display name.")
+								).setRequired(false)
+								.setPlaceholder("Leave this blank to use your Discord value.")
 								.setMinLength(2)
 								.setMaxLength(32)
 								.build()
-				));
+				),
+				ActionRow.of(
+						TextInput.create("display-name",
+										"Display Name",
+										TextInputStyle.SHORT
+								).setRequired(false)
+								.setPlaceholder("Leave this blank to use your Discord value.")
+								.setMinLength(2)
+								.setMaxLength(32)
+								.build()
+				)
+		);
 	}
 
 	@NotNull
@@ -59,7 +58,7 @@ public class RegisterModal extends Modal {
 		try {
 			ModGardenUser mgUser = ModGarden.createUser(username);
 
-			ModalMapping modalDisplayName = interaction.event().getValue("display_name");
+			ModalMapping modalDisplayName = interaction.event().getValue("display-name");
 			String displayName = modalDisplayName != null
 					? modalDisplayName.getAsString()
 					: interaction.event().getUser().getEffectiveName();

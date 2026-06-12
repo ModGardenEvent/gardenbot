@@ -2,19 +2,15 @@ package net.modgarden.gardenbot.command;
 
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.Command;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.modgarden.gardenbot.client.exception.HypertextException;
 import net.modgarden.gardenbot.interaction.InteractionHandler;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.EmbedResponse;
-import net.modgarden.gardenbot.response.ModalResponse;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 
 public abstract class AbstractSlashCommand implements InteractionHandler<SlashCommandInteraction> {
 	public final String name;

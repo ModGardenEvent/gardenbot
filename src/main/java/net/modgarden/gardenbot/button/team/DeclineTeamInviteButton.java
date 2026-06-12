@@ -2,14 +2,14 @@ package net.modgarden.gardenbot.button.team;
 
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.button.Button;
-import net.modgarden.gardenbot.client.modgarden.project.ModGardenProject;
+import net.modgarden.gardenbot.client.ModGarden;
+import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
 import net.modgarden.gardenbot.database.DatabaseAccess;
 import net.modgarden.gardenbot.database.data.TeamInvite;
 import net.modgarden.gardenbot.interaction.ButtonInteraction;
 import net.modgarden.gardenbot.response.EmbedResponse;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
-import net.modgarden.gardenbot.client.ModGarden;
 import org.jetbrains.annotations.NotNull;
 
 public class DeclineTeamInviteButton extends Button {
@@ -40,11 +40,11 @@ public class DeclineTeamInviteButton extends Button {
 
 			return new MessageResponse("You have declined the invite to the Mod Garden project '" + modGardenProject.metadata().name() + "'.")
 					.markEphemeral();
-		} catch (Exception ex) {
-			GardenBot.LOG.error("", ex);
+		} catch (Exception e) {
+			GardenBot.LOG.error("", e);
 			return new EmbedResponse()
 					.setTitle("Encountered an exception whilst attempting to decline invite.")
-					.setDescription(ex.getMessage() + "\nPlease report this to a team member.")
+					.setDescription(e.getMessage() + "\nPlease report this to a team member.")
 					.setColor(0xFF0000)
 					.markEphemeral();
 		}

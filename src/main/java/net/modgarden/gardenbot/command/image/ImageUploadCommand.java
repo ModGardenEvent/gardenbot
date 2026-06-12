@@ -7,18 +7,18 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.BunnyCdn;
 import net.modgarden.gardenbot.client.Discord;
+import net.modgarden.gardenbot.client.ModGarden;
 import net.modgarden.gardenbot.client.exception.HypertextException;
-import net.modgarden.gardenbot.client.modgarden.event.GenreAndEvent;
-import net.modgarden.gardenbot.client.modgarden.event.ModGardenEvent;
-import net.modgarden.gardenbot.client.modgarden.event.ModGardenGenre;
-import net.modgarden.gardenbot.client.modgarden.user.ModGardenUser;
+import net.modgarden.gardenbot.client.mod_garden.event.GenreAndEvent;
+import net.modgarden.gardenbot.client.mod_garden.event.ModGardenEvent;
+import net.modgarden.gardenbot.client.mod_garden.event.ModGardenGenre;
+import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.command.SlashCommand;
 import net.modgarden.gardenbot.command.SlashCommandOption;
 import net.modgarden.gardenbot.database.data.NaturalId;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.EmbedResponse;
 import net.modgarden.gardenbot.response.Response;
-import net.modgarden.gardenbot.client.ModGarden;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
@@ -75,11 +75,13 @@ public class ImageUploadCommand extends SlashCommand {
 						.setColor(0x5D3E40);
 			}
 
-			ModGardenUser mgUser = ModGarden.getUserByDiscordId(user);
+			ModGardenUser mgUser = ModGarden.getUserByDiscordUser(user);
 			if (mgUser == null) {
 				return new EmbedResponse()
 						.setTitle("Failed to upload image to Mod Garden's CDN.")
-						.setDescription("You do not have a Mod Garden account. Please create one with **/register**.")
+						.setDescription("""
+								You do not have a Mod Garden account.
+								Please create one with **/account create**.""")
 						.markEphemeral()
 						.setColor(0x5D3E40);
 			}

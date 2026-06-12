@@ -13,13 +13,14 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.modgarden.gardenbot.util.TimeUtil.*;
+import static net.modgarden.gardenbot.util.TimeUtil.DAY_MS;
+import static net.modgarden.gardenbot.util.TimeUtil.WEEK_MS;
 
 public class MessageCacheUtil {
 	public static void cacheMessage(String userId, String messageId, String content) {
 		long removalTimestamp = System.currentTimeMillis() + DAY_MS;
 		try (var connection = GardenBot.createDatabaseConnection();
-			 PreparedStatement statement = connection.prepareStatement("INSERT INTO message_cache (message_id, user_id, content, removal_timestamp) VALUES (?, ?, ?, ?) ON CONFLICT (message_id) DO UPDATE SET content = ?, removal_timestamp = ?")) {
+		     PreparedStatement statement = connection.prepareStatement("INSERT INTO message_cache (message_id, user_id, content, removal_timestamp) VALUES (?, ?, ?, ?) ON CONFLICT (message_id) DO UPDATE SET content = ?, removal_timestamp = ?")) {
 			statement.setString(1, messageId);
 			statement.setString(2, userId);
 			statement.setString(3, content);
@@ -27,19 +28,19 @@ public class MessageCacheUtil {
 			statement.setString(5, content);
 			statement.setLong(6, removalTimestamp);
 			statement.execute();
-		} catch (SQLException ex) {
-			GardenBot.LOG.info("Exception whilst caching message {}.", messageId, ex);
+		} catch (SQLException e) {
+			GardenBot.LOG.info("Exception whilst caching message {}.", messageId, e);
 		}
 	}
 
 	@Nullable
 	public static String getCachedMessage(String messageId) {
 		try (var connection = GardenBot.createDatabaseConnection();
-			 PreparedStatement statement = connection.prepareStatement("SELECT content FROM message_cache WHERE message_id == ?")) {
+		     PreparedStatement statement = connection.prepareStatement("SELECT content FROM message_cache WHERE message_id == ?")) {
 			statement.setString(1, messageId);
 			return statement.executeQuery().getString(1);
-		} catch (SQLException ex) {
-			GardenBot.LOG.info("Exception whilst getting cached message {}.", messageId, ex);
+		} catch (SQLException e) {
+			GardenBot.LOG.info("Exception whilst getting cached message {}.", messageId, e);
 		}
 		return null;
 	}
@@ -47,11 +48,11 @@ public class MessageCacheUtil {
 	@Nullable
 	public static String getAuthorFromMessage(String messageId) {
 		try (var connection = GardenBot.createDatabaseConnection();
-			 PreparedStatement statement = connection.prepareStatement("SELECT user_id FROM message_cache WHERE message_id == ?")) {
+		     PreparedStatement statement = connection.prepareStatement("SELECT user_id FROM message_cache WHERE message_id == ?")) {
 			statement.setString(1, messageId);
 			return statement.executeQuery().getString(1);
-		} catch (SQLException ex) {
-			GardenBot.LOG.info("Exception whilst getting cached message {}'s author.", messageId, ex);
+		} catch (SQLException e) {
+			GardenBot.LOG.info("Exception whilst getting cached message {}'s author.", messageId, e);
 		}
 		return null;
 	}
@@ -158,8 +159,8 @@ public class MessageCacheUtil {
 			} else {
 				GardenBot.LOG.info("Did not remove any messages from cache.");
 			}
-		} catch (SQLException ex) {
-			GardenBot.LOG.info("Exception whilst removing expired messages.", ex);
+		} catch (SQLException e) {
+			GardenBot.LOG.info("Exception whilst removing expired messages.", e);
 		}
 	}
 }

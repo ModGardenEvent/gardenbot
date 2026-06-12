@@ -6,7 +6,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 public abstract class DatabaseFunction extends Function {
-	protected DatabaseFunction() {}
+	protected DatabaseFunction() {
+	}
 
 	protected abstract String getName();
 

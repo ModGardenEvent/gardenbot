@@ -11,7 +11,7 @@ import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.List;
 
 import static net.modgarden.gardenbot.command.team.TeamCommand.getProjectAutoCompleteChoices;
 
@@ -32,14 +32,14 @@ public class TeamLeaveCommand extends SlashCommand {
 	@NotNull
 	@Override
 	public Response respond(SlashCommandInteraction interaction) {
-		return new MessageResponse("Leaving teams not currently implemented.");
+		return new MessageResponse("Leaving teams is not yet implemented.");
 	}
 
 
 	@Override
 	public List<Command.Choice> getAutoCompleteChoices(String focusedOption,
-													   User user,
-													   AutoCompletionGetter autoCompletionGetter) {
+	                                                   User user,
+	                                                   AutoCompletionGetter autoCompletionGetter) {
 		return getProjectAutoCompleteChoices(user);
 	}
 }

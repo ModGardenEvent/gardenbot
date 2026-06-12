@@ -70,6 +70,8 @@ idea {
 				envs = mapOf(
 					"env" to "development"
 				)
+				// sqlite dependency moment
+				jvmArgs = "--enable-native-access=ALL-UNNAMED"
 			}
 		}
 	}

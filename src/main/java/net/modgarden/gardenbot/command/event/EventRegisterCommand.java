@@ -4,15 +4,15 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.modgarden.gardenbot.GardenBot;
+import net.modgarden.gardenbot.client.ModGarden;
 import net.modgarden.gardenbot.client.exception.HypertextException;
-import net.modgarden.gardenbot.client.modgarden.event.ModGardenEvent;
-import net.modgarden.gardenbot.client.modgarden.role.ModGardenRole;
-import net.modgarden.gardenbot.client.modgarden.user.ModGardenUser;
+import net.modgarden.gardenbot.client.mod_garden.event.ModGardenEvent;
+import net.modgarden.gardenbot.client.mod_garden.role.ModGardenRole;
+import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.command.SlashCommand;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
-import net.modgarden.gardenbot.client.ModGarden;
 import org.jetbrains.annotations.NotNull;
 
 import static net.modgarden.gardenbot.util.MiscUtil.aOrAn;
@@ -39,7 +39,7 @@ public class EventRegisterCommand extends SlashCommand {
 						.markEphemeral();
 			}
 
-			ModGardenUser modGardenUser = ModGarden.getUserByDiscordId(user);
+			ModGardenUser modGardenUser = ModGarden.getUserByDiscordUser(user);
 			if (modGardenUser == null) {
 				return new MessageResponse("""
 						You do not have a Mod Garden account.

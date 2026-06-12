@@ -6,14 +6,13 @@ import net.modgarden.gardenbot.client.exception.HypertextException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import static net.modgarden.gardenbot.GardenBot.HTTP_CLIENT;
+
 public class BunnyCdn {
 	public static final String API_URL = "https://ny.storage.bunnycdn.com/mod-garden/";
-
-	private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
 	public static boolean fileExists(String location) throws HypertextException {
 		HttpResponse<Void> response;
