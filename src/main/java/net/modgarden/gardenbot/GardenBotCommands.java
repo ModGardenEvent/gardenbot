@@ -17,7 +17,6 @@ public class GardenBotCommands {
 		register(ImageCommand::new);
 		register(TeamCommand::new);
 		register(SubmissionCommand::new);
-		register(SubmissionUnsubmitCommand::new);
 
 //		SlashCommandDispatcher.register(new SlashCommand("profile", "Actions relating to your visible Mod Garden profile.",
 //				new SlashCommand.SubCommandGroup(
