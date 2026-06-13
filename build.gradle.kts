@@ -68,7 +68,8 @@ idea {
 				moduleName = "${project.idea.module.name}.main"
 				includeProvidedDependencies = true
 				envs = mapOf(
-					"env" to "development"
+					"env" to "development",
+					"GARDENBOT_UPSERT_COMMANDS" to "true"
 				)
 				// sqlite dependency moment
 				jvmArgs = "--enable-native-access=ALL-UNNAMED"
