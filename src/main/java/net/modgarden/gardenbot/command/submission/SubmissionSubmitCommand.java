@@ -140,13 +140,21 @@ public class SubmissionSubmitCommand extends SlashCommand {
 				if (modGardenProject == null) {
 					modGardenProject = ModGarden.createProject(modrinthProject.title());
 					// Save this for clean-up in the case of an exception.
-					projectForCleanup = modGardenProject;
 
 					if (modGardenProject == null) {
 						throw new HypertextException(500, "Failed to create project.");
 					}
+					projectForCleanup = modGardenProject;
 
 					ModGarden.transferProjectOwnership(modGardenProject, modGardenUser);
+
+					// Update the project variable with the latest information.
+					modGardenProject = ModGarden.getProject(modGardenProject.id());
+					projectForCleanup = modGardenProject;
+				}
+
+				if (modGardenProject == null) {
+					throw new HypertextException(500, "Failed to create project.");
 				}
 
 				if (!modGardenProject.team().containsKey(modGardenUser.id())) {
@@ -165,7 +173,7 @@ public class SubmissionSubmitCommand extends SlashCommand {
 			// Clean up!
 			if (projectForCleanup != null && projectForCleanup.submissions().isEmpty()) {
 				try {
-					ModGarden.deleteProject(projectForCleanup);
+					ModGarden.deleteProject(projectForCleanup.id());
 				} catch (HypertextException ex) {
 					GardenBot.LOG.error("", ex);
 					return exceptionResponse(ex);

@@ -182,11 +182,11 @@ public class ModGarden {
 		}
 	}
 
-	public static void deleteProject(ModGardenProject project) throws HypertextException {
+	public static void deleteProject(String projectId) throws HypertextException {
 		HttpResponse<InputStream> response;
 		try {
 			response = delete(
-					"v2/projects/" + project.id(),
+					"v2/projects/" + projectId,
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
