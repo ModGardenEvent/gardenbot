@@ -1,12 +1,16 @@
 package net.modgarden.gardenbot;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -16,6 +20,10 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.modgarden.gardenbot.client.ModGarden;
+import net.modgarden.gardenbot.client.exception.HypertextException;
+import net.modgarden.gardenbot.client.mod_garden.role.ModGardenRole;
+import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.interaction.ModalInteraction;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.interaction.dispatcher.ButtonDispatcher;
@@ -25,6 +33,7 @@ import net.modgarden.gardenbot.util.MessageCacheUtil;
 import net.modgarden.gardenbot.util.TimeUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GardenBotEvents extends ListenerAdapter {
@@ -57,7 +66,6 @@ public class GardenBotEvents extends ListenerAdapter {
 		if (!event.getGuild().getId().equals(GardenBot.DOTENV.get("GUILD_ID")))
 			return;
 
-
 		SlashCommandDispatcher.addCommands(event.getGuild());
 		MessageCacheUtil.removeExpiredMessagesEachHour(event.getGuild());
 	}
@@ -69,6 +77,42 @@ public class GardenBotEvents extends ListenerAdapter {
 
 	@Override
 	public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
+		dataFixRoles(event.getGuild(), event.getMember());
+		logMemberJoin(event);
+	}
+
+	private static void dataFixRoles(Guild guild, Member member) {
+		if (!guild.getId().equals(GardenBot.DOTENV.get("GUILD_ID")))
+			return;
+
+		try {
+			ModGardenUser modGardenUser = ModGarden.getUserByDiscordUser(member.getUser());
+
+			if (modGardenUser == null)
+				return;
+
+			List<Role> discordRoles = new ArrayList<>();
+			for (String modGardenRoleId : modGardenUser.roles()) {
+				ModGardenRole modGardenRole = ModGarden.getRole(modGardenRoleId);
+
+				if (modGardenRole == null || modGardenRole.integrations().discord() == null)
+					continue;
+
+				Role discordRole = guild.getRoleById(modGardenRole.integrations().discord().roleId());
+
+				if (discordRole == null)
+					continue;
+
+				discordRoles.add(discordRole);
+			}
+
+			guild.modifyMemberRoles(member, discordRoles.toArray(Role[]::new)).queue();
+		} catch (HypertextException e) {
+			GardenBot.LOG.error("", e);
+		}
+	}
+
+	private static void logMemberJoin(GuildMemberJoinEvent event) {
 		if (GardenBot.DOTENV.get("JOIN_LOGS_CHANNEL_ID") == null || !event.getGuild().getId().equals(GardenBot.DOTENV.get("GUILD_ID")))
 			return;
 
@@ -211,5 +255,39 @@ public class GardenBotEvents extends ListenerAdapter {
 			builder.setAuthor("Message Deleted!");
 
 		channel.sendMessageEmbeds(builder.build()).setAllowedMentions(List.of()).queue();
+	}
+
+	@Override
+	public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent event) {
+		if (!event.getGuild().getId().equals(GardenBot.DOTENV.get("GUILD_ID")))
+			return;
+
+		for (Role role : event.getRoles()) {
+			try {
+				ModGardenRole modGardenRole = ModGarden.getRoleFromDiscordRoleId(role.getId());
+				if (modGardenRole == null)
+					continue;
+				ModGarden.addUserRole(ModGarden.getUserByDiscordUser(event.getUser()), modGardenRole);
+			} catch (HypertextException e) {
+				GardenBot.LOG.error("", e);
+			}
+		}
+	}
+
+	@Override
+	public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent event) {
+		if (!event.getGuild().getId().equals(GardenBot.DOTENV.get("GUILD_ID")))
+			return;
+
+		for (Role role : event.getRoles()) {
+			try {
+				ModGardenRole modGardenRole = ModGarden.getRoleFromDiscordRoleId(role.getId());
+				if (modGardenRole == null)
+					continue;
+				ModGarden.removeUserRole(ModGarden.getUserByDiscordUser(event.getUser()), modGardenRole);
+			} catch (HypertextException e) {
+				GardenBot.LOG.error("", e);
+			}
+		}
 	}
 }
