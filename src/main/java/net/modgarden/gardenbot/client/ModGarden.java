@@ -343,13 +343,6 @@ public class ModGarden {
 		return submissions;
 	}
 
-	public static GenreAndEvent getRegistrableEvent() throws HypertextException {
-		return getEventWithinTimeframe(
-				EventTimes::registrationOpen,
-				EventTimes::registrationClose
-		);
-	}
-
 	public static GenreAndEvent getDevelopmentTimeEvent() throws HypertextException {
 		return getEventWithinTimeframe(
 				EventTimes::registrationOpen,
