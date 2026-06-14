@@ -87,7 +87,7 @@ public class SubmissionSubmitCommand extends SlashCommand {
 			ModGardenUser modGardenUser = ModGarden.getUserByDiscordUser(user);
 
 			if (modGardenGenreAndEvent == null) {
-				return new MessageResponse("No Mod Garden event is currently open for new submissions.");
+				return new MessageResponse("No Mod Garden event is currently open for submissions.");
 			}
 
 			ModGardenEvent modGardenEvent = modGardenGenreAndEvent.event();
@@ -166,7 +166,7 @@ public class SubmissionSubmitCommand extends SlashCommand {
 					throw new HypertextException(500, "Failed to create submission.");
 				}
 
-				return new MessageResponse("Successfully submitted your Modrinth project '" + modrinthProject.title() + "' to " + modGardenEvent.metadata().name() + "!");
+				return new MessageResponse("Successfully submitted '" + modrinthProject.title() + "' to " + modGardenEvent.metadata().name() + "!");
 			}
 		} catch (Exception e) {
 			// If a project was created and does not have data...

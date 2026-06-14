@@ -8,7 +8,8 @@ public class SubmissionCommand extends GroupSlashCommand<SlashCommand> {
 		super(
 				"submission",
 				"Commands relating to submissions to the current Mod Garden event.",
-				SubmissionSubmitCommand::new
+				SubmissionSubmitCommand::new,
+				SubmissionUnsubmitCommand::new
 		);
 	}
 }

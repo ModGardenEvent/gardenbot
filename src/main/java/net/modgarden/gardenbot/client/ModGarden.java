@@ -275,11 +275,11 @@ public class ModGarden {
 		}
 	}
 
-	public static void deleteSubmission(ModGardenSubmission submission) throws HypertextException {
+	public static void deleteSubmission(String submissionId) throws HypertextException {
 		HttpResponse<InputStream> response;
 		try {
 			response = delete(
-					"v2/submissions/" + submission.id(),
+					"v2/submissions/" + submissionId,
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
