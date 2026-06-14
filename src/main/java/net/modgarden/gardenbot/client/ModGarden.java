@@ -75,37 +75,58 @@ public class ModGarden {
 		throw hypertextException(response);
 	}
 
-	public static ModGardenUser createUser(String username) throws HypertextException {
-		String body = GardenBot.GSON.toJson(new CreateUserRequestBody(username), CreateUserRequestBody.class);
-
-		try {
-			HttpResponse<Void> response = post(
-					"/internal/user/create",
-					HttpRequest.BodyPublishers.ofString(body),
-					HttpResponse.BodyHandlers.discarding()
-			);
-			String location = response.headers().firstValue("Location").orElseThrow();
-			return getUserByModGardenId(location.substring("/v2/users/".length()));
-		} catch (IOException | InterruptedException | NoSuchElementException e) {
-			throw new HypertextException(500, e.getMessage());
-		}
-	}
-
 	@Nullable
-	public static ModGardenRole getParticipantRole(ModGardenEvent event) throws HypertextException {
-		String participantRoleId = event.roles().participant();
-
+	public static ModGardenUser getUserByModGardenId(String id) throws HypertextException {
 		HttpResponse<InputStream> response;
 		try {
 			response = get(
-					"v2/roles/" + participantRoleId,
+					"v2/users/" + id + "?by=id",
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
 			throw new HypertextException(500, e.getMessage());
 		}
 
-		if (response.statusCode() != 200) {
+		if (response.statusCode() == 200) {
+			return GardenBot.GSON.fromJson(new InputStreamReader(response.body()), ModGardenUser.class);
+		}
+
+		if (response.statusCode() == 404) {
+			return null;
+		}
+
+		throw hypertextException(response);
+	}
+
+	public static ModGardenUser createUser(String username) throws HypertextException {
+		String body = GardenBot.GSON.toJson(new CreateUserRequestBody(username), CreateUserRequestBody.class);
+
+		try {
+			HttpResponse<Void> response = post(
+					"internal/user/create",
+					HttpRequest.BodyPublishers.ofString(body),
+					HttpResponse.BodyHandlers.discarding()
+			);
+			String location = response.headers().firstValue("Location").orElseThrow();
+			return getUserByModGardenId(location.substring("/v2/users/".length()));
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+	}
+
+	@Nullable
+	public static ModGardenRole getRole(String roleId) throws HypertextException {
+		HttpResponse<InputStream> response;
+		try {
+			response = get(
+					"v2/roles/" + roleId,
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+
+		if (response.statusCode() == 200) {
 			return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), ModGardenRole.class);
 		}
 
@@ -116,8 +137,32 @@ public class ModGarden {
 		throw hypertextException(response);
 	}
 
+	@Nullable
+	public static ModGardenRole getRoleFromDiscordRoleId(String discordRoleId) throws HypertextException {
+		HttpResponse<InputStream> response;
+		try {
+			response = get(
+					"v2/roles/" + discordRoleId + "?by=integration_discord",
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+
+		if (response.statusCode() == 200) {
+			return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), ModGardenRole.class);
+		}
+
+		if (response.statusCode() == 404) {
+			return null;
+		}
+
+		throw hypertextException(response);
+	}
+
+	@Nullable
 	public static ModGardenProject createProject(String name) throws HypertextException {
-		String body = GardenBot.GSON.toJson(new CreateProjectRequestBody(new ProjectMetadata(name)), CreateUserRequestBody.class);
+		String body = GardenBot.GSON.toJson(new CreateProjectRequestBody(new ProjectMetadata(null, name)), CreateProjectRequestBody.class);
 
 		HttpResponse<InputStream> response;
 
@@ -127,8 +172,11 @@ public class ModGarden {
 					HttpRequest.BodyPublishers.ofString(body),
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
-			String location = response.headers().firstValue("Location").orElseThrow();
-			return getProject(location.substring("/v2/projects/".length()));
+			if (response.statusCode() == 201) {
+				String location = response.headers().firstValue("Location").orElseThrow();
+				return getProject(location.substring("/v2/projects/".length()));
+			}
+			throw hypertextException(response);
 		} catch (IOException | InterruptedException e) {
 			throw new HypertextException(500, e.getMessage());
 		}
@@ -137,7 +185,7 @@ public class ModGarden {
 	public static void deleteProject(ModGardenProject project) throws HypertextException {
 		HttpResponse<InputStream> response;
 		try {
-			response = get(
+			response = delete(
 					"v2/projects/" + project.id(),
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
@@ -152,10 +200,11 @@ public class ModGarden {
 		throw hypertextException(response);
 	}
 
+	@Nullable
 	public static ModGardenProject getProject(String projectId) throws HypertextException {
 		HttpResponse<InputStream> response;
 		try {
-			response = delete(
+			response = get(
 					"v2/projects/" + projectId,
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
@@ -167,28 +216,60 @@ public class ModGarden {
 			return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), ModGardenProject.class);
 		}
 
-		return null;
+		if (response.statusCode() == 404) {
+			return null;
+		}
+
+		throw hypertextException(response);
 	}
 
-	public static void createModrinthSubmission(ModGardenProject modGardenProject,
-	                                            ModGardenEvent event,
-	                                            ModrinthProject modrinthProject,
-	                                            ModrinthVersion modrinthVersion) throws HypertextException {
+	@Nullable
+	public static ModGardenProject getProjectFromModId(String modId) throws HypertextException {
+		HttpResponse<InputStream> response;
+		try {
+			response = get(
+					"v2/projects/" + modId + "?by=mod_id",
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+
+		if (response.statusCode() == 200) {
+			return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), ModGardenProject.class);
+		}
+
+		if (response.statusCode() == 404) {
+			return null;
+		}
+
+		throw hypertextException(response);
+	}
+
+	public static ModGardenSubmission createModrinthSubmission(ModGardenProject modGardenProject,
+															   ModGardenEvent event,
+															   ModrinthProject modrinthProject,
+															   ModrinthVersion modrinthVersion) throws HypertextException {
 		String body = GardenBot.GSON.toJson(
 				new CreateModrinthSubmissionRequestBody(
 						modGardenProject.id(),
 						event.id(),
 						new ModrinthSubmissionPlatform(modrinthProject.id(), modrinthVersion.id())
 				),
-				ModrinthSubmissionPlatform.class
+				CreateModrinthSubmissionRequestBody.class
 		);
 
 		try {
-			post(
+			HttpResponse<InputStream> response = post(
 					"v2/submissions",
 					HttpRequest.BodyPublishers.ofString(body),
-					HttpResponse.BodyHandlers.discarding()
+					HttpResponse.BodyHandlers.ofInputStream()
 			);
+			if (response.statusCode() == 201) {
+				String location = response.headers().firstValue("Location").orElseThrow();
+				return getSubmission(location.substring("/v2/submissions/".length()));
+			}
+			throw hypertextException(response);
 		} catch (IOException | InterruptedException e) {
 			throw new HypertextException(500, e.getMessage());
 		}
@@ -228,7 +309,11 @@ public class ModGarden {
 			return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), ModGardenSubmission.class);
 		}
 
-		return null;
+		if (response.statusCode() == 404) {
+			return null;
+		}
+
+		throw hypertextException(response);
 	}
 
 	public static List<ModGardenSubmission> getSubmissions(String genreSlug, String eventSlug) throws HypertextException {
@@ -280,29 +365,38 @@ public class ModGarden {
 	}
 
 	public static void transferProjectOwnership(ModGardenProject project, ModGardenUser user) throws HypertextException {
-		JsonObject teamJson = new JsonObject();
-
+		JsonObject bodyJson = new JsonObject();
 
 		try {
-			JsonObject addUserJson = new JsonObject();
-			addUserJson.addProperty(user.id(), "Member");
-			teamJson.add("team", addUserJson);
+			JsonObject teamJson = new JsonObject();
+			JsonObject permissionsJson = new JsonObject();
 
-			patch(
+			teamJson.addProperty(user.id(), "Member");
+			bodyJson.add("team", teamJson);
+			permissionsJson.addProperty(user.id(), "1");
+			bodyJson.add("permissions", permissionsJson);
+
+			HttpResponse<InputStream> addUserResponse = patch(
 					"v2/projects/" + project.id(),
-					HttpRequest.BodyPublishers.ofString(teamJson.toString()),
-					HttpResponse.BodyHandlers.discarding()
+					HttpRequest.BodyPublishers.ofString(bodyJson.toString()),
+					HttpResponse.BodyHandlers.ofInputStream()
 			);
+			if (addUserResponse.statusCode() != 200) {
+				throw hypertextException(addUserResponse);
+			}
 
-			JsonObject removeGardenBotJson = new JsonObject();
-			addUserJson.add("grbot", JsonNull.INSTANCE);
-			teamJson.add("team", removeGardenBotJson);
+			teamJson.remove(user.id());
+			teamJson.add("grbot", JsonNull.INSTANCE);
+			bodyJson.add("team", teamJson);
 
-			patch(
+			HttpResponse<InputStream> removeGardenBotResponse = patch(
 					"v2/projects/" + project.id(),
-					HttpRequest.BodyPublishers.ofString(teamJson.toString()),
-					HttpResponse.BodyHandlers.discarding()
+					HttpRequest.BodyPublishers.ofString(bodyJson.toString()),
+					HttpResponse.BodyHandlers.ofInputStream()
 			);
+			if (addUserResponse.statusCode() != 200) {
+				throw hypertextException(removeGardenBotResponse);
+			}
 		} catch (IOException | InterruptedException e) {
 			throw new HypertextException(500, e.getMessage());
 		}
@@ -347,29 +441,6 @@ public class ModGarden {
 
 	public static void removeUserRole(ModGardenUser user, ModGardenRole role) throws HypertextException {
 		modifyUser(user, new ModifyUserRequestBody(null, null, null, List.of("!" + role.id())));
-	}
-
-	@Nullable
-	private static ModGardenUser getUserByModGardenId(String id) throws HypertextException {
-		HttpResponse<InputStream> response;
-		try {
-			response = get(
-					"v2/users/" + id + "?by=id",
-					HttpResponse.BodyHandlers.ofInputStream()
-			);
-		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
-		}
-
-		if (response.statusCode() == 200) {
-			return GardenBot.GSON.fromJson(new InputStreamReader(response.body()), ModGardenUser.class);
-		}
-
-		if (response.statusCode() == 404) {
-			return null;
-		}
-
-		throw hypertextException(response);
 	}
 
 	@Nullable
@@ -444,7 +515,7 @@ public class ModGarden {
 	}
 
 	private static HypertextException hypertextException(HttpResponse<InputStream> response) {
-		return new HypertextException(response.statusCode(), GardenBot.GSON.fromJson(new InputStreamReader(response.body()), ExceptionPage.class).description);
+		return new HypertextException(response.statusCode(), GardenBot.GSON.fromJson(new InputStreamReader(response.body()), ExceptionPage.class).description());
 	}
 
 	private static <T> HttpResponse<T> get(String endpoint, HttpResponse.BodyHandler<T> bodyHandler, String... headers) throws IOException, InterruptedException {

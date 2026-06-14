@@ -77,7 +77,7 @@ public class TeamCommand extends GroupSlashCommand<SlashCommand> {
 				.map(s -> {
 					try {
 						return ModGarden.getProject(s);
-					} catch (HypertextException e) {
+					} catch (Exception e) {
 						GardenBot.LOG.error("Failed to get project from ID '{}'.", s);
 						return null;
 					}

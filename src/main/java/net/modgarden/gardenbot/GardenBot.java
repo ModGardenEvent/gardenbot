@@ -24,6 +24,10 @@ public class GardenBot {
 	public static final Dotenv DOTENV = Dotenv.load();
 	public static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
+	// *Please* don't touch this. In fact, don't use Regex without using https://regex101.com
+	// and manually testing your change.
+	public static final String SAFE_URL_REGEX = "^[a-zA-Z0-9!@$()`.+,_\"-]*$";
+
 	private static final int DATABASE_SCHEMA_VERSION = 1;
 
 	public static JDA jda;
@@ -33,8 +37,8 @@ public class GardenBot {
 			((ch.qos.logback.classic.Logger) LOG).setLevel(Level.DEBUG);
 
 		jda = JDABuilder.create(
-						GatewayIntent.GUILD_MEMBERS,
 						GatewayIntent.DIRECT_MESSAGES,
+						GatewayIntent.GUILD_MEMBERS,
 						GatewayIntent.GUILD_MESSAGES,
 						GatewayIntent.MESSAGE_CONTENT
 				)

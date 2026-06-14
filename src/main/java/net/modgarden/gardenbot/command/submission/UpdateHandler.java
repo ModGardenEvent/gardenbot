@@ -1,4 +1,4 @@
-package net.modgarden.gardenbot.command.event;
+package net.modgarden.gardenbot.command.submission;
 
 // TODO: Rewrite for Backend V2.
 public class UpdateHandler {

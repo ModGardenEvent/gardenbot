@@ -8,8 +8,10 @@ import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.ModGarden;
 import net.modgarden.gardenbot.client.Modrinth;
 import net.modgarden.gardenbot.client.exception.HypertextException;
+import net.modgarden.gardenbot.client.mod_garden.event.GenreAndEvent;
 import net.modgarden.gardenbot.client.mod_garden.event.ModGardenEvent;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
+import net.modgarden.gardenbot.client.mod_garden.project.ModGardenSubmission;
 import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.client.mod_garden.user.integration.ModrinthUserIntegration;
 import net.modgarden.gardenbot.client.modrinth.ModrinthProject;
@@ -72,13 +74,23 @@ public class SubmissionSubmitCommand extends SlashCommand {
 		User user = interaction.event().getUser();
 
 		String platform = interaction.event().getOption("platform", OptionMapping::getAsString);
-		String urlOrProject = interaction.event().getOption("url_or_external_project", OptionMapping::getAsString);
+		String urlOrProject = interaction.event().getOption("url-or-external-project", OptionMapping::getAsString);
+
+		assert platform != null;
+		assert urlOrProject != null;
 
 		// This one's up here to allow for cleaning up later.
-		ModGardenProject modGardenProject = null;
+		ModGardenProject projectForCleanup = null;
 
 		try {
+			GenreAndEvent modGardenGenreAndEvent = ModGarden.getDevelopmentTimeEvent();
 			ModGardenUser modGardenUser = ModGarden.getUserByDiscordUser(user);
+
+			if (modGardenGenreAndEvent == null) {
+				return new MessageResponse("No Mod Garden event is currently open for new submissions.");
+			}
+
+			ModGardenEvent modGardenEvent = modGardenGenreAndEvent.event();
 
 			if (modGardenUser == null) {
 				return new MessageResponse("""
@@ -91,10 +103,10 @@ public class SubmissionSubmitCommand extends SlashCommand {
 			}
 
 			if ("modrinth".equalsIgnoreCase(platform)) {
-				ModGardenEvent modGardenEvent = ModGarden.getDevelopmentTimeEvent().event();
-
 				// TODO: Modrinth project owner validation... After account linking is updated...
-				ModrinthProject modrinthProject = Modrinth.getProject(urlOrProject);
+				ModrinthProject modrinthProject = urlOrProject.matches(GardenBot.SAFE_URL_REGEX)
+						? Modrinth.getProject(urlOrProject)
+						: null;
 
 				if (modrinthProject == null) {
 					// Find project using the project's name just so copy-pasting doesn't error...
@@ -114,28 +126,49 @@ public class SubmissionSubmitCommand extends SlashCommand {
 					);
 				}
 
-				modGardenProject = ModGarden.createProject(modrinthProject.title());
+				String modId = Modrinth.getModIdFromVersion(modrinthVersion);
+
+				for (ModGardenSubmission submission : ModGarden.getSubmissions(modGardenGenreAndEvent.genre().slug(), modGardenGenreAndEvent.event().slug())) {
+					if (modId.equals(submission.project().metadata().modId())) {
+						return new MessageResponse("Mod with ID '" + modId + "' has already been submitted to event '" + modGardenEvent.metadata().name() + "'."
+								+ "\nPlease use **/submission update** to update your submission.");
+					}
+				}
+
+				// See if the project exists already and use that if possible...
+				ModGardenProject modGardenProject = ModGarden.getProjectFromModId(modId);
+				if (modGardenProject == null) {
+					modGardenProject = ModGarden.createProject(modrinthProject.title());
+					// Save this for clean-up in the case of an exception.
+					projectForCleanup = modGardenProject;
+
+					if (modGardenProject == null) {
+						throw new HypertextException(500, "Failed to create project.");
+					}
+				}
+
+				ModGardenSubmission submission = ModGarden.createModrinthSubmission(modGardenProject, modGardenEvent, modrinthProject, modrinthVersion);
+				if (submission == null) {
+					throw new HypertextException(500, "Failed to create submission.");
+				}
 
 				ModGarden.transferProjectOwnership(modGardenProject, modGardenUser);
 
-				ModGarden.createModrinthSubmission(modGardenProject, modGardenEvent, modrinthProject, modrinthVersion);
-
 				return new MessageResponse("Successfully submitted your Modrinth project '" + modrinthProject.title() + "' to " + modGardenEvent.metadata().name() + "!");
 			}
-		} catch (HypertextException e) {
+		} catch (Exception e) {
 			// If a project was created and does not have data...
 			// Clean up!
-			if (modGardenProject != null && modGardenProject.submissions().isEmpty()) {
+			if (projectForCleanup != null && projectForCleanup.submissions().isEmpty()) {
 				try {
-					ModGarden.deleteProject(modGardenProject);
+					ModGarden.deleteProject(projectForCleanup);
 				} catch (HypertextException ex) {
 					GardenBot.LOG.error("", ex);
 					return exceptionResponse(ex);
 				}
 			}
-
 			GardenBot.LOG.error("", e);
-			return exceptionResponse(e);
+			return exceptionResponse(e.getMessage());
 		}
 		return new MessageResponse("Invalid platform for Mod Garden '" + platform + "'.");
 	}
@@ -201,7 +234,7 @@ public class SubmissionSubmitCommand extends SlashCommand {
 
 			ModGardenEvent event = ModGarden.getDevelopmentTimeEvent().event();
 
-			if (!"minecraft".equals(event.platform().game())) {
+			if (event == null || !"minecraft".equals(event.platform().game())) {
 				return Collections.emptyList();
 			}
 
@@ -211,7 +244,7 @@ public class SubmissionSubmitCommand extends SlashCommand {
 					.sorted(SubmissionSubmitCommand::sortModrinthVersions)
 					.map(modrinthProject -> new Command.Choice(modrinthProject.title(), modrinthProject.slug()))
 					.toList();
-		} catch (HypertextException e) {
+		} catch (Exception e) {
 			GardenBot.LOG.error("", e);
 			return Collections.emptyList();
 		}
@@ -229,7 +262,7 @@ public class SubmissionSubmitCommand extends SlashCommand {
 					return true;
 				}
 			}
-		} catch (HypertextException e) {
+		} catch (Exception e) {
 			GardenBot.LOG.error("", e);
 		}
 		return false;

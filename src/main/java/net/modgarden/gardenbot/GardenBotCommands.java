@@ -1,10 +1,8 @@
 package net.modgarden.gardenbot;
 
 import net.modgarden.gardenbot.command.account.AccountCommand;
-import net.modgarden.gardenbot.command.event.EventCommand;
-import net.modgarden.gardenbot.command.image.ImageCommand;
 import net.modgarden.gardenbot.command.submission.SubmissionCommand;
-import net.modgarden.gardenbot.command.submission.SubmissionUnsubmitCommand;
+import net.modgarden.gardenbot.command.image.ImageCommand;
 import net.modgarden.gardenbot.command.team.TeamCommand;
 
 import static net.modgarden.gardenbot.interaction.dispatcher.SlashCommandDispatcher.register;
@@ -13,10 +11,9 @@ public class GardenBotCommands {
 
 	public static void registerAll() {
 		register(AccountCommand::new);
-		register(EventCommand::new);
 		register(ImageCommand::new);
-		register(TeamCommand::new);
 		register(SubmissionCommand::new);
+		register(TeamCommand::new);
 
 //		SlashCommandDispatcher.register(new SlashCommand("profile", "Actions relating to your visible Mod Garden profile.",
 //				new SlashCommand.SubCommandGroup(
@@ -51,27 +48,5 @@ public class GardenBotCommands {
 //						)
 //				)
 //		));
-//
-//
-//		SlashCommandDispatcher.register(new SlashCommand("event",
-//				new SlashCommand.SubCommand(
-//						"register",
-//						"",
-//						EventRegisterCommand::handleEventRegister
-//				),
-//				new SlashCommand.SubCommand(
-//						"unregister",
-//						"Unregisters you from a current Mod Garden event.",
-//						EventUnregisterCommand::handleEventUnregister
-//				),
-//				new SlashCommand.SubCommand(
-//						"update",
-//						"Updates your project to the latest release, or a specific release in the database.",
-//						UpdateHandler::handleUpdate,
-//						UpdateHandler::getChoices,
-//						new SlashCommandOption(OptionType.STRING, "source", "The source of your project.", true, true),
-//						new SlashCommandOption(OptionType.STRING, "project", "The project to update.", true, true),
-//						new SlashCommandOption(OptionType.STRING, "version", "The version of the project to update to.", false, true)
-//				));
 	}
 }
