@@ -4,7 +4,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.GardenBotModals;
 import net.modgarden.gardenbot.client.ModGarden;
-import net.modgarden.gardenbot.client.exception.HypertextException;
 import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.command.SlashCommand;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
@@ -32,9 +31,9 @@ public class AccountCreateCommand extends SlashCommand {
 				return new MessageResponse("You already have an account with Mod Garden.")
 						.markEphemeral();
 			}
-		} catch (HypertextException e) {
+		} catch (Exception e) {
 			GardenBot.LOG.error("Exception whilst attempting to create account. ", e);
-			return exceptionResponse(e.getStatus() + ": " + e.getMessage());
+			return exceptionResponse(e.getMessage());
 		}
 		return new ModalResponse(GardenBotModals.REGISTER);
 	}

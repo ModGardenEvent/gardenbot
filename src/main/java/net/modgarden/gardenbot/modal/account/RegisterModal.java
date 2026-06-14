@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.ModGarden;
-import net.modgarden.gardenbot.client.exception.HypertextException;
 import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.client.mod_garden.user.UserBio;
 import net.modgarden.gardenbot.client.mod_garden.user.UserIntegrations;
@@ -21,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 public class RegisterModal extends Modal {
 	public RegisterModal() {
 		super(
-				"modalRegister",
+				"modal-register",
 				"Register your Mod Garden account!",
 				ActionRow.of(
 						TextInput.create("username",
@@ -49,18 +48,20 @@ public class RegisterModal extends Modal {
 	@NotNull
 	@Override
 	public Response respond(ModalInteraction interaction) {
+		interaction.event().deferReply(true).queue();
+
 		User discordUser = interaction.event().getUser();
-		ModalMapping modalUsername = interaction.event().getValue("username");
-		String username = modalUsername != null
-				? modalUsername.getAsString()
+		ModalMapping modalMappingUsername = interaction.event().getValue("username");
+		String username = modalMappingUsername != null && !modalMappingUsername.getAsString().isBlank()
+				? modalMappingUsername.getAsString()
 				: interaction.event().getUser().getName();
 
 		try {
 			ModGardenUser mgUser = ModGarden.createUser(username);
 
-			ModalMapping modalDisplayName = interaction.event().getValue("display-name");
-			String displayName = modalDisplayName != null
-					? modalDisplayName.getAsString()
+			ModalMapping modalMappingDisplayName = interaction.event().getValue("display-name");
+			String displayName = modalMappingDisplayName != null && !modalMappingDisplayName.getAsString().isBlank()
+					? modalMappingDisplayName.getAsString()
 					: interaction.event().getUser().getEffectiveName();
 
 			ModGarden.modifyUserBio(mgUser,
@@ -87,10 +88,10 @@ public class RegisterModal extends Modal {
 					.setTitle("Your Mod Garden account has successfully been created!")
 					.setColor(0xA9FFA7)
 					.markEphemeral();
-		} catch (HypertextException e) {
+		} catch (Exception e) {
 			GardenBot.LOG.error("", e);
 			return new EmbedResponse()
-					.setTitle("Encountered an exception whilst attempting to register your Mod Garden account.")
+					.setTitle("Encountered an exception!")
 					.setDescription(e.getMessage() + "\nPlease report this to a team member.")
 					.setColor(0xFF0000)
 					.markEphemeral();
