@@ -145,14 +145,18 @@ public class SubmissionSubmitCommand extends SlashCommand {
 					if (modGardenProject == null) {
 						throw new HypertextException(500, "Failed to create project.");
 					}
+
+					ModGarden.transferProjectOwnership(modGardenProject, modGardenUser);
+				}
+
+				if (!modGardenProject.team().containsKey(modGardenUser.id())) {
+					return new MessageResponse("You do not have permissions to create submissions for the specified project.");
 				}
 
 				ModGardenSubmission submission = ModGarden.createModrinthSubmission(modGardenProject, modGardenEvent, modrinthProject, modrinthVersion);
 				if (submission == null) {
 					throw new HypertextException(500, "Failed to create submission.");
 				}
-
-				ModGarden.transferProjectOwnership(modGardenProject, modGardenUser);
 
 				return new MessageResponse("Successfully submitted your Modrinth project '" + modrinthProject.title() + "' to " + modGardenEvent.metadata().name() + "!");
 			}
