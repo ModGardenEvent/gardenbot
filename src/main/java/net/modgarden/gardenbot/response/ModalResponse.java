@@ -7,14 +7,17 @@ import net.dv8tion.jda.api.requests.RestAction;
 import net.modgarden.gardenbot.modal.Modal;
 
 public class ModalResponse implements Response {
+	private final Response reply;
 	private final Modal modal;
 
-	public ModalResponse(Modal modal) {
+	public ModalResponse(Response reply, Modal modal) {
+		this.reply = reply;
 		this.modal = modal;
 	}
 
 	@Override
 	public RestAction<?> replyToSlashCommand(SlashCommandInteractionEvent event) {
+		reply.reply(event).queue();
 		return event.replyModal(modal.getModal());
 	}
 

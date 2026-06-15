@@ -22,6 +22,7 @@ public class AccountCreateCommand extends SlashCommand {
 
 	@NotNull
 	public Response respond(SlashCommandInteraction interaction) {
+		interaction.event().deferReply(true).queue();
 		User user = interaction.event().getUser();
 
 		try {
@@ -35,6 +36,9 @@ public class AccountCreateCommand extends SlashCommand {
 			GardenBot.LOG.error("Exception whilst attempting to create account. ", e);
 			return exceptionResponse(e.getMessage());
 		}
-		return new ModalResponse(GardenBotModals.REGISTER);
+		return new ModalResponse(
+				new MessageResponse("Fill out the prompts to create your account..."),
+				GardenBotModals.REGISTER
+		);
 	}
 }

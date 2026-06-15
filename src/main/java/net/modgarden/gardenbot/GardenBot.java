@@ -2,11 +2,13 @@ package net.modgarden.gardenbot;
 
 import ch.qos.logback.classic.Level;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.github.cdimascio.dotenv.Dotenv;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import net.modgarden.gardenbot.util.NullableWrapper;
 import net.modgarden.gardenbot.util.TeamInviteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +21,9 @@ import java.sql.*;
 public class GardenBot {
 	public static final Logger LOG = LoggerFactory.getLogger("GardenBot");
 	public static final String VERSION = "2.0.0"; // TODO: Automatically update this from gradle.properties.
-	public static final Gson GSON = new Gson();
+	public static final Gson GSON = new GsonBuilder()
+			.registerTypeAdapter(NullableWrapper.class, new NullableWrapper.Serializer())
+			.create();
 
 	public static final Dotenv DOTENV = Dotenv.load();
 	public static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();

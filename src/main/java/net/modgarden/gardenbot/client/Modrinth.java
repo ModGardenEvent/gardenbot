@@ -139,7 +139,11 @@ public class Modrinth {
 			throw new HypertextException(500, e.getMessage());
 		}
 
-		return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), ModrinthVersion.class);
+		if (response.statusCode() == 200) {
+			return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), ModrinthVersion.class);
+		}
+
+		return null;
 	}
 
 	public static String getModIdFromVersion(ModrinthVersion version) throws HypertextException {

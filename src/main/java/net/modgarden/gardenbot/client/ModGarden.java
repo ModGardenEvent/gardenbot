@@ -13,18 +13,13 @@ import net.modgarden.gardenbot.client.mod_garden.event.ModGardenEvent;
 import net.modgarden.gardenbot.client.mod_garden.event.ModGardenGenre;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenSubmission;
-import net.modgarden.gardenbot.client.mod_garden.project.ModrinthSubmissionPlatform;
+import net.modgarden.gardenbot.client.mod_garden.project.SubmissionPlatform;
 import net.modgarden.gardenbot.client.mod_garden.project.ProjectMetadata;
-import net.modgarden.gardenbot.client.mod_garden.request.CreateModrinthSubmissionRequestBody;
-import net.modgarden.gardenbot.client.mod_garden.request.CreateProjectRequestBody;
-import net.modgarden.gardenbot.client.mod_garden.request.CreateUserRequestBody;
-import net.modgarden.gardenbot.client.mod_garden.request.ModifyUserRequestBody;
+import net.modgarden.gardenbot.client.mod_garden.request.*;
 import net.modgarden.gardenbot.client.mod_garden.role.ModGardenRole;
 import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.client.mod_garden.user.UserBio;
 import net.modgarden.gardenbot.client.mod_garden.user.UserIntegrations;
-import net.modgarden.gardenbot.client.modrinth.ModrinthProject;
-import net.modgarden.gardenbot.client.modrinth.ModrinthVersion;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -40,6 +35,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static net.modgarden.gardenbot.GardenBot.HTTP_CLIENT;
+import static net.modgarden.gardenbot.client.exception.HypertextException.hypertextException;
 
 public class ModGarden {
 	public static final String API_URL = "development".equals(System.getenv("env"))
@@ -246,17 +242,17 @@ public class ModGarden {
 		throw hypertextException(response);
 	}
 
-	public static ModGardenSubmission createModrinthSubmission(ModGardenProject modGardenProject,
-															   ModGardenEvent event,
-															   ModrinthProject modrinthProject,
-															   ModrinthVersion modrinthVersion) throws HypertextException {
+	public static ModGardenSubmission createSubmissionModrinth(String modGardenProjectId,
+	                                                           String modGardenEventId,
+	                                                           String modrinthProjectId,
+	                                                           String modrinthVersionId) throws HypertextException {
 		String body = GardenBot.GSON.toJson(
-				new CreateModrinthSubmissionRequestBody(
-						modGardenProject.id(),
-						event.id(),
-						new ModrinthSubmissionPlatform(modrinthProject.id(), modrinthVersion.id())
+				new CreateSubmissionModrinthRequestBody(
+						modGardenProjectId,
+						modGardenEventId,
+						SubmissionPlatform.modrinth(modrinthProjectId, modrinthVersionId)
 				),
-				CreateModrinthSubmissionRequestBody.class
+				CreateSubmissionModrinthRequestBody.class
 		);
 
 		try {
@@ -268,6 +264,31 @@ public class ModGarden {
 			if (response.statusCode() == 201) {
 				String location = response.headers().firstValue("Location").orElseThrow();
 				return getSubmission(location.substring("/v2/submissions/".length()));
+			}
+			throw hypertextException(response);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+	}
+
+	public static void updateSubmissionModrinth(String submissionId,
+												String modrinthProjectId,
+												String modrinthVersionId) throws HypertextException {
+		String body = GardenBot.GSON.toJson(
+				new ModifySubmissionModrinthRequestBody(
+						SubmissionPlatform.modrinth(modrinthProjectId, modrinthVersionId)
+				),
+				ModifySubmissionModrinthRequestBody.class
+		);
+
+		try {
+			HttpResponse<InputStream> response = patch(
+					"v2/submissions/" + submissionId,
+					HttpRequest.BodyPublishers.ofString(body),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+			if (response.statusCode() == 200) {
+				return;
 			}
 			throw hypertextException(response);
 		} catch (IOException | InterruptedException e) {
@@ -507,10 +528,6 @@ public class ModGarden {
 		}
 	}
 
-	private static HypertextException hypertextException(HttpResponse<InputStream> response) {
-		return new HypertextException(response.statusCode(), GardenBot.GSON.fromJson(new InputStreamReader(response.body()), ExceptionPage.class).description());
-	}
-
 	private static <T> HttpResponse<T> get(String endpoint, HttpResponse.BodyHandler<T> bodyHandler, String... headers) throws IOException, InterruptedException {
 		var req = HttpRequest.newBuilder(URI.create(API_URL + endpoint))
 				.header("User-Agent", USER_AGENT)
@@ -558,6 +575,6 @@ public class ModGarden {
 		return HTTP_CLIENT.send(req.build(), bodyHandler);
 	}
 
-	private record ExceptionPage(String description) {
+	public record ExceptionPage(String description) {
 	}
 }
