@@ -18,8 +18,8 @@ import net.modgarden.gardenbot.client.mod_garden.project.ProjectMetadata;
 import net.modgarden.gardenbot.client.mod_garden.request.*;
 import net.modgarden.gardenbot.client.mod_garden.role.ModGardenRole;
 import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
-import net.modgarden.gardenbot.client.mod_garden.user.UserBio;
-import net.modgarden.gardenbot.client.mod_garden.user.UserIntegrations;
+import net.modgarden.gardenbot.client.mod_garden.user.modifiable.ModifiableUserBio;
+import net.modgarden.gardenbot.client.mod_garden.user.modifiable.ModifiableUserIntegrations;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -435,22 +435,65 @@ public class ModGarden {
 		}
 	}
 
-	public static void modifyUsername(ModGardenUser user, @Nullable String username) throws HypertextException {
+	public static void modifyUser(ModGardenUser user, ModifyUserRequestBody request) throws HypertextException {
+		String body = GardenBot.GSON.toJson(request, ModifyUserRequestBody.class);
+
+		HttpResponse<InputStream> response;
+		try {
+			response = patch(
+					"internal/user/modify/" + user.id(),
+					HttpRequest.BodyPublishers.ofString(body),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+
+		if (response.statusCode() != 200) {
+			throw hypertextException(response);
+		}
+	}
+
+	/// Modifies the username of the specified user.
+	/// @param user The user to modify.
+	/// @param username The value to change the user's username to.
+	public static void modifyUsername(ModGardenUser user, String username) throws HypertextException {
 		modifyUser(user, new ModifyUserRequestBody(username, null, null, Collections.emptyList()));
 	}
 
-	// TODO: Allow removals of values.
-	public static void modifyUserBio(ModGardenUser user, @Nullable UserBio bio) throws HypertextException {
-		modifyUser(user, new ModifyUserRequestBody(null, bio, null, Collections.emptyList()));
+	/// Modifies the user bio of the specified user.
+	/// @param user The user to modify.
+	/// @param bio	The bio to use for the user.
+	/// @see ModifiableUserBio
+	public static void modifyUserBio(ModGardenUser user, ModifiableUserBio bio) throws HypertextException {
+		modifyUser(user, new ModifyUserRequestBody(
+				null,
+				bio,
+				null,
+				Collections.emptyList())
+		);
 	}
 
-	// TODO: Allow removals of values.
-	public static void modifyUserIntegrations(ModGardenUser user, @Nullable UserIntegrations integrations) throws HypertextException {
-		modifyUser(user, new ModifyUserRequestBody(null, null, integrations, Collections.emptyList()));
+	/// Modifies the user integrations of the specified users.
+	/// @param user The user to modify.
+	/// @param integrations A modifiable integrations object.
+	/// @see ModifiableUserIntegrations
+	public static void modifyUserIntegrations(ModGardenUser user, @Nullable ModifiableUserIntegrations integrations) throws HypertextException {
+		modifyUser(user, new ModifyUserRequestBody(
+				null,
+				null,
+				integrations,
+				Collections.emptyList()
+		));
 	}
 
 	public static void addUserRole(ModGardenUser user, ModGardenRole role) throws HypertextException {
-		modifyUser(user, new ModifyUserRequestBody(null, null, null, List.of(role.id())));
+		modifyUser(user, new ModifyUserRequestBody(
+				null,
+				null,
+				null,
+				List.of(role.id()))
+		);
 	}
 
 	public static void removeUserRole(ModGardenUser user, ModGardenRole role) throws HypertextException {
@@ -506,26 +549,6 @@ public class ModGarden {
 		}
 
 		return null;
-	}
-
-
-	private static void modifyUser(ModGardenUser user, ModifyUserRequestBody request) throws HypertextException {
-		String body = GardenBot.GSON.toJson(request, ModifyUserRequestBody.class);
-
-		HttpResponse<InputStream> response;
-		try {
-			response = patch(
-					"internal/user/modify/" + user.id(),
-					HttpRequest.BodyPublishers.ofString(body),
-					HttpResponse.BodyHandlers.ofInputStream()
-			);
-		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
-		}
-
-		if (response.statusCode() != 200) {
-			throw hypertextException(response);
-		}
 	}
 
 	private static <T> HttpResponse<T> get(String endpoint, HttpResponse.BodyHandler<T> bodyHandler, String... headers) throws IOException, InterruptedException {

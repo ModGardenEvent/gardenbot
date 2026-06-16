@@ -7,14 +7,15 @@ import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.ModGarden;
+import net.modgarden.gardenbot.client.mod_garden.user.modifiable.ModifiableUserBio;
+import net.modgarden.gardenbot.client.mod_garden.user.modifiable.ModifiableUserIntegrations;
 import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
-import net.modgarden.gardenbot.client.mod_garden.user.UserBio;
-import net.modgarden.gardenbot.client.mod_garden.user.UserIntegrations;
 import net.modgarden.gardenbot.client.mod_garden.user.integration.DiscordUserIntegration;
 import net.modgarden.gardenbot.interaction.ModalInteraction;
 import net.modgarden.gardenbot.modal.Modal;
 import net.modgarden.gardenbot.response.EmbedResponse;
 import net.modgarden.gardenbot.response.Response;
+import net.modgarden.gardenbot.util.NullableWrapper;
 import org.jetbrains.annotations.NotNull;
 
 public class RegisterModal extends Modal {
@@ -65,9 +66,8 @@ public class RegisterModal extends Modal {
 					: interaction.event().getUser().getEffectiveName();
 
 			ModGarden.modifyUserBio(mgUser,
-					new UserBio(
-							displayName,
-							null,
+					new ModifiableUserBio(
+							new NullableWrapper<>(displayName),
 							null,
 							null,
 							null
@@ -75,9 +75,11 @@ public class RegisterModal extends Modal {
 			);
 
 			ModGarden.modifyUserIntegrations(mgUser,
-					new UserIntegrations(
-							new DiscordUserIntegration(
-									discordUser.getId()
+					new ModifiableUserIntegrations(
+							new NullableWrapper<>(
+									new DiscordUserIntegration(
+											discordUser.getId()
+									)
 							),
 							null,
 							null
