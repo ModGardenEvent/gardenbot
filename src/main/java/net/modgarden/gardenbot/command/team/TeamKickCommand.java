@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-import static net.modgarden.gardenbot.command.team.TeamCommand.getEditableProjectAutoCompleteChoices;
+import static net.modgarden.gardenbot.command.team.TeamCommandGroup.getEditableProjectAutoCompleteChoices;
 
 public class TeamKickCommand extends SlashCommand {
 	public TeamKickCommand() {

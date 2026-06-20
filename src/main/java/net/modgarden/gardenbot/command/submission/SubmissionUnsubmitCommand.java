@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static net.modgarden.gardenbot.command.submission.SubmissionCommand.*;
+import static net.modgarden.gardenbot.command.submission.SubmissionCommandGroup.*;
 
 public class SubmissionUnsubmitCommand extends SlashCommand {
 	private static final int ADMINISTRATOR_PERMISSION_BITS = 0x1;
@@ -99,7 +99,7 @@ public class SubmissionUnsubmitCommand extends SlashCommand {
 	public List<Command.Choice> getAutoCompleteChoices(String focusedOption,
 	                                                   User user,
 	                                                   AutoCompletionGetter optionCompletionGetter) {
-		return SubmissionCommand.getModGardenProjectChoices(user);
+		return SubmissionCommandGroup.getModGardenProjectChoices(user);
 	}
 
 	protected static boolean hasPermissions(long userPermissions) {

@@ -15,14 +15,14 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public abstract class GroupSlashCommand<T extends AbstractSlashCommand> extends AbstractSlashCommand {
+public abstract class CommandGroup<T extends AbstractSlashCommand> extends AbstractSlashCommand {
 	private final Map<String, ? extends T> subCommands;
 	private final boolean isGroup;
 
 	@SafeVarargs
-	public GroupSlashCommand(String name,
-	                         String description,
-	                         Supplier<T>... subCommands) {
+	public CommandGroup(String name,
+                        String description,
+                        Supplier<T>... subCommands) {
 		super(name, description);
 		this.subCommands = Arrays.stream(subCommands)
 				.map(supplier -> {
@@ -36,7 +36,7 @@ public abstract class GroupSlashCommand<T extends AbstractSlashCommand> extends 
 								(_, newMap) -> newMap
 						)
 				);
-		this.isGroup = subCommands.length > 0 && subCommands[0] instanceof GroupSlashCommand<?>;
+		this.isGroup = subCommands.length > 0 && subCommands[0] instanceof CommandGroup<?>;
 		validateSubCommandsOrThrow();
 	}
 
@@ -124,7 +124,7 @@ public abstract class GroupSlashCommand<T extends AbstractSlashCommand> extends 
 		List<SubcommandGroupData> groupData = subCommands.values()
 				.stream()
 				.map(command -> {
-					if (command instanceof GroupSlashCommand<?> groupCommand) {
+					if (command instanceof CommandGroup<?> groupCommand) {
 						return groupCommand.asGroupData();
 					}
 					return null;
@@ -142,7 +142,7 @@ public abstract class GroupSlashCommand<T extends AbstractSlashCommand> extends 
 
 	private void validateSubCommandsOrThrow(int recursionIndex) {
 		if (subCommands.isEmpty()) {
-			throw new IllegalArgumentException("GroupSlashCommand must have at least one subcommand or subgroup");
+			throw new IllegalArgumentException("CommandGroup must have at least one subcommand or subgroup");
 		}
 
 		if (recursionIndex > 2) {
@@ -150,8 +150,8 @@ public abstract class GroupSlashCommand<T extends AbstractSlashCommand> extends 
 		}
 
 		for (T subCommand : subCommands.values()) {
-			if (subCommand instanceof GroupSlashCommand<?> groupSlashCommand) {
-				groupSlashCommand.validateSubCommandsOrThrow(recursionIndex + 1);
+			if (subCommand instanceof CommandGroup<?> commandGroup) {
+				commandGroup.validateSubCommandsOrThrow(recursionIndex + 1);
 			}
 		}
 	}

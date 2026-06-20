@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-import static net.modgarden.gardenbot.command.submission.SubmissionCommand.*;
+import static net.modgarden.gardenbot.command.submission.SubmissionCommandGroup.*;
 
 public class SubmissionSubmitCommand extends SlashCommand {
 	public SubmissionSubmitCommand() {

@@ -9,7 +9,7 @@ import net.modgarden.gardenbot.client.mod_garden.event.GenreAndEvent;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenSubmission;
 import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
-import net.modgarden.gardenbot.command.GroupSlashCommand;
+import net.modgarden.gardenbot.command.CommandGroup;
 import net.modgarden.gardenbot.command.SlashCommand;
 
 import java.util.Collections;
@@ -17,11 +17,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-public class TeamCommand extends GroupSlashCommand<SlashCommand> {
+public class TeamCommandGroup extends CommandGroup<SlashCommand> {
 	private static final int ADMINISTRATOR_PERMISSION_BITS = 0x1;
 	private static final int EDIT_PROJECT_PERMISSION_BITS = 0x20;
 
-	public TeamCommand() {
+	public TeamCommandGroup() {
 		super(
 				"team",
 				"Modify the team of a Mod Garden project.",

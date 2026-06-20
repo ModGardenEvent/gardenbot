@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static net.modgarden.gardenbot.command.team.TeamCommand.getProjectAutoCompleteChoices;
+import static net.modgarden.gardenbot.command.team.TeamCommandGroup.getProjectAutoCompleteChoices;
 
 public class TeamLeaveCommand extends SlashCommand {
 	public TeamLeaveCommand() {

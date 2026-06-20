@@ -13,7 +13,7 @@ import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.client.mod_garden.user.integration.ModrinthUserIntegration;
 import net.modgarden.gardenbot.client.modrinth.ModrinthProject;
 import net.modgarden.gardenbot.client.modrinth.ModrinthVersion;
-import net.modgarden.gardenbot.command.GroupSlashCommand;
+import net.modgarden.gardenbot.command.CommandGroup;
 import net.modgarden.gardenbot.command.SlashCommand;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,8 +25,8 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public class SubmissionCommand extends GroupSlashCommand<SlashCommand> {
-	public SubmissionCommand() {
+public class SubmissionCommandGroup extends CommandGroup<SlashCommand> {
+	public SubmissionCommandGroup() {
 		super(
 				"submission",
 				"Commands relating to submissions to the current Mod Garden event.",
@@ -108,7 +108,7 @@ public class SubmissionCommand extends GroupSlashCommand<SlashCommand> {
 			return Modrinth.getProjectsFromUser(modrinthIntegration.userId())
 					.parallelStream()
 					.filter(modrinthProject -> filterModrinthProjects(modrinthProject, event))
-					.sorted(SubmissionCommand::sortModrinthProjects)
+					.sorted(SubmissionCommandGroup::sortModrinthProjects)
 					.map(modrinthProject -> new Command.Choice(modrinthProject.title(), modrinthProject.slug()))
 					.toList();
 		} catch (Exception e) {
@@ -140,7 +140,7 @@ public class SubmissionCommand extends GroupSlashCommand<SlashCommand> {
 					}
 					return null;
 				}).filter(Objects::nonNull)
-				.sorted(SubmissionCommand::sortModrinthVersions)
+				.sorted(SubmissionCommandGroup::sortModrinthVersions)
 				.map(modrinthVersion -> new Command.Choice(modrinthVersion.name(), modrinthVersion.versionNumber()))
 				.toList();
 	}

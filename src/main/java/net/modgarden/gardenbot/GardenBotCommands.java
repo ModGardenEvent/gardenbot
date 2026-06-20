@@ -1,21 +1,21 @@
 package net.modgarden.gardenbot;
 
-import net.modgarden.gardenbot.command.account.AccountCommand;
-import net.modgarden.gardenbot.command.fix.FixCommand;
-import net.modgarden.gardenbot.command.submission.SubmissionCommand;
-import net.modgarden.gardenbot.command.image.ImageCommand;
-import net.modgarden.gardenbot.command.team.TeamCommand;
+import net.modgarden.gardenbot.command.account.AccountCommandGroup;
+import net.modgarden.gardenbot.command.fix.FixCommandGroup;
+import net.modgarden.gardenbot.command.image.ImageCommandGroup;
+import net.modgarden.gardenbot.command.submission.SubmissionCommandGroup;
+import net.modgarden.gardenbot.command.team.TeamCommandGroup;
 
 import static net.modgarden.gardenbot.interaction.dispatcher.SlashCommandDispatcher.register;
 
 public class GardenBotCommands {
 
 	public static void registerAll() {
-		register(AccountCommand::new);
-		register(FixCommand::new);
-		register(ImageCommand::new);
-		register(SubmissionCommand::new);
-		register(TeamCommand::new);
+		register(AccountCommandGroup::new);
+		register(FixCommandGroup::new);
+		register(ImageCommandGroup::new);
+		register(SubmissionCommandGroup::new);
+		register(TeamCommandGroup::new);
 
 //		SlashCommandDispatcher.register(new SlashCommand("profile", "Actions relating to your visible Mod Garden profile.",
 //				new SlashCommand.SubCommandGroup(
