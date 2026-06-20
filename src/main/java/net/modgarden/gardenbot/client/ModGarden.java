@@ -4,6 +4,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.exception.HypertextException;
@@ -154,6 +156,31 @@ public class ModGarden {
 		}
 
 		throw hypertextException(response);
+	}
+
+	public static void addDiscordRolesToModGardenUser(Member member, List<Role> roles) throws HypertextException {
+		ModGardenUser user = ModGarden.getUserByDiscordUser(member.getUser());
+		if (user == null)
+			return;
+
+		for (Role role : roles) {
+			ModGardenRole modGardenRole = ModGarden.getRoleFromDiscordRoleId(role.getId());
+
+			if (modGardenRole == null)
+				continue;
+
+
+			ModGarden.addUserRole(user, modGardenRole);
+		}
+	}
+
+	public static void removeDiscordRolesFromModGardenUser(Member member, List<Role> roles) throws HypertextException {
+		for (Role role : roles) {
+			ModGardenRole modGardenRole = ModGarden.getRoleFromDiscordRoleId(role.getId());
+			if (modGardenRole == null)
+				continue;
+			ModGarden.removeUserRole(ModGarden.getUserByDiscordUser(member.getUser()), modGardenRole);
+		}
 	}
 
 	@Nullable

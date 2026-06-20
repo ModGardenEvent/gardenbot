@@ -1,6 +1,7 @@
 package net.modgarden.gardenbot;
 
 import net.modgarden.gardenbot.command.account.AccountCommand;
+import net.modgarden.gardenbot.command.fix.FixCommand;
 import net.modgarden.gardenbot.command.submission.SubmissionCommand;
 import net.modgarden.gardenbot.command.image.ImageCommand;
 import net.modgarden.gardenbot.command.team.TeamCommand;
@@ -11,6 +12,7 @@ public class GardenBotCommands {
 
 	public static void registerAll() {
 		register(AccountCommand::new);
+		register(FixCommand::new);
 		register(ImageCommand::new);
 		register(SubmissionCommand::new);
 		register(TeamCommand::new);
