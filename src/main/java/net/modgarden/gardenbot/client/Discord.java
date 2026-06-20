@@ -53,7 +53,8 @@ public class Discord {
 		if (modGardenUser == null)
 			return Collections.emptyList();
 
-		List<Role> rolesToAdd = new ArrayList<>();
+		List<Role> rolesToAdd = new ArrayList<>(member.getRoles());
+
 		for (String roleId : modGardenUser.roles()) {
 			try {
 				ModGardenRole modGardenRole = ModGarden.getRole(roleId);
