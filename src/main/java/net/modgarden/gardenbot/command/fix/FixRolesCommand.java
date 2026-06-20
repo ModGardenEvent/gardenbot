@@ -26,6 +26,8 @@ public class FixRolesCommand extends SlashCommand {
 	@NotNull
 	@Override
 	public Response respond(SlashCommandInteraction interaction) {
+		interaction.event().deferReply(true).queue();
+
 		if (interaction.event().getGuild() == null || !interaction.event().getGuild().getId().equals(GardenBot.GUILD_ID))
 			return new MessageResponse("You must run this command within the Mod Garden Discord server!");
 
