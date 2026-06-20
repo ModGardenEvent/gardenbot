@@ -29,7 +29,7 @@ import java.util.List;
 
 import static net.modgarden.gardenbot.command.team.TeamCommandGroup.getEditableProjectAutoCompleteChoices;
 import static net.modgarden.gardenbot.command.team.TeamCommandGroup.hasPermissions;
-import static net.modgarden.gardenbot.util.MiscUtil.aOrAn;
+import static net.modgarden.gardenbot.util.StringUtil.aOrAn;
 
 public class TeamInviteCommand extends SlashCommand {
 	public TeamInviteCommand() {

@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
+import net.modgarden.gardenbot.client.exception.HypertextException;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.Response;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +43,7 @@ public abstract class CommandGroup<T extends AbstractSlashCommand> extends Abstr
 
 	@NotNull
 	@Override
-	public Response respond(SlashCommandInteraction interaction) {
+	public Response respond(SlashCommandInteraction interaction) throws HypertextException {
 		String lookupName = isGroup
 				? interaction.event().getSubcommandGroup()
 				: interaction.event().getSubcommandName();
@@ -52,7 +53,7 @@ public abstract class CommandGroup<T extends AbstractSlashCommand> extends Abstr
 		}
 
 		AbstractSlashCommand subCommand = subCommands.get(lookupName);
-		return subCommand.respond(interaction);
+		return subCommand.respondInternal(interaction);
 	}
 
 	@Override

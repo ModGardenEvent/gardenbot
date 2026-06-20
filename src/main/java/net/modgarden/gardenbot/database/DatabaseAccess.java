@@ -1,17 +1,20 @@
 package net.modgarden.gardenbot.database;
 
+import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.database.data.NaturalId;
 import net.modgarden.gardenbot.database.data.TeamInvite;
 import net.modgarden.gardenbot.util.FallibleSupplier;
 import net.modgarden.gardenbot.util.LazyValue;
-import net.modgarden.gardenbot.util.TimeUtil;
+import net.modgarden.gardenbot.util.SchedulerUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 /// Centralized access to database operations.
 public final class DatabaseAccess implements AutoCloseable {
@@ -107,7 +110,7 @@ public final class DatabaseAccess implements AutoCloseable {
 						VALUES (?, ?, ?, ?, ?)""")
 		) {
 			String id = NaturalId.generate("team_invites", "id", null, 5);
-			long expirationTime = Instant.now().toEpochMilli() + TimeUtil.DAY_MS;
+			long expirationTime = Instant.now().toEpochMilli() + SchedulerUtil.DAY_MS;
 
 			insertStatement.setString(1, id);
 			insertStatement.setString(2, userId);
@@ -137,6 +140,50 @@ public final class DatabaseAccess implements AutoCloseable {
 				""")) {
 			deleteStatement.setLong(1, Instant.now().toEpochMilli());
 			return deleteStatement.executeUpdate();
+		}
+	}
+
+	public Map<String, Long> getSudoerExpiryTimes() throws SQLException {
+		try (var selectStatement = this.getConnection().prepareStatement("""
+					SELECT user_id, expires
+					FROM sudoers
+				""")) {
+			Map<String, Long> sudoerExpiryTimes = new HashMap<>();
+
+			ResultSet resultSet = selectStatement.executeQuery();
+			while (resultSet.next()) {
+				sudoerExpiryTimes.put(
+						resultSet.getString("user_id"),
+						resultSet.getLong("expires")
+				);
+			}
+
+			return sudoerExpiryTimes;
+		}
+	}
+
+	public void setSudoerExpiryTime(UserSnowflake snowflake, int minutes) throws SQLException {
+		try (var insertStatement = this.getConnection().prepareStatement("""
+					INSERT OR REPLACE INTO sudoers (user_id, expires)
+					VALUES (?, ?)
+				""")) {
+			long now = Instant.now().toEpochMilli();
+			int minutesInMs = minutes * 60 * 1000;
+
+			insertStatement.setString(1, snowflake.getId());
+			insertStatement.setLong(2, now + minutesInMs);
+
+			insertStatement.executeUpdate();
+		}
+	}
+
+	public void removeSudoerExpiryTime(UserSnowflake snowflake) throws SQLException {
+		try (var deleteStatement = this.getConnection().prepareStatement("""
+					DELETE FROM sudoers
+					WHERE user_id = ?
+				""")) {
+			deleteStatement.setString(1, snowflake.getId());
+			deleteStatement.executeUpdate();
 		}
 	}
 

@@ -32,16 +32,4 @@ public abstract class AbstractSlashCommand implements InteractionHandler<SlashCo
 	}
 
 	public abstract SlashCommandData asData();
-
-	protected static EmbedResponse exceptionResponse(HypertextException exception) {
-		return exceptionResponse(exception.getStatus() + ": " + exception.getMessage());
-	}
-
-	protected static EmbedResponse exceptionResponse(String message) {
-		return new EmbedResponse()
-				.setTitle("Encountered an exception!")
-				.setDescription(message + "\nPlease report this to a team member.")
-				.markEphemeral()
-				.setColor(0xFF0000);
-	}
 }

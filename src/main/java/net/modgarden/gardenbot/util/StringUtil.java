@@ -1,6 +1,6 @@
 package net.modgarden.gardenbot.util;
 
-public class MiscUtil {
+public class StringUtil {
 	public static String aOrAn(String value) {
 		return startsWithVowel(value) ? "an" : "a";
 	}

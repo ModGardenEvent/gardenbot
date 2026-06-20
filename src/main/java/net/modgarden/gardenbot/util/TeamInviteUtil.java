@@ -7,7 +7,7 @@ import java.sql.SQLException;
 
 public class TeamInviteUtil {
 	public static void revokeExpiredInvitesEachHour() {
-		TimeUtil.runEachHour(() -> DatabaseAccess.bind().run(() -> {
+		SchedulerUtil.runEachHour(() -> DatabaseAccess.bind().run(() -> {
 			try {
 				DatabaseAccess db = DatabaseAccess.get();
 				int updated = db.revokeInvalidTeamInvites();

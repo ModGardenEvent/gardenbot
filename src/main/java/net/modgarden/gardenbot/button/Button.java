@@ -24,9 +24,9 @@ public abstract class Button implements InteractionHandler<ButtonInteraction> {
 	}
 
 	@NotNull
-	public final Response respond(ButtonInteractionEvent interaction) {
+	public final Response respondInternal(ButtonInteractionEvent interaction) {
 		String fullId = Objects.requireNonNull(interaction.getButton().getId());
-		return respond(new ButtonInteraction(interaction, createArguments(fullId)));
+		return respondInternal(new ButtonInteraction(interaction, createArguments(fullId)));
 	}
 
 	public String withArguments(String... string) {

@@ -18,6 +18,6 @@ public class ModalDispatcher {
 	}
 
 	public static Response dispatch(ModalInteraction command) {
-		return DatabaseAccess.bind().call(() -> MODALS.get(command.event().getModalId()).respond(command));
+		return DatabaseAccess.bind().call(() -> MODALS.get(command.event().getModalId()).respondInternal(command));
 	}
 }

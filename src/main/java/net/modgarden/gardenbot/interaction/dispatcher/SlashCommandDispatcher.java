@@ -23,7 +23,7 @@ public class SlashCommandDispatcher {
 	}
 
 	public static Response dispatch(SlashCommandInteraction command) {
-		return DatabaseAccess.bind().call(() -> COMMANDS.get(command.event().getName()).respond(command));
+		return DatabaseAccess.bind().call(() -> COMMANDS.get(command.event().getName()).respondInternal(command));
 	}
 
 	public static List<Command.Choice> getAutoCompleteChoices(CommandAutoCompleteInteractionEvent event) {

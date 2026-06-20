@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import net.modgarden.gardenbot.command.sudo.SudoCommand;
 import net.modgarden.gardenbot.util.NullableWrapper;
 import net.modgarden.gardenbot.util.TeamInviteUtil;
 import org.slf4j.Logger;
@@ -27,6 +28,8 @@ public class GardenBot {
 
 	public static final Dotenv DOTENV = Dotenv.load();
 	public static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+
+	public static final String GUILD_ID = GardenBot.DOTENV.get("GUILD_ID");
 
 	// *Please* don't touch this. In fact, don't use Regex without using https://regex101.com
 	// and manually testing your change.
@@ -72,7 +75,6 @@ public class GardenBot {
 		GardenBotCommands.registerAll();
 		GardenBotButtons.registerAll();
 		GardenBotModals.registerAll();
-
 		TeamInviteUtil.revokeExpiredInvitesEachHour();
 
 		LOG.info("GardenBot v{} has been initialized.", VERSION);
@@ -109,6 +111,18 @@ public class GardenBot {
 						project_id TEXT NOT NULL,
 						role TEXT NOT NULL,
 						expiration_time INTEGER NOT NULL,
+						PRIMARY KEY(id)
+					)""");
+			statement.addBatch("""
+					CREATE TABLE IF NOT EXISTS sudoers (
+						user_id TEXT UNIQUE NOT NULL,
+						expires INTEGER NOT NULL,
+						PRIMARY KEY(user_id)
+					)""");
+			statement.addBatch("""
+					CREATE TABLE IF NOT EXISTS channels (
+						id TEXT UNIQUE NOT NULL,
+						channel_id TEXT NOT NULL,
 						PRIMARY KEY(id)
 					)""");
 			statement.executeBatch();

@@ -20,6 +20,6 @@ public class ButtonDispatcher {
 
 	public static Response dispatch(ButtonInteractionEvent event) {
 		String id = Objects.requireNonNull(event.getButton().getId()).split("\\?")[0];
-		return DatabaseAccess.bind().call(() -> HANDLERS.get(id).respond(event));
+		return DatabaseAccess.bind().call(() -> HANDLERS.get(id).respondInternal(event));
 	}
 }

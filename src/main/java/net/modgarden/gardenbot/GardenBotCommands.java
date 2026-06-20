@@ -4,6 +4,7 @@ import net.modgarden.gardenbot.command.account.AccountCommandGroup;
 import net.modgarden.gardenbot.command.fix.FixCommandGroup;
 import net.modgarden.gardenbot.command.image.ImageCommandGroup;
 import net.modgarden.gardenbot.command.submission.SubmissionCommandGroup;
+import net.modgarden.gardenbot.command.sudo.SudoCommand;
 import net.modgarden.gardenbot.command.team.TeamCommandGroup;
 
 import static net.modgarden.gardenbot.interaction.dispatcher.SlashCommandDispatcher.register;
@@ -14,6 +15,7 @@ public class GardenBotCommands {
 		register(AccountCommandGroup::new);
 		register(FixCommandGroup::new);
 		register(ImageCommandGroup::new);
+		register(SudoCommand::new);
 		register(SubmissionCommandGroup::new);
 		register(TeamCommandGroup::new);
 

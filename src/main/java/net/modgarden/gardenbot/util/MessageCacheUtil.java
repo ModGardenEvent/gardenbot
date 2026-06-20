@@ -13,8 +13,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.modgarden.gardenbot.util.TimeUtil.DAY_MS;
-import static net.modgarden.gardenbot.util.TimeUtil.WEEK_MS;
+import static net.modgarden.gardenbot.util.SchedulerUtil.DAY_MS;
+import static net.modgarden.gardenbot.util.SchedulerUtil.WEEK_MS;
 
 public class MessageCacheUtil {
 	public static void cacheMessage(String userId, String messageId, String content) {
@@ -58,7 +58,7 @@ public class MessageCacheUtil {
 	}
 
 	public static void removeExpiredMessagesEachHour(Guild guild) {
-		TimeUtil.runEachHour(() -> {
+		SchedulerUtil.runEachHour(() -> {
 			removeExpiredMessagesFromChannel(guild.getTextChannelById(GardenBot.DOTENV.get("MESSAGE_LOGS_CHANNEL_ID")));
 			removeExpiredMessagesFromDatabase();
 		});
