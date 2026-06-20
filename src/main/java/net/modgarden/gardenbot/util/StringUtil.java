@@ -1,15 +1,18 @@
 package net.modgarden.gardenbot.util;
 
+import java.util.Locale;
+
 public class StringUtil {
 	public static String aOrAn(String value) {
 		return startsWithVowel(value) ? "an" : "a";
 	}
 
 	public static boolean startsWithVowel(String value) {
-		return value.startsWith("a")
-				|| value.startsWith("e")
-				|| value.startsWith("i")
-				|| value.startsWith("o")
-				|| value.startsWith("u");
+		String lowercase = value.toLowerCase(Locale.ROOT);
+		return lowercase.startsWith("a")
+				|| lowercase.startsWith("e")
+				|| lowercase.startsWith("i")
+				|| lowercase.startsWith("o")
+				|| lowercase.startsWith("u");
 	}
 }
