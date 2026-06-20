@@ -20,13 +20,12 @@ public class AccountCreateCommand extends SlashCommand {
 		);
 	}
 
+	// TODO: Figure out a way to not time out Discord. Modals do not work with deferReply...
 	@NotNull
 	public Response respond(SlashCommandInteraction interaction) {
-		interaction.event().deferReply(true).queue();
 		User user = interaction.event().getUser();
 
 		try {
-			// This will only succeed if the status code is 200.
 			ModGardenUser mgUser = ModGarden.getUserByDiscordUser(user);
 			if (mgUser != null) {
 				return new MessageResponse("You already have an account with Mod Garden.")
@@ -36,9 +35,6 @@ public class AccountCreateCommand extends SlashCommand {
 			GardenBot.LOG.error("Exception whilst attempting to create account. ", e);
 			return exceptionResponse(e.getMessage());
 		}
-		return new ModalResponse(
-				new MessageResponse("Fill out the prompts to create your account..."),
-				GardenBotModals.REGISTER
-		);
+		return new ModalResponse(GardenBotModals.REGISTER);
 	}
 }
