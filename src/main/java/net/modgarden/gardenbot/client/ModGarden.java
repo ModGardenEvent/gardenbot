@@ -183,6 +183,29 @@ public class ModGarden {
 		}
 	}
 
+	public static ModGardenGenre getGenre(String slug) throws HypertextException {
+		HttpResponse<InputStream> response;
+		try {
+			response = get(
+					"v2/genres/" + slug,
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+
+		if (response.statusCode() == 200) {
+			return GardenBot.GSON.fromJson(new InputStreamReader(response.body()), ModGardenGenre.class);
+		}
+
+		if (response.statusCode() == 404) {
+			return null;
+		}
+
+		throw hypertextException(response);
+	}
+
+
 	@Nullable
 	public static ModGardenProject createProject(String name) throws HypertextException {
 		String body = GardenBot.GSON.toJson(new CreateProjectRequestBody(new ProjectMetadata(null, name)), CreateProjectRequestBody.class);
@@ -269,15 +292,14 @@ public class ModGarden {
 		throw hypertextException(response);
 	}
 
-	public static ModGardenSubmission createSubmissionModrinth(String modGardenProjectId,
+	public static ModGardenSubmission createSubmission(String modGardenProjectId,
 	                                                           String modGardenEventId,
-	                                                           String modrinthProjectId,
-	                                                           String modrinthVersionId) throws HypertextException {
+	                                                           SubmissionPlatform platform) throws HypertextException {
 		String body = GardenBot.GSON.toJson(
 				new CreateSubmissionModrinthRequestBody(
 						modGardenProjectId,
 						modGardenEventId,
-						SubmissionPlatform.modrinth(modrinthProjectId, modrinthVersionId)
+						platform
 				),
 				CreateSubmissionModrinthRequestBody.class
 		);
@@ -298,14 +320,13 @@ public class ModGarden {
 		}
 	}
 
-	public static void updateSubmissionModrinth(String submissionId,
-												String modrinthProjectId,
-												String modrinthVersionId) throws HypertextException {
+	public static void updateSubmission(String submissionId,
+	                                    SubmissionPlatform platform) throws HypertextException {
 		String body = GardenBot.GSON.toJson(
-				new ModifySubmissionModrinthRequestBody(
-						SubmissionPlatform.modrinth(modrinthProjectId, modrinthVersionId)
+				new ModifySubmissionRequestBody(
+						platform
 				),
-				ModifySubmissionModrinthRequestBody.class
+				ModifySubmissionRequestBody.class
 		);
 
 		try {

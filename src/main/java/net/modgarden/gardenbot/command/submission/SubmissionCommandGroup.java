@@ -6,6 +6,7 @@ import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.ModGarden;
 import net.modgarden.gardenbot.client.Modrinth;
 import net.modgarden.gardenbot.client.exception.HypertextException;
+import net.modgarden.gardenbot.client.mod_garden.event.GenreAndEvent;
 import net.modgarden.gardenbot.client.mod_garden.event.ModGardenEvent;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenSubmission;
@@ -39,7 +40,7 @@ public class SubmissionCommandGroup extends CommandGroup<SlashCommand> {
 	protected static List<Command.Choice> getModGardenProjectChoices(User discordUser) {
 		try {
 			ModGardenUser modGardenUser = ModGarden.getUserByDiscordUser(discordUser);
-			ModGardenEvent modGardenEvent = ModGarden.getActiveEvent().event();
+			GenreAndEvent modGardenEvent = ModGarden.getActiveEvent();
 			if (modGardenUser == null || modGardenEvent == null) {
 				return Collections.emptyList();
 			}
@@ -60,7 +61,7 @@ public class SubmissionCommandGroup extends CommandGroup<SlashCommand> {
 									.map(submissionId -> {
 										try {
 											ModGardenSubmission submission = ModGarden.getSubmission(submissionId);
-											if (submission != null && submission.eventId().equals(modGardenEvent.id())) {
+											if (submission != null && submission.eventId().equals(modGardenEvent.event().id())) {
 												return new Command.Choice(project.metadata().name(), project.metadata().modId());
 											}
 										} catch (HypertextException e) {
@@ -80,13 +81,6 @@ public class SubmissionCommandGroup extends CommandGroup<SlashCommand> {
 		}
 	}
 
-	protected static List<Command.Choice> getPlatformChoices() {
-		return List.of(
-				new Command.Choice("Modrinth", "modrinth"),
-				new Command.Choice("Download URL", "download_url")
-		);
-	}
-
 	protected static List<Command.Choice> getModrinthProjectChoices(User discordUser) {
 		try {
 			ModGardenUser mgUser = ModGarden.getUserByDiscordUser(discordUser);
@@ -99,15 +93,15 @@ public class SubmissionCommandGroup extends CommandGroup<SlashCommand> {
 				return Collections.emptyList();
 			}
 
-			ModGardenEvent event = ModGarden.getDevelopmentTimeEvent().event();
+			GenreAndEvent genreAndEvent = ModGarden.getDevelopmentTimeEvent();
 
-			if (event == null || !"minecraft".equals(event.platform().game())) {
+			if (genreAndEvent == null || !"minecraft".equals(genreAndEvent.event().platform().game())) {
 				return Collections.emptyList();
 			}
 
 			return Modrinth.getProjectsFromUser(modrinthIntegration.userId())
 					.parallelStream()
-					.filter(modrinthProject -> filterModrinthProjects(modrinthProject, event))
+					.filter(modrinthProject -> filterModrinthProjects(modrinthProject, genreAndEvent.event()))
 					.sorted(SubmissionCommandGroup::sortModrinthProjects)
 					.map(modrinthProject -> new Command.Choice(modrinthProject.title(), modrinthProject.slug()))
 					.toList();
@@ -132,7 +126,7 @@ public class SubmissionCommandGroup extends CommandGroup<SlashCommand> {
 				.parallelStream()
 				.map(version -> {
 					try {
-						if (Modrinth.forMinecraftLoaderAndVersionOfEvent(version, ModGarden.getActiveEvent().event())) {
+						if (Modrinth.isForMinecraftLoaderAndVersionOfEvent(version, ModGarden.getActiveEvent().event())) {
 							return version;
 						}
 					} catch (HypertextException e) {
@@ -166,13 +160,15 @@ public class SubmissionCommandGroup extends CommandGroup<SlashCommand> {
 
 	@Nullable
 	protected static ModrinthProject getModrinthProject(ModGardenUser modGardenUser, String externalProject) throws HypertextException {
-		ModrinthProject modrinthProject = externalProject.matches(GardenBot.SAFE_URL_REGEX)
-				? Modrinth.getProject(externalProject)
+		String mappedIdOrSlug = mapFromProjectUrl(externalProject);
+
+		ModrinthProject modrinthProject = mappedIdOrSlug.matches(GardenBot.SAFE_URL_REGEX)
+				? Modrinth.getProject(mappedIdOrSlug)
 				: null;
 
 		if (modrinthProject == null) {
 			// Find project using the project's name just so copy-pasting doesn't error...
-			return getModrinthProjectFromName(modGardenUser, externalProject);
+			return getModrinthProjectFromName(modGardenUser, mappedIdOrSlug);
 		}
 
 		return modrinthProject;
@@ -180,12 +176,15 @@ public class SubmissionCommandGroup extends CommandGroup<SlashCommand> {
 
 	@Nullable
 	protected static ModrinthVersion getModrinthVersion(ModrinthProject project, String versionIdOrNumber) throws HypertextException {
-		ModrinthVersion version = versionIdOrNumber.matches(GardenBot.SAFE_URL_REGEX)
-				? Modrinth.getVersion(versionIdOrNumber)
+		String mappedIdOrSlug = mapFromVersionUrl(versionIdOrNumber);
+
+		ModrinthVersion version = mappedIdOrSlug.matches(GardenBot.SAFE_URL_REGEX)
+				? Modrinth.getVersion(mappedIdOrSlug)
 				: null;
 
 		if (version == null) {
-			return getModrinthVersionFromNumberOrName(project, versionIdOrNumber);
+			// Find version using the version's name just so copy-pasting doesn't error...
+			return getModrinthVersionFromNumberOrName(project, mappedIdOrSlug);
 		}
 
 		return version;
@@ -207,6 +206,46 @@ public class SubmissionCommandGroup extends CommandGroup<SlashCommand> {
 	// This should work fine.
 	protected static String capitalizeLoaderName(String modLoader) {
 		return modLoader.substring(0, 1).toUpperCase(Locale.ROOT) + modLoader.substring(1);
+	}
+
+	@Nullable
+	protected static ModrinthData getProjectAndVersion(ModGardenEvent event,
+													   @Nullable ModGardenSubmission existingSubmission,
+													   ModGardenUser user,
+													   String urlOrExternal) throws HypertextException {
+		ModrinthProject project = urlOrExternal == null
+				? null
+				: getModrinthProject(user, urlOrExternal);
+		boolean externalIsProject;
+
+		if (existingSubmission != null && existingSubmission.platform().type().equals("modrinth") && project == null) {
+			project = getModrinthProject(user, existingSubmission.platform().projectId());
+			externalIsProject = false;
+		} else {
+			externalIsProject = true;
+		}
+
+		if (project != null) {
+			ModrinthVersion version;
+			if (!externalIsProject) {
+				version = getModrinthVersion(project, urlOrExternal);
+			} else {
+				version = Modrinth.getLatestVersionOfProjectForEvent(project.id(), event);
+				if (version == null) {
+					version = Modrinth.getLatestVersionOfProject(project.id());
+				}
+			}
+
+			if (version != null) {
+				return new ModrinthData(project, version);
+			}
+		}
+
+		return null;
+	}
+
+	protected record ModrinthData(ModrinthProject project, ModrinthVersion version) {
+
 	}
 
 	@Nullable
@@ -248,12 +287,36 @@ public class SubmissionCommandGroup extends CommandGroup<SlashCommand> {
 		return null;
 	}
 
+	private static String mapFromProjectUrl(String url) {
+		if (url.matches("^https://modrinth\\.com/(project|mod)/([\\w!@$()`.+,\"\\-']{3,64})/version/([\\w!@$()`.+,\"\\-']{3,64})$")) {
+			int indexOfSlash;
+			// Remove everything after project id/slug.
+			indexOfSlash = url.indexOf("/version/");
+			url = url.substring(0, indexOfSlash);
+			indexOfSlash = url.lastIndexOf("/");
+			return url.substring(indexOfSlash + 1);
+		}
+		if (url.matches("^https://modrinth\\.com/(project|mod)/([\\w!@$()`.+,\"\\-']{3,64})$")) {
+			int i = url.lastIndexOf("/");
+			return url.substring(i + 1);
+		}
+		return url;
+	}
+
+	private static String mapFromVersionUrl(String url) {
+		if (url.matches("^https://modrinth\\.com/(project|mod)/([\\w!@$()`.+,\"\\-']{3,64})/version/([\\w!@$()`.+,\"\\-']{3,64})$")) {
+			int i = url.lastIndexOf("/");
+			return url.substring(i + 1);
+		}
+		return url;
+	}
+
 	private static boolean filterModrinthProjects(ModrinthProject modrinthProject,
 												  ModGardenEvent modGardenEvent) {
 		try {
 			List<ModrinthVersion> versions = Modrinth.getVersionsFromProject(modrinthProject.id());
 			for (ModrinthVersion version : versions) {
-				if (Modrinth.forMinecraftLoaderAndVersionOfEvent(
+				if (Modrinth.isForMinecraftLoaderAndVersionOfEvent(
 						version,
 						modGardenEvent
 				)) {

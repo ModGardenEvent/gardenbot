@@ -12,17 +12,20 @@ import net.modgarden.gardenbot.client.mod_garden.event.GenreAndEvent;
 import net.modgarden.gardenbot.client.mod_garden.event.ModGardenEvent;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenSubmission;
+import net.modgarden.gardenbot.client.mod_garden.project.SubmissionPlatform;
 import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
-import net.modgarden.gardenbot.client.modrinth.ModrinthProject;
-import net.modgarden.gardenbot.client.modrinth.ModrinthVersion;
 import net.modgarden.gardenbot.command.AutoCompletionGetter;
 import net.modgarden.gardenbot.command.SlashCommand;
 import net.modgarden.gardenbot.command.SlashCommandOption;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
+import net.modgarden.gardenbot.util.FileUtils;
+import net.modgarden.gardenbot.util.loader.FabricModJson;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,15 +38,8 @@ public class SubmissionSubmitCommand extends SlashCommand {
 				"Submit your project to a current Mod Garden event.",
 				new SlashCommandOption(
 						OptionType.STRING,
-						"platform",
-						"The source platform to use to submit your project using.",
-						true,
-						true
-				),
-				new SlashCommandOption(
-						OptionType.STRING,
-						"url-or-external-project",
-						"Either the file URL or Modrinth project to submit.",
+						"url-or-external",
+						"Either a file URL or Modrinth project/version to submit.",
 						true,
 						true
 				)
@@ -72,10 +68,10 @@ public class SubmissionSubmitCommand extends SlashCommand {
 		User user = interaction.event().getUser();
 
 		String platform = interaction.event().getOption("platform", OptionMapping::getAsString);
-		String urlOrExternalProject = interaction.event().getOption("url-or-external-project", OptionMapping::getAsString);
+		String urlOrExternal = interaction.event().getOption("url-or-external-project", OptionMapping::getAsString);
 
 		assert platform != null;
-		assert urlOrExternalProject != null;
+		assert urlOrExternal != null;
 
 		// This one's up here to allow for cleaning up later.
 		ModGardenProject projectForCleanup = null;
@@ -96,27 +92,24 @@ public class SubmissionSubmitCommand extends SlashCommand {
 						Please create one with **/account create**.""");
 			}
 
-			if ("download_url".equals(platform) || "Download URL".equalsIgnoreCase(platform)) {
-				return new MessageResponse("Download URLs as a submission platform are not yet implemented...");
-			}
+			CreationMetadata creationMetadata = null;
 
-			if ("modrinth".equalsIgnoreCase(platform)) {
+			ModrinthData modrinth = getProjectAndVersion(modGardenEvent, null, modGardenUser, urlOrExternal);
+
+			if (modrinth != null) {
 				// TODO: Modrinth project owner validation... After account linking is updated...
-				ModrinthProject modrinthProject = getModrinthProject(modGardenUser, urlOrExternalProject);
-
-				if (modrinthProject == null) {
-					return exceptionResponse("Could not find Modrinth project '" + urlOrExternalProject + "'.");
-				}
-
-				ModrinthVersion modrinthVersion = Modrinth.getLatestVersionOfProject(modrinthProject.id(), modGardenEvent);
-				if (modrinthVersion == null) {
+				if (Modrinth.isForMinecraftLoaderAndVersionOfEvent(modrinth.version(), modGardenEvent)) {
 					return new MessageResponse(
-							"You do not have a Modrinth project that is valid for the modloader and the game version.\nExpected %s for %s"
+							"Modrinth project '" + modrinth.project().title() + "' is not valid for the modloader and the game version.\nExpected %s for %s"
 									.formatted(capitalizeLoaderName(modGardenEvent.platform().modLoader()), modGardenEvent.platform().gameVersion())
 					);
 				}
 
-				String modId = Modrinth.getModIdFromVersion(modrinthVersion);
+				String modId = Modrinth.getModIdFromModMetadata(modrinth.version());
+
+				if (modId == null) {
+					return new MessageResponse("None of the specified Modrinth version's loaders are supported by GardenBot.");
+				}
 
 				for (ModGardenSubmission submission : ModGarden.getSubmissions(modGardenGenreAndEvent.genre().slug(), modGardenGenreAndEvent.event().slug())) {
 					if (modId.equals(submission.project().metadata().modId())) {
@@ -125,10 +118,33 @@ public class SubmissionSubmitCommand extends SlashCommand {
 					}
 				}
 
+				creationMetadata = new CreationMetadata(modId, modrinth.project().title(), SubmissionPlatform.modrinth(modrinth.project().id(),modrinth.version().id()));
+			} else if (urlOrExternal.matches(GardenBot.SAFE_URL_REGEX)) {
+				URI uri = new URI(urlOrExternal);
+				File download = FileUtils.download(uri);
+
+				if (FileUtils.isJar(download)) {
+					if (FabricModJson.isFabricMod(download)) {
+						// TODO: Validate 'minecraft' in requirements field in FMJ. I'm not doing it now because I don't want to write a FMJ parser.
+						FabricModJson fmj = FabricModJson.getFabricModJson(download);
+						creationMetadata = new CreationMetadata(
+								fmj.modId(),
+								fmj.name(),
+								SubmissionPlatform.downloadUrl(urlOrExternal)
+						);
+					}
+				}
+
+				FileUtils.cleanupTmpFolder(download);
+			} else {
+				return exceptionResponse("Could not process project '" + urlOrExternal + "'.");
+			}
+
+			if (creationMetadata != null) {
 				// See if the project exists already and use that if possible...
-				ModGardenProject modGardenProject = ModGarden.getProjectFromModId(modId);
+				ModGardenProject modGardenProject = ModGarden.getProjectFromModId(creationMetadata.modId());
 				if (modGardenProject == null) {
-					modGardenProject = ModGarden.createProject(modrinthProject.title());
+					modGardenProject = ModGarden.createProject(creationMetadata.name());
 					// Save this for cleanup in the case of an exception.
 					projectForCleanup = modGardenProject;
 
@@ -151,13 +167,19 @@ public class SubmissionSubmitCommand extends SlashCommand {
 					return new MessageResponse("You do not have permissions to create submissions for the specified project.");
 				}
 
-				ModGardenSubmission submission = ModGarden.createSubmissionModrinth(modGardenProject.id(), modGardenEvent.id(), modrinthProject.id(), modrinthVersion.id());
+				ModGardenSubmission submission = ModGarden.createSubmission(
+						modGardenProject.id(),
+						modGardenEvent.id(),
+						creationMetadata.platform()
+				);
 				if (submission == null) {
 					throw new HypertextException(500, "Failed to create submission.");
 				}
 
-				return new MessageResponse("Successfully submitted '" + modrinthProject.title() + "' to " + modGardenEvent.metadata().name() + "!");
+				return new MessageResponse("Successfully submitted '" + creationMetadata.name() + "' to " + modGardenEvent.metadata().name() + "!");
 			}
+
+			return new MessageResponse("The metadata of the specified file is unsupported.");
 		} catch (Exception e) {
 			// If a project was created and does not have data...
 			// Clean up!
@@ -169,22 +191,22 @@ public class SubmissionSubmitCommand extends SlashCommand {
 					return exceptionResponse(ex);
 				}
 			}
+
 			GardenBot.LOG.error("", e);
 			return exceptionResponse(e.getMessage());
 		}
-		return new MessageResponse("Invalid platform for Mod Garden '" + platform + "'.");
 	}
 
 	@Override
 	public List<Command.Choice> getAutoCompleteChoices(String focusedOption, User user, AutoCompletionGetter autoCompletionGetter) {
-		if ("platform".equals(focusedOption)) {
-			return getPlatformChoices();
-		}
-
-		if ("modrinth".equals(autoCompletionGetter.getOption("platform", OptionMapping::getAsString)) && "url-or-external-project".equals(focusedOption)) {
+		if ("url-or-external".equals(focusedOption)) {
 			return getModrinthProjectChoices(user);
 		}
 
 		return Collections.emptyList();
+	}
+
+	private record CreationMetadata(String modId, String name, SubmissionPlatform platform) {
+
 	}
 }
