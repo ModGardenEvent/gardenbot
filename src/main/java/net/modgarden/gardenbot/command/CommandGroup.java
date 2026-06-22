@@ -37,7 +37,7 @@ public abstract class CommandGroup<T extends AbstractSlashCommand> extends Abstr
 								(_, newMap) -> newMap
 						)
 				);
-		this.isGroup = subCommands.length > 0 && subCommands[0] instanceof CommandGroup<?>;
+		this.isGroup = subCommands.length > 0 && subCommands[0].get() instanceof CommandGroup<?>;
 		validateSubCommandsOrThrow();
 	}
 

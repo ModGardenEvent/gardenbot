@@ -57,7 +57,7 @@ public class Discord {
 
 		for (String roleId : modGardenUser.roles()) {
 			try {
-				ModGardenRole modGardenRole = ModGarden.getRole(roleId);
+				ModGardenRole modGardenRole = ModGarden.getUserRole(roleId);
 				if (modGardenRole == null)
 					continue;
 

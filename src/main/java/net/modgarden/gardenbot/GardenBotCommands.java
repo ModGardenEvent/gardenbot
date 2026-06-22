@@ -1,6 +1,7 @@
 package net.modgarden.gardenbot;
 
 import net.modgarden.gardenbot.command.account.AccountCommandGroup;
+import net.modgarden.gardenbot.command.admin.AdminCommandGroup;
 import net.modgarden.gardenbot.command.fix.FixCommandGroup;
 import net.modgarden.gardenbot.command.image.ImageCommandGroup;
 import net.modgarden.gardenbot.command.submission.SubmissionCommandGroup;
@@ -18,6 +19,8 @@ public class GardenBotCommands {
 		register(SudoCommand::new);
 		register(SubmissionCommandGroup::new);
 		register(TeamCommandGroup::new);
+
+		register(AdminCommandGroup::new);
 
 //		SlashCommandDispatcher.register(new SlashCommand("profile", "Actions relating to your visible Mod Garden profile.",
 //				new SlashCommand.SubCommandGroup(

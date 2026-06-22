@@ -9,16 +9,15 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.exception.HypertextException;
-import net.modgarden.gardenbot.client.mod_garden.event.EventTimes;
-import net.modgarden.gardenbot.client.mod_garden.event.GenreAndEvent;
-import net.modgarden.gardenbot.client.mod_garden.event.ModGardenEvent;
-import net.modgarden.gardenbot.client.mod_garden.event.ModGardenGenre;
+import net.modgarden.gardenbot.client.mod_garden.event.*;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenSubmission;
 import net.modgarden.gardenbot.client.mod_garden.project.SubmissionPlatform;
 import net.modgarden.gardenbot.client.mod_garden.project.ProjectMetadata;
 import net.modgarden.gardenbot.client.mod_garden.request.*;
 import net.modgarden.gardenbot.client.mod_garden.role.ModGardenRole;
+import net.modgarden.gardenbot.client.mod_garden.role.RoleIntegrations;
+import net.modgarden.gardenbot.client.mod_garden.role.integration.DiscordRoleIntegration;
 import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.client.mod_garden.user.modifiable.ModifiableUserBio;
 import net.modgarden.gardenbot.client.mod_garden.user.modifiable.ModifiableUserIntegrations;
@@ -112,8 +111,38 @@ public class ModGarden {
 		}
 	}
 
+	public static ModGardenRole createUserRoleFromDiscordRole(Role discordRole) throws HypertextException {
+		String body = GardenBot.GSON.toJson(
+				new CreateUserRoleRequestBody(
+						discordRole.getName(),
+						"0",
+						new RoleIntegrations(
+								new DiscordRoleIntegration(
+										discordRole.getId()
+								)
+						)
+				),
+				CreateUserRoleRequestBody.class
+		);
+
+		try {
+			HttpResponse<InputStream> response = post(
+					"internal/role/create",
+					HttpRequest.BodyPublishers.ofString(body),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+			if (response.statusCode() == 201) {
+				String location = response.headers().firstValue("Location").orElseThrow();
+				return getUserRole(location.substring("/v2/roles/".length()));
+			}
+			throw hypertextException(response);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+	}
+
 	@Nullable
-	public static ModGardenRole getRole(String roleId) throws HypertextException {
+	public static ModGardenRole getUserRole(String roleId) throws HypertextException {
 		HttpResponse<InputStream> response;
 		try {
 			response = get(
@@ -136,7 +165,7 @@ public class ModGarden {
 	}
 
 	@Nullable
-	public static ModGardenRole getRoleFromDiscordRoleId(String discordRoleId) throws HypertextException {
+	public static ModGardenRole getUserRoleFromDiscordRoleId(String discordRoleId) throws HypertextException {
 		HttpResponse<InputStream> response;
 		try {
 			response = get(
@@ -164,7 +193,7 @@ public class ModGarden {
 			return;
 
 		for (Role role : roles) {
-			ModGardenRole modGardenRole = ModGarden.getRoleFromDiscordRoleId(role.getId());
+			ModGardenRole modGardenRole = ModGarden.getUserRoleFromDiscordRoleId(role.getId());
 
 			if (modGardenRole == null)
 				continue;
@@ -176,7 +205,7 @@ public class ModGarden {
 
 	public static void removeDiscordRolesFromModGardenUser(Member member, List<Role> roles) throws HypertextException {
 		for (Role role : roles) {
-			ModGardenRole modGardenRole = ModGarden.getRoleFromDiscordRoleId(role.getId());
+			ModGardenRole modGardenRole = ModGarden.getUserRoleFromDiscordRoleId(role.getId());
 			if (modGardenRole == null)
 				continue;
 			ModGarden.removeUserRole(ModGarden.getUserByDiscordUser(member.getUser()), modGardenRole);
@@ -410,6 +439,109 @@ public class ModGarden {
 		}
 
 		return submissions;
+	}
+
+	public static ModGardenEvent createEvent(String genreId,
+											 String slug,
+											 EventMetadata metadata,
+											 EventTimes times,
+											 EventPlatform platform) throws HypertextException {
+		String body = GardenBot.GSON.toJson(
+				new CreateEventRequestBody(
+						genreId,
+						slug,
+						metadata,
+						times,
+						platform
+				),
+				CreateEventRequestBody.class
+		);
+
+		try {
+			HttpResponse<InputStream> response = post(
+					"internal/event/create",
+					HttpRequest.BodyPublishers.ofString(body),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+			if (response.statusCode() == 201) {
+				String location = response.headers().firstValue("Location").orElseThrow();
+				return getEventByIds(genreId, location.substring("/v2/events/%s/".formatted(genreId).length()));
+			}
+			throw hypertextException(response);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+	}
+
+	public static void addRolesToEvent(String genreId, String eventId, Map<String, String> roleMap) throws HypertextException {
+		String body = GardenBot.GSON.toJson(
+				new ModifyEventRequestBody(
+						roleMap
+				),
+				ModifyEventRequestBody.class
+		);
+
+		HttpResponse<InputStream> response;
+		try {
+			 response = post(
+					"internal/event/modify/%s/%s".formatted(genreId, eventId),
+					HttpRequest.BodyPublishers.ofString(body),
+					HttpResponse.BodyHandlers.ofInputStream()
+			 );
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+
+		if (response.statusCode() == 200) {
+			return;
+		}
+		throw hypertextException(response);
+	}
+
+	@Nullable
+	public static ModGardenEvent getEventByIds(String genreId, String eventId) throws HypertextException {
+		HttpResponse<InputStream> response;
+		try {
+			response = get(
+					"v2/events/%s/%s?by=id".formatted(genreId, eventId),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+
+		if (response.statusCode() == 200) {
+			return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), ModGardenEvent.class);
+		}
+
+		if (response.statusCode() == 404) {
+			return null;
+		}
+
+		throw hypertextException(response);
+	}
+
+	@Nullable
+	public static ModGardenEvent getEventBySlugs(String genreSlug, String eventSlug) throws HypertextException {
+		HttpResponse<InputStream> response;
+		try {
+			response = get(
+					"v2/events/%s/%s".formatted(genreSlug, eventSlug),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new HypertextException(500, e.getMessage());
+		}
+
+		if (response.statusCode() == 200) {
+			return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), ModGardenEvent.class);
+		}
+
+		if (response.statusCode() == 404) {
+			return null;
+		}
+
+		throw hypertextException(response);
 	}
 
 	public static GenreAndEvent getDevelopmentTimeEvent() throws HypertextException {
