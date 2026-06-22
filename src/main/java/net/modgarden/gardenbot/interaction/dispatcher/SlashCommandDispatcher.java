@@ -1,0 +1,48 @@
+package net.modgarden.gardenbot.interaction.dispatcher;
+
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+import net.modgarden.gardenbot.GardenBot;
+import net.modgarden.gardenbot.command.AbstractSlashCommand;
+import net.modgarden.gardenbot.database.DatabaseAccess;
+import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
+import net.modgarden.gardenbot.response.Response;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.function.Supplier;
+
+public class SlashCommandDispatcher {
+	private static final HashMap<String, AbstractSlashCommand> COMMANDS = new HashMap<>();
+
+	public static void register(Supplier<AbstractSlashCommand> supplier) {
+		AbstractSlashCommand command = supplier.get();
+		COMMANDS.put(command.name, command);
+	}
+
+	public static Response dispatch(SlashCommandInteraction command) {
+		return DatabaseAccess.bind().call(() -> COMMANDS.get(command.event().getName()).respondInternal(command));
+	}
+
+	public static List<Command.Choice> getAutoCompleteChoices(CommandAutoCompleteInteractionEvent event) {
+		var slashCommand = COMMANDS.get(event.getName());
+		return slashCommand.getAutoCompleteChoices(event.getFocusedOption().getName(), event.getUser(), event::getOption, event.getSubcommandGroup(), event.getSubcommandName());
+	}
+
+	public static void addCommands(Guild guild) {
+		if (Boolean.parseBoolean(GardenBot.DOTENV.get("GARDENBOT_UPSERT_COMMANDS", "false"))) {
+			List<SlashCommandData> commandData = COMMANDS.values()
+					.stream()
+					.map(AbstractSlashCommand::asData)
+					.toList();
+
+			guild.updateCommands()
+					.addCommands(commandData)
+					.queue();
+
+			GardenBot.LOG.info("Successfully upserted GardenBot commands!");
+		}
+	}
+}

@@ -1,4 +1,3 @@
-import org.jetbrains.gradle.ext.Application
 import org.jetbrains.gradle.ext.runConfigurations
 import org.jetbrains.gradle.ext.settings
 
@@ -14,12 +13,15 @@ group = "net.modgarden"
 version = project.properties["version"].toString()
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
     withJavadocJar()
 }
 
 repositories {
     mavenCentral()
+	maven("https://libraries.minecraft.net") {
+		name = "Minecraft Libraries"
+	}
 }
 
 dependencies {
@@ -58,17 +60,20 @@ application {
 }
 
 idea {
-    project {
-        settings.runConfigurations {
-            create("Run", Application::class.java) {
-                workingDirectory = "${rootProject.projectDir}/run"
-                mainClass = "net.modgarden.gardenbot.GardenBot"
-                moduleName = project.idea.module.name + ".main"
-                includeProvidedDependencies = true
+	project {
+		settings.runConfigurations {
+			create("Run", org.jetbrains.gradle.ext.Application::class.java) {
+				workingDirectory = "${rootProject.projectDir}/run"
+				mainClass = "net.modgarden.gardenbot.GardenBot"
+				moduleName = "${project.idea.module.name}.main"
+				includeProvidedDependencies = true
 				envs = mapOf(
-					"env" to "development"
+					"env" to "development",
+					"GARDENBOT_UPSERT_COMMANDS" to "true"
 				)
-            }
-        }
-    }
+				// sqlite dependency moment
+				jvmArgs = "--enable-native-access=ALL-UNNAMED"
+			}
+		}
+	}
 }
