@@ -53,7 +53,8 @@ public class Discord {
 		if (modGardenUser == null)
 			return Collections.emptyList();
 
-		List<Role> rolesToAdd = new ArrayList<>(member.getRoles());
+		List<Role> existingRoles = new ArrayList<>(member.getRoles());
+		List<Role> rolesToAdd = new ArrayList<>();
 
 		for (String roleId : modGardenUser.roles()) {
 			try {
@@ -75,7 +76,9 @@ public class Discord {
 			}
 		}
 
-		guild.modifyMemberRoles(member, rolesToAdd).queue();
+		existingRoles.addAll(rolesToAdd);
+		guild.modifyMemberRoles(member, existingRoles).queue();
+
 		return rolesToAdd;
 	}
 }
