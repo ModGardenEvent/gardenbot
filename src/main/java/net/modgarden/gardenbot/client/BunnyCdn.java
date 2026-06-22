@@ -11,6 +11,7 @@ import java.net.http.HttpResponse;
 
 import static net.modgarden.gardenbot.GardenBot.HTTP_CLIENT;
 
+@SuppressWarnings("UastIncorrectHttpHeaderInspection")
 public class BunnyCdn {
 	public static final String API_URL = "https://ny.storage.bunnycdn.com/mod-garden/";
 
