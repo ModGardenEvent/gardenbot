@@ -5,6 +5,7 @@ import net.modgarden.gardenbot.client.BunnyCdn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.net.http.HttpResponse;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -74,7 +75,7 @@ public final class NaturalId {
 		return id;
 	}
 
-	public static String generateCdnLink(String basePath, String fileExtension, int length) throws Exception {
+	public static String generateCdnLink(String basePath, String fileExtension, int length) throws IOException, InterruptedException {
 		String id = null;
 		while (id == null) {
 			String naturalId = generateUnchecked(length);
