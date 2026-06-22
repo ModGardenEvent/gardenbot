@@ -3,12 +3,13 @@ package net.modgarden.gardenbot.command.admin;
 import net.dv8tion.jda.api.entities.Role;
 import net.modgarden.gardenbot.command.SlashCommand;
 import net.modgarden.gardenbot.command.SlashCommandOption;
-import net.modgarden.gardenbot.command.sudo.SudoCommand;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
 
 import java.util.List;
+
+import static net.modgarden.gardenbot.command.sudo.SudoCommand.SUDO_ROLE_ID;
 
 public abstract class AdminSlashCommand extends SlashCommand {
 
@@ -27,7 +28,7 @@ public abstract class AdminSlashCommand extends SlashCommand {
 
 	private boolean hasPermission(List<Role> roles) {
 		for (Role role : roles) {
-			if (role.getId().equals("925706375034716211")) {
+			if (role.getId().equals(SUDO_ROLE_ID)) {
 				return true;
 			}
 		}
