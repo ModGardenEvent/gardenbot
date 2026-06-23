@@ -61,7 +61,7 @@ public abstract class CommandGroup<T extends AbstractSlashCommand> extends Abstr
 	                                                   User user,
 	                                                   AutoCompletionGetter autoCompletionGetter,
 	                                                   @Nullable String groupName,
-	                                                   @Nullable String subCommandName) {
+	                                                   @Nullable String subCommandName) throws HypertextException {
 		String lookupName = isGroup
 				? groupName
 				: subCommandName;

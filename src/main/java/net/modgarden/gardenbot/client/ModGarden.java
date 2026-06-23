@@ -4,11 +4,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.exception.HypertextException;
+import net.modgarden.gardenbot.client.exception.InternalServerException;
 import net.modgarden.gardenbot.client.mod_garden.event.*;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenSubmission;
@@ -26,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -58,7 +61,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {
@@ -81,7 +84,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {
@@ -107,7 +110,37 @@ public class ModGarden {
 			String location = response.headers().firstValue("Location").orElseThrow();
 			return getUserByModGardenId(location.substring("/v2/users/".length()));
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
+		}
+	}
+
+	public static ModGardenRole createUserRole(
+			String name,
+			String permissions,
+			RoleIntegrations integrations
+	) throws HypertextException {
+		String body = GardenBot.GSON.toJson(
+				new CreateUserRoleRequestBody(
+						name,
+						permissions,
+						integrations
+				),
+				CreateUserRoleRequestBody.class
+		);
+
+		try {
+			HttpResponse<InputStream> response = post(
+					"internal/role/create",
+					HttpRequest.BodyPublishers.ofString(body),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+			if (response.statusCode() == 201) {
+				String location = response.headers().firstValue("Location").orElseThrow();
+				return getUserRole(location.substring("/v2/roles/".length()));
+			}
+			throw hypertextException(response);
+		} catch (IOException | InterruptedException e) {
+			throw new InternalServerException(e.getMessage());
 		}
 	}
 
@@ -137,8 +170,77 @@ public class ModGarden {
 			}
 			throw hypertextException(response);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
+	}
+
+	public static void modifyUserRole(String roleId, ModGardenRole.Modifiable role) throws HypertextException {
+		JsonObject root = GardenBot.GSON.toJsonTree(
+				new ModifyUserRoleRequestBody(
+						role.name(),
+						role.permissions()
+				),
+				ModifyUserRoleRequestBody.class
+		).getAsJsonObject();
+
+		if (role.integrations() != null) {
+			JsonObject integrations = new JsonObject();
+
+			if (role.integrations().discord() != null) {
+				if (role.integrations().discord().isPresent()) {
+					integrations.add("discord", GardenBot.GSON.toJsonTree(
+							role.integrations().discord().value(),
+							DiscordRoleIntegration.class
+					));
+				} else {
+					integrations.add("discord", JsonNull.INSTANCE);
+				}
+			}
+
+			root.add("integrations", integrations);
+		}
+
+		String body = root.toString();
+
+		try {
+			patch(
+					"internal/role/" + roleId,
+					HttpRequest.BodyPublishers.ofString(body),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new InternalServerException(e.getMessage());
+		}
+	}
+
+	public static void deleteUserRole(String roleId) throws HypertextException {
+		try {
+			delete(
+					"internal/role/" + roleId,
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new InternalServerException(e.getMessage());
+		}
+	}
+
+	public static Collection<ModGardenRole> getUserRoles() throws HypertextException {
+		HttpResponse<InputStream> response;
+		try {
+			response = get(
+					"v2/roles",
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new InternalServerException(e.getMessage());
+		}
+
+		if (response.statusCode() == 200) {
+			Type type = TypeToken.getParameterized(ArrayList.class, ModGardenRole.class).getType();
+			return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), type);
+		}
+
+		throw hypertextException(response);
 	}
 
 	@Nullable
@@ -150,7 +252,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {
@@ -173,7 +275,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {
@@ -220,7 +322,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {
@@ -253,7 +355,7 @@ public class ModGarden {
 			}
 			throw hypertextException(response);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 	}
 
@@ -265,7 +367,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {
@@ -284,7 +386,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {
@@ -307,7 +409,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {
@@ -345,7 +447,7 @@ public class ModGarden {
 			}
 			throw hypertextException(response);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 	}
 
@@ -369,7 +471,7 @@ public class ModGarden {
 			}
 			throw hypertextException(response);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 	}
 
@@ -381,7 +483,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {
@@ -400,7 +502,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {
@@ -423,7 +525,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() != 200) {
@@ -469,7 +571,7 @@ public class ModGarden {
 			}
 			throw hypertextException(response);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 	}
 
@@ -489,7 +591,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			 );
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {
@@ -507,7 +609,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {
@@ -530,7 +632,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {
@@ -592,7 +694,7 @@ public class ModGarden {
 				throw hypertextException(removeGardenBotResponse);
 			}
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 	}
 
@@ -611,7 +713,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.discarding()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 	}
 
@@ -626,7 +728,7 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() != 200) {
@@ -689,13 +791,13 @@ public class ModGarden {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		JsonElement genres = JsonParser.parseReader(new InputStreamReader(genresResponse.body()));
 
 		if (!genres.isJsonArray()) {
-			throw new HypertextException(500, "Mod Garden genres endpoint is not a list.");
+			throw new InternalServerException("Mod Garden genres endpoint is not a list.");
 		}
 
 		for (JsonElement element : genres.getAsJsonArray()) {
@@ -709,7 +811,7 @@ public class ModGarden {
 							HttpResponse.BodyHandlers.ofInputStream()
 					);
 				} catch (IOException | InterruptedException e) {
-					throw new HypertextException(500, e.getMessage());
+					throw new InternalServerException(e.getMessage());
 				}
 
 				ModGardenEvent event = GardenBot.GSON.fromJson(

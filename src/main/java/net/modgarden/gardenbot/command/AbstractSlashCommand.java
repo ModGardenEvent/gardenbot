@@ -27,7 +27,7 @@ public abstract class AbstractSlashCommand implements InteractionHandler<SlashCo
 	                                                   User user,
 	                                                   AutoCompletionGetter autoCompletionGetter,
 	                                                   @Nullable String groupName,
-	                                                   @Nullable String subCommandName) {
+	                                                   @Nullable String subCommandName) throws HypertextException {
 		return Collections.emptyList();
 	}
 

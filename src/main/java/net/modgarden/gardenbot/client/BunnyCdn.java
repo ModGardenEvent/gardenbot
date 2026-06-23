@@ -2,6 +2,7 @@ package net.modgarden.gardenbot.client;
 
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.exception.HypertextException;
+import net.modgarden.gardenbot.client.exception.InternalServerException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +21,7 @@ public class BunnyCdn {
 		try {
 			response = get(location, HttpResponse.BodyHandlers.discarding());
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 		return response.statusCode() != 404;
 	}
@@ -35,7 +36,7 @@ public class BunnyCdn {
 					"Accept", "image/png"
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 	}
 

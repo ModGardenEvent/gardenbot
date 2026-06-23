@@ -8,6 +8,7 @@ import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.ModGarden;
 import net.modgarden.gardenbot.client.Modrinth;
 import net.modgarden.gardenbot.client.exception.HypertextException;
+import net.modgarden.gardenbot.client.exception.InternalServerException;
 import net.modgarden.gardenbot.client.mod_garden.event.ModGardenEvent;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenSubmission;
@@ -166,7 +167,7 @@ public class SubmissionUpdateCommand extends SlashCommand {
 			// Do this in the case that the project metadata has changed.
 			ModGardenProject finalModGardenProject = ModGarden.getProject(modGardenProject.id());
 			if (finalModGardenProject == null) {
-				throw new HypertextException(500, "Could not retrieve project after updating the submission.");
+				throw new InternalServerException("Could not retrieve project after updating the submission.");
 			}
 			String finalFriendlyProjectName = finalModGardenProject.metadata().name();
 
@@ -184,7 +185,13 @@ public class SubmissionUpdateCommand extends SlashCommand {
 
 		if ("url-or-external".equals(focusedOption)) {
 			try {
-				ModGardenProject project = getModGardenProject(ModGarden.getUserByDiscordUser(user), autoCompletionGetter.getOption("project", OptionMapping::getAsString));
+				String projectId = autoCompletionGetter.getOption("project", OptionMapping::getAsString);
+
+				if (projectId == null) {
+					return Collections.emptyList();
+				}
+
+				ModGardenProject project = getModGardenProject(ModGarden.getUserByDiscordUser(user), projectId);
 
 				if (project == null) {
 					return Collections.emptyList();

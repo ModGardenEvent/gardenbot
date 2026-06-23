@@ -15,6 +15,11 @@ public class HypertextException extends Exception {
 		this.status = status;
 	}
 
+	public HypertextException(int status, Throwable cause) {
+		super(cause);
+		this.status = status;
+	}
+
 	public int getStatus() {
 		return status;
 	}

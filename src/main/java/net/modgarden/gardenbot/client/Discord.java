@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.exception.HypertextException;
+import net.modgarden.gardenbot.client.exception.InternalServerException;
 import net.modgarden.gardenbot.client.mod_garden.role.ModGardenRole;
 import net.modgarden.gardenbot.client.mod_garden.role.integration.DiscordRoleIntegration;
 import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
@@ -43,7 +44,7 @@ public class Discord {
 			}
 			return attachment.getProxy().download().get();
 		} catch (ExecutionException | InterruptedException | IOException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 	}
 

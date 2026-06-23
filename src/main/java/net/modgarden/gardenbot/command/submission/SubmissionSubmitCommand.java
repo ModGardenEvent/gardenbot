@@ -8,6 +8,7 @@ import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.ModGarden;
 import net.modgarden.gardenbot.client.Modrinth;
 import net.modgarden.gardenbot.client.exception.HypertextException;
+import net.modgarden.gardenbot.client.exception.InternalServerException;
 import net.modgarden.gardenbot.client.mod_garden.event.GenreAndEvent;
 import net.modgarden.gardenbot.client.mod_garden.event.ModGardenEvent;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
@@ -149,7 +150,7 @@ public class SubmissionSubmitCommand extends SlashCommand {
 					projectForCleanup = modGardenProject;
 
 					if (modGardenProject == null) {
-						throw new HypertextException(500, "Failed to create project.");
+						throw new InternalServerException("Failed to create project.");
 					}
 
 					ModGarden.transferProjectOwnership(modGardenProject, modGardenUser);
@@ -160,7 +161,7 @@ public class SubmissionSubmitCommand extends SlashCommand {
 				}
 
 				if (modGardenProject == null) {
-					throw new HypertextException(500, "Failed to create project.");
+					throw new InternalServerException("Failed to create project.");
 				}
 
 				if (!modGardenProject.team().containsKey(modGardenUser.id())) {
@@ -173,7 +174,7 @@ public class SubmissionSubmitCommand extends SlashCommand {
 						creationMetadata.platform()
 				);
 				if (submission == null) {
-					throw new HypertextException(500, "Failed to create submission.");
+					throw new InternalServerException("Failed to create submission.");
 				}
 
 				return new MessageResponse("Successfully submitted '" + creationMetadata.name() + "' to " + modGardenEvent.metadata().name() + "!");

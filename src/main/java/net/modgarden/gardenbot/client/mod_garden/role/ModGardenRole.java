@@ -1,5 +1,15 @@
 package net.modgarden.gardenbot.client.mod_garden.role;
 
-public record ModGardenRole(String id,
+import org.jetbrains.annotations.Nullable;
+
+public record ModGardenRole(String name,
+							String permissions,
+                            String id,
                             RoleIntegrations integrations) {
+	public record Modifiable(
+			@Nullable String name,
+			@Nullable String permissions,
+			@Nullable RoleIntegrations.Modifiable integrations
+	) {
+	}
 }

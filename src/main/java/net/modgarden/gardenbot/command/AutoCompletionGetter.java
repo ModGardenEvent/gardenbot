@@ -8,11 +8,11 @@ import java.util.function.Function;
 
 @FunctionalInterface
 public interface AutoCompletionGetter {
-	<T> T getOption(String name,
+	<T> @Nullable T getOption(String name,
 	                @Nullable T fallback,
 	                @NotNull Function<? super OptionMapping, ? extends T> resolver);
 
-	default <T> T getOption(String name,
+	default <T> @Nullable T getOption(String name,
 	                        @NotNull Function<? super OptionMapping, ? extends T> resolver) {
 		return getOption(name, null, resolver);
 	}

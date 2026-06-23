@@ -28,9 +28,8 @@ import java.util.concurrent.TimeUnit;
 import static net.modgarden.gardenbot.GardenBot.IS_DEV_ENV;
 
 public class SudoCommand extends SlashCommand {
-	// Feel free to swap these out whilst testing.
-	public static final String SUDO_ROLE_ID = "1441570757539790859"; // Mod Garden Server - sudo ID: '1441570757539790859'
-	private static final String SUDOER_ROLE_ID = "1366207851261071402"; // Mod Garden Server - Server Manager ID: '1366207851261071402'
+	public static final String SUDO_ROLE_ID = GardenBot.DOTENV.get("SUDO_ROLE_ID", "1441570757539790859"); // Mod Garden Server - sudo ID: '1441570757539790859'
+	private static final String SUDOER_ROLE_ID = GardenBot.DOTENV.get("SUDOER_ROLE_ID", "1366207851261071402"); // Mod Garden Server - Server Manager ID: '1366207851261071402'
 
 	private static final Map<Member, ScheduledFuture<?>> SUDOER_TIMERS = new HashMap<>();
 

@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.exception.HypertextException;
+import net.modgarden.gardenbot.client.exception.InternalServerException;
 import net.modgarden.gardenbot.client.mod_garden.event.ModGardenEvent;
 import net.modgarden.gardenbot.client.modrinth.ModrinthFile;
 import net.modgarden.gardenbot.client.modrinth.ModrinthProject;
@@ -40,7 +41,7 @@ public class Modrinth {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {
@@ -58,7 +59,7 @@ public class Modrinth {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() != 200) {
@@ -109,7 +110,7 @@ public class Modrinth {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		List<ModrinthVersion> versions = new ArrayList<>();
@@ -144,7 +145,7 @@ public class Modrinth {
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
 		} catch (IOException | InterruptedException e) {
-			throw new HypertextException(500, e.getMessage());
+			throw new InternalServerException(e.getMessage());
 		}
 
 		if (response.statusCode() == 200) {

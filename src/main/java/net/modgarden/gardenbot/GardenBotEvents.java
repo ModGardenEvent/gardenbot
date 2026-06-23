@@ -19,6 +19,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.modgarden.gardenbot.client.Discord;
 import net.modgarden.gardenbot.client.ModGarden;
 import net.modgarden.gardenbot.client.exception.HypertextException;
@@ -43,8 +44,12 @@ public class GardenBotEvents extends ListenerAdapter {
 
 	@Override
 	public void onCommandAutoCompleteInteraction(@NotNull CommandAutoCompleteInteractionEvent event) {
-		var choices = SlashCommandDispatcher.getAutoCompleteChoices(event);
-		event.replyChoices(choices).queue();
+		try {
+			List<Command.Choice> choices = SlashCommandDispatcher.getAutoCompleteChoices(event);
+			event.replyChoices(choices).queue();
+		} catch (HypertextException e) {
+			GardenBot.LOG.error("", e);
+		}
 	}
 
 	@Override

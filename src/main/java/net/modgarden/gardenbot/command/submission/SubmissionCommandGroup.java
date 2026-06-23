@@ -6,6 +6,7 @@ import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.ModGarden;
 import net.modgarden.gardenbot.client.Modrinth;
 import net.modgarden.gardenbot.client.exception.HypertextException;
+import net.modgarden.gardenbot.client.exception.InternalServerException;
 import net.modgarden.gardenbot.client.mod_garden.event.GenreAndEvent;
 import net.modgarden.gardenbot.client.mod_garden.event.ModGardenEvent;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
@@ -266,7 +267,7 @@ public class SubmissionCommandGroup extends CommandGroup<SlashCommand> {
 
 		// I doubt anybody in their right mind would name two projects they own the same thing...
 		if (projects.size() > 1) {
-			throw new HypertextException(500, """
+			throw new InternalServerException("""
 					Congratulations! You found the secret message by having two mods named the exact same thing...
 					Maybe don't do that? Maybe just use the slug at this point? I'm not the judge of what you do...
 

@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.modgarden.gardenbot.GardenBot;
+import net.modgarden.gardenbot.client.exception.HypertextException;
 import net.modgarden.gardenbot.command.AbstractSlashCommand;
 import net.modgarden.gardenbot.database.DatabaseAccess;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
@@ -26,7 +27,7 @@ public class SlashCommandDispatcher {
 		return DatabaseAccess.bind().call(() -> COMMANDS.get(command.event().getName()).respondInternal(command));
 	}
 
-	public static List<Command.Choice> getAutoCompleteChoices(CommandAutoCompleteInteractionEvent event) {
+	public static List<Command.Choice> getAutoCompleteChoices(CommandAutoCompleteInteractionEvent event) throws HypertextException {
 		var slashCommand = COMMANDS.get(event.getName());
 		return slashCommand.getAutoCompleteChoices(event.getFocusedOption().getName(), event.getUser(), event::getOption, event.getSubcommandGroup(), event.getSubcommandName());
 	}

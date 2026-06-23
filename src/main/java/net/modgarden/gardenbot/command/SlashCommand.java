@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import net.modgarden.gardenbot.client.exception.HypertextException;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -19,12 +20,12 @@ public abstract class SlashCommand extends AbstractSlashCommand {
 		this.options = options;
 	}
 
-	public List<Command.Choice> getAutoCompleteChoices(String focusedOption, User user, AutoCompletionGetter autoCompletionGetter) {
+	public List<Command.Choice> getAutoCompleteChoices(String focusedOption, User user, AutoCompletionGetter autoCompletionGetter) throws HypertextException {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public final List<Command.Choice> getAutoCompleteChoices(String focusedOption, User user, AutoCompletionGetter autoCompletionGetter, @Nullable String groupName, @Nullable String subCommandName) {
+	public final List<Command.Choice> getAutoCompleteChoices(String focusedOption, User user, AutoCompletionGetter autoCompletionGetter, @Nullable String groupName, @Nullable String subCommandName) throws HypertextException {
 		return getAutoCompleteChoices(focusedOption, user, autoCompletionGetter);
 	}
 
