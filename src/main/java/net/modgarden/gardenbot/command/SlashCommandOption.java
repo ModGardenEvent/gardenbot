@@ -55,7 +55,9 @@ public record SlashCommandOption(OptionType type,
 	}
 
 	@SafeVarargs
-	public static List<Command.Choice> pickChoices(FallibleSupplier<List<Command.Choice>, HypertextException>... suppliers) throws HypertextException {
+	public static List<Command.Choice> pickChoices(
+			FallibleSupplier<List<Command.Choice>, HypertextException>... suppliers
+	) throws HypertextException {
 		for (FallibleSupplier<List<Command.Choice>, HypertextException> supplier : suppliers) {
 			List<Command.Choice> choices = supplier.get();
 
