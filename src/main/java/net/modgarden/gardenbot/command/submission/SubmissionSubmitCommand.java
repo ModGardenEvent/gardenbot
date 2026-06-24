@@ -68,7 +68,7 @@ public class SubmissionSubmitCommand extends SlashCommand {
 		User user = interaction.event().getUser();
 
 		String platform = interaction.event().getOption("platform", OptionMapping::getAsString);
-		String urlOrExternal = interaction.event().getOption("url-or-external-project", OptionMapping::getAsString);
+		String urlOrExternal = interaction.event().getOption("url-or-external", OptionMapping::getAsString);
 
 		assert platform != null;
 		assert urlOrExternal != null;
