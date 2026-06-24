@@ -6,6 +6,7 @@ import java.util.Objects;
 
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -130,7 +131,8 @@ public class AdminRoleRemoveUserCommand extends AdminRoleSlashCommand {
 
 		boolean isSudo = member.getRoles().contains(guild.getRoleById(SudoCommand.SUDO_ROLE_ID));
 		boolean modifyingAdminButNotAdmin;
-		boolean modifyingRoleAboveMe = !isSudo && (role.integrations().discord() != null && member.canInteract(Objects.requireNonNull(guild.getRoleById(role.integrations().discord().roleId()))));
+		Role discordRole = role.integrations().discord() != null ? Objects.requireNonNull(guild.getRoleById(role.integrations().discord().roleId())) : null;
+		boolean modifyingRoleAboveMe = !isSudo && (discordRole != null && member.getRoles().getFirst().canInteract(discordRole));
 
 		if (user != null) {
 			modifyingAdminButNotAdmin = !isSudo && (new Permissions(role.permissions()).hasPermissions(Permission.ADMINISTRATOR) && !new Permissions(user.permissions()).hasPermissions(Permission.ADMINISTRATOR));
