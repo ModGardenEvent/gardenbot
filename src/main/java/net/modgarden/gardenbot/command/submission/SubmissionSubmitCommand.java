@@ -98,7 +98,7 @@ public class SubmissionSubmitCommand extends SlashCommand {
 
 			if (modrinth != null) {
 				// TODO: Modrinth project owner validation... After account linking is updated...
-				if (Modrinth.isForMinecraftLoaderAndVersionOfEvent(modrinth.version(), modGardenEvent)) {
+				if (!Modrinth.isForMinecraftLoaderAndVersionOfEvent(modrinth.version(), modGardenEvent)) {
 					return new MessageResponse(
 							"Modrinth project '" + modrinth.project().title() + "' is not valid for the modloader and the game version.\nExpected %s for %s"
 									.formatted(capitalizeLoaderName(modGardenEvent.platform().modLoader()), modGardenEvent.platform().gameVersion())
