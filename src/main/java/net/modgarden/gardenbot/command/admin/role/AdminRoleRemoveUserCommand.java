@@ -2,7 +2,10 @@ package net.modgarden.gardenbot.command.admin.role;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -97,6 +100,15 @@ public class AdminRoleRemoveUserCommand extends AdminSlashCommand {
 		}
 
 		ModGarden.removeUserRole(user, role);
+
+		if (discordUser != null && role.integrations().discord() != null) {
+			Guild guild = Objects.requireNonNull(interaction.event().getGuild());
+			guild.removeRoleFromMember(
+					discordUser,
+					Objects.requireNonNull(guild.getRoleById(role.integrations().discord().roleId()))
+			).complete();
+		}
+
 		return new MessageResponse("Removed role '" + role.name() + "' from '" + user.username() + "' (" + user.id() + ")");
 	}
 }

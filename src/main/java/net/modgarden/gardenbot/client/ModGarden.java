@@ -23,6 +23,7 @@ import net.modgarden.gardenbot.client.mod_garden.role.integration.DiscordRoleInt
 import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.client.mod_garden.user.modifiable.ModifiableUserBio;
 import net.modgarden.gardenbot.client.mod_garden.user.modifiable.ModifiableUserIntegrations;
+import net.modgarden.gardenbot.util.NullableWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -566,11 +567,13 @@ public class ModGarden {
 		return submissions;
 	}
 
-	public static ModGardenEvent createEvent(String genreId,
-											 String slug,
-											 EventMetadata metadata,
-											 EventTimes times,
-											 EventPlatform platform) throws HypertextException {
+	public static ModGardenEvent createEvent(
+			String genreId,
+			String slug,
+			EventMetadata metadata,
+			EventTimes times,
+			EventPlatform platform
+	) throws HypertextException {
 		String body = GardenBot.GSON.toJson(
 				new CreateEventRequestBody(
 						genreId,
@@ -598,12 +601,57 @@ public class ModGarden {
 		}
 	}
 
-	public static void addRolesToEvent(String genreId, String eventId, Map<String, String> roleMap) throws HypertextException {
-		String body = GardenBot.GSON.toJson(
+	public static void modifyEvent(
+			String genreSlug,
+			String eventSlug,
+			@Nullable EventMetadata.Modifiable metadata,
+			@Nullable EventTimes.Modifiable times,
+			@Nullable EventPlatform.Modifiable platform,
+			Map<String, NullableWrapper<String>> roles
+	) throws HypertextException {
+		JsonObject root = GardenBot.GSON.toJsonTree(
 				new ModifyEventRequestBody(
-						roleMap
+						metadata,
+						times,
+						platform,
+						roles
 				),
 				ModifyEventRequestBody.class
+		).getAsJsonObject();
+
+		for (Map.Entry<String, NullableWrapper<String>> entry : roles.entrySet()) {
+			if (entry.getValue().isEmpty()) {
+				root.getAsJsonObject("roles").add(entry.getKey(), JsonNull.INSTANCE);
+			}
+		}
+
+		if (metadata != null && metadata.description() != null && metadata.description().isEmpty()) {
+			root.getAsJsonObject("metadata").add("description", JsonNull.INSTANCE);
+		}
+
+		String body = root.toString();
+
+		try {
+			HttpResponse<InputStream> response = patch(
+					"internal/event/" + genreSlug + "/" + eventSlug,
+					HttpRequest.BodyPublishers.ofString(body),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+
+			if (response.statusCode() != 200) {
+				throw hypertextException(response);
+			}
+		} catch (IOException | InterruptedException e) {
+			throw new InternalServerException(e.getMessage());
+		}
+	}
+
+	public static void addRolesToEvent(String genreId, String eventId, Map<String, String> roleMap) throws HypertextException {
+		String body = GardenBot.GSON.toJson(
+				new ModifyAddEventRolesRequestBody(
+						roleMap
+				),
+				ModifyAddEventRolesRequestBody.class
 		);
 
 		HttpResponse<InputStream> response;
@@ -660,6 +708,52 @@ public class ModGarden {
 
 		if (response.statusCode() == 200) {
 			return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), ModGardenEvent.class);
+		}
+
+		if (response.statusCode() == 404) {
+			return null;
+		}
+
+		throw hypertextException(response);
+	}
+
+	@Nullable
+	public static String getGenreIdBySlug(String genreSlug) throws HypertextException {
+		HttpResponse<InputStream> response;
+		try {
+			response = get(
+					"v2/genres/%s?by=slug&with=id".formatted(genreSlug),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new InternalServerException(e.getMessage());
+		}
+
+		if (response.statusCode() == 200) {
+			return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), String.class);
+		}
+
+		if (response.statusCode() == 404) {
+			return null;
+		}
+
+		throw hypertextException(response);
+	}
+
+	@Nullable
+	public static String getEventIdBySlugs(String genreSlug, String eventSlug) throws HypertextException {
+		HttpResponse<InputStream> response;
+		try {
+			response = get(
+					"v2/events/%s/%s?by=slug&with=id".formatted(genreSlug, eventSlug),
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new InternalServerException(e.getMessage());
+		}
+
+		if (response.statusCode() == 200) {
+			return GardenBot.GSON.fromJson(JsonParser.parseReader(new InputStreamReader(response.body())), String.class);
 		}
 
 		if (response.statusCode() == 404) {

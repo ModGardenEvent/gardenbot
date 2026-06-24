@@ -1,23 +1,5 @@
 package net.modgarden.gardenbot.command.admin.event;
 
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.interactions.commands.Command;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.modgarden.gardenbot.client.ModGarden;
-import net.modgarden.gardenbot.client.exception.HypertextException;
-import net.modgarden.gardenbot.client.mod_garden.event.*;
-import net.modgarden.gardenbot.client.mod_garden.role.ModGardenRole;
-import net.modgarden.gardenbot.command.AutoCompletionGetter;
-import net.modgarden.gardenbot.command.SlashCommandOption;
-import net.modgarden.gardenbot.command.admin.AdminSlashCommand;
-import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
-import net.modgarden.gardenbot.response.MessageResponse;
-import net.modgarden.gardenbot.response.Response;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
@@ -25,10 +7,35 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class AdminEventCreateCommand extends AdminSlashCommand {
-	public AdminEventCreateCommand() {
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.modgarden.gardenbot.client.ModGarden;
+import net.modgarden.gardenbot.client.exception.BadRequestException;
+import net.modgarden.gardenbot.client.exception.HypertextException;
+import net.modgarden.gardenbot.client.exception.NotFoundException;
+import net.modgarden.gardenbot.client.mod_garden.event.EventMetadata;
+import net.modgarden.gardenbot.client.mod_garden.event.EventPlatform;
+import net.modgarden.gardenbot.client.mod_garden.event.EventTimes;
+import net.modgarden.gardenbot.client.mod_garden.event.ModGardenEvent;
+import net.modgarden.gardenbot.client.mod_garden.event.ModGardenGenre;
+import net.modgarden.gardenbot.client.mod_garden.role.ModGardenRole;
+import net.modgarden.gardenbot.command.AutoCompletionGetter;
+import net.modgarden.gardenbot.command.SlashCommandOption;
+import net.modgarden.gardenbot.command.admin.AdminSlashCommand;
+import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
+import net.modgarden.gardenbot.response.MessageResponse;
+import net.modgarden.gardenbot.response.Response;
+import net.modgarden.gardenbot.util.NullableWrapper;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+public class AdminModifyEventCommand extends AdminSlashCommand {
+	public AdminModifyEventCommand() {
 		super(
-				"create",
+				"modify",
 				"Creates an event and links a role Discord role to the event.",
 				new SlashCommandOption(
 						OptionType.STRING,
@@ -42,68 +49,75 @@ public class AdminEventCreateCommand extends AdminSlashCommand {
 						"event",
 						"The event slug.",
 						true,
-						false
+						true
 				),
 				new SlashCommandOption(
 						OptionType.STRING,
 						"name",
 						"The name of the event.",
-						true,
+						false,
 						false
 				),
 				new SlashCommandOption(
 						OptionType.STRING,
 						"minecraft-version",
 						"The Minecraft version of the event.",
-						true,
+						false,
 						false
 				),
 				new SlashCommandOption(
 						OptionType.ROLE,
 						"participant-role",
 						"The participant role to link to this event.",
-						true,
+						false,
 						false
 				),
 				new SlashCommandOption(
 						OptionType.STRING,
 						"registration-open",
 						"The time that registration will open in ISO format.",
-						true,
+						false,
 						false
 				),
 				new SlashCommandOption(
 						OptionType.STRING,
 						"registration-close",
 						"The time that registration will close in ISO format.",
-						true,
+						false,
 						false
 				),
 				new SlashCommandOption(
 						OptionType.STRING,
 						"development-start",
 						"The time that development will start in ISO format.",
-						true,
+						false,
 						false
 				),
 				new SlashCommandOption(
 						OptionType.STRING,
 						"development-end",
 							"The time that development wil end in ISO format.",
-						true,
+						false,
 						false
 				),
 				new SlashCommandOption(
 						OptionType.STRING,
 						"pack-freeze",
 						"The pack freeze time in ISO format.",
-						true,
+						false,
 						false
 				),
 				new SlashCommandOption(
 						OptionType.STRING,
 						"description",
 						"The description of the event.",
+						false,
+						false
+				),
+				new SlashCommandOption(
+						OptionType.BOOLEAN,
+						"remove-description",
+						"Whether to remove the description.",
 						false,
 						false
 				)
@@ -126,9 +140,16 @@ public class AdminEventCreateCommand extends AdminSlashCommand {
 			return new MessageResponse("No genre exists with the slug '" + genreSlug + "'.");
 		}
 
+		ModGardenEvent event = ModGarden.getEventBySlugs(genreSlug, eventSlug);
+
+		if (event == null) {
+			throw new NotFoundException("No event exists with the slug '" + eventSlug + "'.");
+		}
+
 		String name = interaction.event().getOption("name", OptionMapping::getAsString);
 		String description = interaction.event().getOption("description", OptionMapping::getAsString);
 		String minecraftVersion = interaction.event().getOption("minecraft-version", OptionMapping::getAsString);
+		boolean removeDescription = interaction.event().getOption("remove-description", false, OptionMapping::getAsBoolean);
 
 		assert name != null;
 		assert minecraftVersion != null;
@@ -142,56 +163,33 @@ public class AdminEventCreateCommand extends AdminSlashCommand {
 		String developmentEnd = parseTime(interaction.event().getOption("development-end", OptionMapping::getAsString));
 		String packFreeze = parseTime(interaction.event().getOption("pack-freeze", OptionMapping::getAsString));
 
-		if (registrationOpen == null) {
-			return new MessageResponse("Invalid registration open time. Field must follow the ISO 8601 datetime format.");
+		if (ModGarden.getEventBySlugs(genre.slug(), eventSlug) == null) {
+			throw new BadRequestException("Event with slug '" + eventSlug + "' does not exist");
 		}
 
-		if (registrationClose == null) {
-			return new MessageResponse("Invalid registration close time. Field must follow the ISO 8601 datetime format.");
-		}
-
-		if (developmentStart == null) {
-			return new MessageResponse("Invalid development start time. Field must follow the ISO 8601 datetime format.");
-		}
-
-		if (developmentEnd == null) {
-			return new MessageResponse("Invalid development ehd time. Field must follow the ISO 8601 datetime format.");
-		}
-
-		if (packFreeze == null) {
-			return new MessageResponse("Invalid pack freeze time. Field must follow the ISO 8601 datetime format.");
-		}
-
-		if (ModGarden.getEventBySlugs(genre.slug(), eventSlug) != null) {
-			return new MessageResponse("Event with slug '" + eventSlug + "' already exists within the genre '" + genre.metadata().name() + "'.");
-		}
-
-		ModGardenEvent event = ModGarden.createEvent(
+		ModGarden.modifyEvent(
 				genre.id(),
-				eventSlug,
-				new EventMetadata(
+				event.id(),
+				new EventMetadata.Modifiable(
 						name,
-						description
+						removeDescription ? NullableWrapper.empty() : NullableWrapper.of(description)
 				),
-				new EventTimes(
+				new EventTimes.Modifiable(
 						registrationOpen,
 						registrationClose,
 						developmentStart,
 						developmentEnd,
 						packFreeze
 				),
-				// This can be hardcoded for now...
-				new EventPlatform(
-						"minecraft",
-						"fabric",
+				new EventPlatform.Modifiable(
+						event.platform().game(),
+						null,
 						minecraftVersion
-				)
+				),
+				Collections.emptyMap()
 		);
 
-		ModGardenRole role = ModGarden.createUserRoleFromDiscordRole(participantRole);
-		ModGarden.addRolesToEvent(genre.id(), event.id(), Map.of("participant", role.id()));
-
-		return new MessageResponse("Successfully created event '" + name + "' within genre '" + genre.metadata().name() + "'.");
+		return new MessageResponse("Successfully modified event '" + event.metadata().name() + "' within genre '" + genre.metadata().name() + "'.");
 	}
 
 	@Override
@@ -201,15 +199,19 @@ public class AdminEventCreateCommand extends AdminSlashCommand {
 	}
 
 	@Nullable
-	private static String parseTime(String time) {
+	private static String parseTime(@Nullable String time) throws BadRequestException {
 		try {
+			if (time == null) {
+				return null;
+			}
+
 			return Long.toString(
 					OffsetDateTime.parse(time)
 							.toInstant()
 							.toEpochMilli()
 			);
 		} catch (DateTimeParseException e) {
-			return null;
+			throw new BadRequestException("Invalid registration open time. Field must follow the ISO 8601 datetime format.");
 		}
 	}
 }

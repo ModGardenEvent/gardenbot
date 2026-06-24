@@ -8,7 +8,11 @@ public class AdminEventCommandGroup extends CommandGroup<SlashCommand> {
 		super(
 				"event",
 				"Commands for managing events.",
-				AdminEventCreateCommand::new
+				AdminEventCreateCommand::new,
+				AdminModifyEventCommand::new,
+				AdminListEventRolesCommand::new,
+				AdminAddEventRoleCommand::new,
+				AdminRemoveEventRoleCommand::new
 		);
 	}
 }

@@ -2,11 +2,14 @@ package net.modgarden.gardenbot.command.admin.role;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.modgarden.gardenbot.client.Discord;
 import net.modgarden.gardenbot.client.ModGarden;
 import net.modgarden.gardenbot.client.exception.BadRequestException;
 import net.modgarden.gardenbot.client.exception.HypertextException;
@@ -97,6 +100,14 @@ public class AdminRoleAddUserCommand extends AdminSlashCommand {
 		}
 
 		ModGarden.addUserRole(user, role);
+
+		if (discordUser != null && role.integrations().discord() != null) {
+			Member member = Objects.requireNonNull(interaction.event().getGuild())
+					.retrieveMember(discordUser)
+					.complete();
+			Discord.addModGardenRolesToDiscordUser(interaction.event().getGuild(), member);
+		}
+
 		return new MessageResponse("Added role '" + role.name() + "' to '" + user.username() + "' (`" + user.id() + "`)");
 	}
 }
