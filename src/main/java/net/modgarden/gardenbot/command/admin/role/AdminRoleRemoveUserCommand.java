@@ -123,15 +123,25 @@ public class AdminRoleRemoveUserCommand extends AdminRoleSlashCommand {
 	public static MessageResponse checkRoleAbility(
 			SlashCommandInteraction interaction,
 			ModGardenRole role
-	) {
+	) throws HypertextException {
 		Member member = Objects.requireNonNull(interaction.event().getMember());
 		Guild guild = Objects.requireNonNull(interaction.event().getGuild());
-		boolean modifyingAdminButNotAdmin = new Permissions(role.permissions()).hasPermissions(Permission.ADMINISTRATOR) && member.getRoles().contains(guild.getRoleById(SudoCommand.SUDO_ROLE_ID));
-		boolean modifyingRoleAboveMe = !member.getRoles().contains(guild.getRoleById(SudoCommand.SUDO_ROLE_ID)) && (role.integrations().discord() != null && member.canInteract(Objects.requireNonNull(guild.getRoleById(role.integrations().discord().roleId()))));
+		ModGardenUser user = ModGarden.getUserByDiscordUser(member.getUser());
+
+		boolean isSudo = member.getRoles().contains(guild.getRoleById(SudoCommand.SUDO_ROLE_ID));
+		boolean modifyingAdminButNotAdmin;
+		boolean modifyingRoleAboveMe = !isSudo && (role.integrations().discord() != null && member.canInteract(Objects.requireNonNull(guild.getRoleById(role.integrations().discord().roleId()))));
+
+		if (user != null) {
+			modifyingAdminButNotAdmin = !isSudo && (new Permissions(role.permissions()).hasPermissions(Permission.ADMINISTRATOR) && !new Permissions(user.permissions()).hasPermissions(Permission.ADMINISTRATOR));
+		} else {
+			modifyingAdminButNotAdmin = !isSudo && new Permissions(role.permissions()).hasPermissions(Permission.ADMINISTRATOR);
+		}
 
 		if (modifyingAdminButNotAdmin || modifyingRoleAboveMe) {
 			return new MessageResponse("You do not have permission to execute this command.");
 		}
+
 		return null;
 	}
 }
