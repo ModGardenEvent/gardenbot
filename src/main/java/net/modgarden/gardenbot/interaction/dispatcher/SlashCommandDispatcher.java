@@ -23,7 +23,7 @@ public class SlashCommandDispatcher {
 		COMMANDS.put(command.name, command);
 	}
 
-	public static Response dispatch(SlashCommandInteraction command) {
+	public static Response dispatch(SlashCommandInteraction command) throws HypertextException {
 		return DatabaseAccess.bind().call(() -> COMMANDS.get(command.event().getName()).respondInternal(command));
 	}
 

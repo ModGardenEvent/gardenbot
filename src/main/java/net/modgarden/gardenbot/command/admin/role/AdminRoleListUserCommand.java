@@ -27,7 +27,7 @@ import net.modgarden.gardenbot.util.permission.PermissionScope;
 import net.modgarden.gardenbot.util.permission.Permissions;
 import org.jetbrains.annotations.NotNull;
 
-public class AdminRoleListUserCommand extends AdminSlashCommand {
+public class AdminRoleListUserCommand extends AdminRoleSlashCommand {
 	public AdminRoleListUserCommand() {
 		super(
 				"list_user",

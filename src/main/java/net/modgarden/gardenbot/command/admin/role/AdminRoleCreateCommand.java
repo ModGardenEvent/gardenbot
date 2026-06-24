@@ -24,7 +24,7 @@ import net.modgarden.gardenbot.response.Response;
 import net.modgarden.gardenbot.util.permission.Permission;
 import org.jetbrains.annotations.NotNull;
 
-public class AdminRoleCreateCommand extends AdminSlashCommand {
+public class AdminRoleCreateCommand extends AdminRoleSlashCommand {
 	public AdminRoleCreateCommand() {
 		super(
 				"create",

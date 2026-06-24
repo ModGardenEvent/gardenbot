@@ -1,5 +1,7 @@
 package net.modgarden.gardenbot.command.admin.role;
 
+import static net.modgarden.gardenbot.command.admin.role.AdminRoleRemoveUserCommand.checkRoleAbility;
+
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
@@ -24,7 +26,7 @@ import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
 import org.jetbrains.annotations.NotNull;
 
-public class AdminRoleAddUserCommand extends AdminSlashCommand {
+public class AdminRoleAddUserCommand extends AdminRoleSlashCommand {
 	public AdminRoleAddUserCommand() {
 		super(
 				"add_user",
@@ -98,6 +100,9 @@ public class AdminRoleAddUserCommand extends AdminSlashCommand {
 		} else {
 			throw new BadRequestException("No user was specified");
 		}
+
+		MessageResponse x = checkRoleAbility(interaction, role);
+		if (x != null) return x;
 
 		ModGarden.addUserRole(user, role);
 

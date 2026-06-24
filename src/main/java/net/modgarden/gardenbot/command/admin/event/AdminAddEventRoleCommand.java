@@ -32,7 +32,7 @@ import net.modgarden.gardenbot.util.NullableWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AdminAddEventRoleCommand extends AdminSlashCommand {
+public class AdminAddEventRoleCommand extends AdminEventSlashCommand {
 	public AdminAddEventRoleCommand() {
 		super(
 				"add_role",

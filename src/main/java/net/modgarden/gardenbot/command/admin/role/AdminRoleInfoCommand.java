@@ -26,7 +26,7 @@ import net.modgarden.gardenbot.util.permission.PermissionScope;
 import net.modgarden.gardenbot.util.permission.Permissions;
 import org.jetbrains.annotations.NotNull;
 
-public class AdminRoleInfoCommand extends AdminSlashCommand {
+public class AdminRoleInfoCommand extends AdminRoleSlashCommand {
 	public AdminRoleInfoCommand() {
 		super(
 				"info",

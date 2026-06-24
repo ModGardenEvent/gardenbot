@@ -19,12 +19,16 @@ import net.modgarden.gardenbot.client.mod_garden.user.ModGardenUser;
 import net.modgarden.gardenbot.command.AutoCompletionGetter;
 import net.modgarden.gardenbot.command.SlashCommandOption;
 import net.modgarden.gardenbot.command.admin.AdminSlashCommand;
+import net.modgarden.gardenbot.command.sudo.SudoCommand;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
+import net.modgarden.gardenbot.util.permission.Permission;
+import net.modgarden.gardenbot.util.permission.Permissions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class AdminRoleRemoveUserCommand extends AdminSlashCommand {
+public class AdminRoleRemoveUserCommand extends AdminRoleSlashCommand {
 	public AdminRoleRemoveUserCommand() {
 		super(
 				"remove_user",
@@ -99,6 +103,9 @@ public class AdminRoleRemoveUserCommand extends AdminSlashCommand {
 			throw new BadRequestException("No user was specified");
 		}
 
+		MessageResponse x = checkRoleAbility(interaction, role);
+		if (x != null) return x;
+
 		ModGarden.removeUserRole(user, role);
 
 		if (discordUser != null && role.integrations().discord() != null) {
@@ -110,5 +117,19 @@ public class AdminRoleRemoveUserCommand extends AdminSlashCommand {
 		}
 
 		return new MessageResponse("Removed role '" + role.name() + "' from '" + user.username() + "' (" + user.id() + ")");
+	}
+
+	@Nullable
+	public static MessageResponse checkRoleAbility(
+			SlashCommandInteraction interaction,
+			ModGardenRole role
+	) {
+		boolean modifyingAdminButNotAdmin = new Permissions(role.permissions()).hasPermissions(Permission.ADMINISTRATOR) && Objects.requireNonNull(interaction.event().getMember()).getRoles().contains(Objects.requireNonNull(interaction.event().getGuild()).getRoleById(SudoCommand.SUDO_ROLE_ID));
+		boolean modifyingRoleAboveMe = role.integrations().discord() != null && Objects.requireNonNull(interaction.event().getMember()).canInteract(Objects.requireNonNull(Objects.requireNonNull(interaction.event().getGuild()).getRoleById(role.integrations().discord().roleId())));
+
+		if (modifyingAdminButNotAdmin || modifyingRoleAboveMe) {
+			return new MessageResponse("You do not have permission to execute this command.");
+		}
+		return null;
 	}
 }

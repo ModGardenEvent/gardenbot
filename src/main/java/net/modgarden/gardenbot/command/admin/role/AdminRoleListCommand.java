@@ -22,7 +22,7 @@ import net.modgarden.gardenbot.response.Response;
 import net.modgarden.gardenbot.util.permission.Permissions;
 import org.jetbrains.annotations.NotNull;
 
-public class AdminRoleListCommand extends AdminSlashCommand {
+public class AdminRoleListCommand extends AdminRoleSlashCommand {
 	public AdminRoleListCommand() {
 		super(
 				"list",

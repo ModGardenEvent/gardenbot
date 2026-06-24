@@ -9,7 +9,7 @@ import java.sql.SQLException;
 
 @FunctionalInterface
 public interface InteractionHandler<TInteraction extends Interaction> {
-	default Response respondInternal(TInteraction interaction) {
+	default Response respondInternal(TInteraction interaction) throws HypertextException {
 		try {
 			return respond(interaction);
 		} catch (HypertextException e) {

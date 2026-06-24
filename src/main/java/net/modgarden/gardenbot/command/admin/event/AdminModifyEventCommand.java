@@ -32,7 +32,7 @@ import net.modgarden.gardenbot.util.NullableWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AdminModifyEventCommand extends AdminSlashCommand {
+public class AdminModifyEventCommand extends AdminEventSlashCommand {
 	public AdminModifyEventCommand() {
 		super(
 				"modify",

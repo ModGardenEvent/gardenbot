@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class AdminEventCreateCommand extends AdminSlashCommand {
+public class AdminEventCreateCommand extends AdminEventSlashCommand {
 	public AdminEventCreateCommand() {
 		super(
 				"create",

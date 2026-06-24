@@ -24,7 +24,7 @@ import net.modgarden.gardenbot.response.Response;
 import net.modgarden.gardenbot.util.NullableWrapper;
 import org.jetbrains.annotations.NotNull;
 
-public class AdminRemoveEventRoleCommand extends AdminSlashCommand {
+public class AdminRemoveEventRoleCommand extends AdminEventSlashCommand {
 	public AdminRemoveEventRoleCommand() {
 		super(
 				"remove_role",

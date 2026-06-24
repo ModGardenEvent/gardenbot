@@ -1,5 +1,6 @@
 package net.modgarden.gardenbot.interaction.dispatcher;
 
+import net.modgarden.gardenbot.client.exception.HypertextException;
 import net.modgarden.gardenbot.database.DatabaseAccess;
 import net.modgarden.gardenbot.interaction.ModalInteraction;
 import net.modgarden.gardenbot.modal.Modal;
@@ -17,7 +18,7 @@ public class ModalDispatcher {
 		return modal;
 	}
 
-	public static Response dispatch(ModalInteraction command) {
+	public static Response dispatch(ModalInteraction command) throws HypertextException {
 		return DatabaseAccess.bind().call(() -> MODALS.get(command.event().getModalId()).respondInternal(command));
 	}
 }

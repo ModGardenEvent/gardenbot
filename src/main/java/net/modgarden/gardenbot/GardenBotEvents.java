@@ -29,6 +29,7 @@ import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.interaction.dispatcher.ButtonDispatcher;
 import net.modgarden.gardenbot.interaction.dispatcher.ModalDispatcher;
 import net.modgarden.gardenbot.interaction.dispatcher.SlashCommandDispatcher;
+import net.modgarden.gardenbot.response.Response;
 import net.modgarden.gardenbot.util.MessageCacheUtil;
 import net.modgarden.gardenbot.util.SchedulerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +39,14 @@ import java.util.List;
 public class GardenBotEvents extends ListenerAdapter {
 	@Override
 	public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-		var response = SlashCommandDispatcher.dispatch(new SlashCommandInteraction(event));
+		Response response;
+		try {
+			response = SlashCommandDispatcher.dispatch(new SlashCommandInteraction(event));
+		} catch (HypertextException e) {
+			GardenBot.LOG.error("", e);
+			return;
+		}
+
 		response.replyToSlashCommand(event).queue();
 	}
 
@@ -60,7 +68,14 @@ public class GardenBotEvents extends ListenerAdapter {
 
 	@Override
 	public void onModalInteraction(@NotNull ModalInteractionEvent event) {
-		var response = ModalDispatcher.dispatch(new ModalInteraction(event));
+		Response response;
+		try {
+			response = ModalDispatcher.dispatch(new ModalInteraction(event));
+		} catch (HypertextException e) {
+			GardenBot.LOG.error("", e);
+			return;
+		}
+
 		response.replyToModal(event).queue();
 	}
 

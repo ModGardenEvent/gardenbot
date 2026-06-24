@@ -1,5 +1,7 @@
 package net.modgarden.gardenbot.command.admin.role;
 
+import static net.modgarden.gardenbot.command.admin.role.AdminRoleRemoveUserCommand.checkRoleAbility;
+
 import java.math.BigInteger;
 import java.sql.SQLException;
 import java.util.List;
@@ -26,7 +28,7 @@ import net.modgarden.gardenbot.response.Response;
 import net.modgarden.gardenbot.util.NullableWrapper;
 import org.jetbrains.annotations.NotNull;
 
-public class AdminRoleModifyCommand extends AdminSlashCommand {
+public class AdminRoleModifyCommand extends AdminRoleSlashCommand {
 	public AdminRoleModifyCommand() {
 		super(
 				"modify",
@@ -99,6 +101,9 @@ public class AdminRoleModifyCommand extends AdminSlashCommand {
 		} else {
 			discordRoleIntegration = null;
 		}
+
+		MessageResponse x = checkRoleAbility(interaction, role);
+		if (x != null) return x;
 
 		ModGarden.modifyUserRole(role.id(), new ModGardenRole.Modifiable(name, permissionBits.toString(), new RoleIntegrations.Modifiable(discordRoleIntegration)));
 

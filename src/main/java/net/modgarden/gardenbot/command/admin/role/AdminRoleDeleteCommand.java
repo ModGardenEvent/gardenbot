@@ -17,9 +17,11 @@ import net.modgarden.gardenbot.command.admin.AdminSlashCommand;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
+import net.modgarden.gardenbot.util.permission.PermissionPredicate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class AdminRoleDeleteCommand extends AdminSlashCommand {
+public class AdminRoleDeleteCommand extends AdminRoleSlashCommand {
 	public AdminRoleDeleteCommand() {
 		super(
 				"delete",
@@ -45,5 +47,11 @@ public class AdminRoleDeleteCommand extends AdminSlashCommand {
 		ModGardenRole userRole = ModGarden.getUserRole(id);
 		ModGarden.deleteUserRole(id);
 		return new MessageResponse("Deleted user role " + Objects.requireNonNull(userRole).name());
+	}
+
+	@Nullable
+	@Override
+	protected PermissionPredicate requiredPermissions() {
+		return null;
 	}
 }

@@ -20,7 +20,7 @@ import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
 import org.jetbrains.annotations.NotNull;
 
-public class AdminRoleCopyCommand extends AdminSlashCommand {
+public class AdminRoleCopyCommand extends AdminRoleSlashCommand {
 	public AdminRoleCopyCommand() {
 		super(
 				"copy",

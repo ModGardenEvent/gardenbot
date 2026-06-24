@@ -22,9 +22,12 @@ import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.EmbedResponse;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
+import net.modgarden.gardenbot.util.permission.Permission;
+import net.modgarden.gardenbot.util.permission.PermissionPredicate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class AdminListEventRolesCommand extends AdminSlashCommand {
+public class AdminListEventRolesCommand extends AdminEventSlashCommand {
 	public AdminListEventRolesCommand() {
 		super(
 				"list_roles",
@@ -95,5 +98,11 @@ public class AdminListEventRolesCommand extends AdminSlashCommand {
 	public List<Command.Choice> getAutoCompleteChoices(String focusedOption, User user, AutoCompletionGetter autoCompletionGetter) {
 		// TODO: This...
 		return Collections.emptyList();
+	}
+
+	@Nullable
+	@Override
+	protected PermissionPredicate requiredPermissions() {
+		return PermissionPredicate.any(Permission.LIST_USER_INFO, Permission.EDIT_EVENT);
 	}
 }
