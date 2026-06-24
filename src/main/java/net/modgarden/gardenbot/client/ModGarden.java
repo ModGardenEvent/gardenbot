@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.modgarden.gardenbot.GardenBot;
+import net.modgarden.gardenbot.client.exception.BadRequestException;
 import net.modgarden.gardenbot.client.exception.HypertextException;
 import net.modgarden.gardenbot.client.exception.InternalServerException;
 import net.modgarden.gardenbot.client.mod_garden.event.*;
@@ -272,6 +273,10 @@ public class ModGarden {
 
 	@Nullable
 	public static ModGardenRole getUserRole(String roleId) throws HypertextException {
+		if (roleId.contains(" ")) {
+			throw new BadRequestException("Role ID is invalid.");
+		}
+
 		HttpResponse<InputStream> response;
 		try {
 			response = get(

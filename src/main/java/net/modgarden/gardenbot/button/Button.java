@@ -1,6 +1,7 @@
 package net.modgarden.gardenbot.button;
 
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.modgarden.gardenbot.client.exception.HypertextException;
 import net.modgarden.gardenbot.interaction.ButtonInteraction;
 import net.modgarden.gardenbot.interaction.InteractionHandler;
 import net.modgarden.gardenbot.response.Response;
@@ -24,7 +25,7 @@ public abstract class Button implements InteractionHandler<ButtonInteraction> {
 	}
 
 	@NotNull
-	public final Response respondInternal(ButtonInteractionEvent interaction) {
+	public final Response respondInternal(ButtonInteractionEvent interaction) throws HypertextException {
 		String fullId = Objects.requireNonNull(interaction.getButton().getId());
 		return respondInternal(new ButtonInteraction(interaction, createArguments(fullId)));
 	}

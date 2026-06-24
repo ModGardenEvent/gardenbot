@@ -16,10 +16,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static net.modgarden.gardenbot.GardenBot.DOTENV;
 import static net.modgarden.gardenbot.GardenBot.IS_DEV_ENV;
 import static net.modgarden.gardenbot.command.sudo.SudoCommand.SUDO_ROLE_ID;
 
 public abstract class AdminSlashCommand extends SlashCommand {
+	public static final boolean DEV_PERMISSIONS = DOTENV.get("DEV_PERMISSIONS", "false").equals("true");
+
 	public AdminSlashCommand(String name, String description, SlashCommandOption... options) {
 		super(name, description, options);
 	}
@@ -31,16 +34,17 @@ public abstract class AdminSlashCommand extends SlashCommand {
 	@Override
 	public final Response respondInternal(SlashCommandInteraction interaction) throws HypertextException {
 		PermissionPredicate permissionPredicate = this.requiredPermissions();
+		boolean hasPermission = false;
 
 		if (permissionPredicate != null && interaction.event().getMember() != null) {
 			ModGardenUser user = ModGarden.getUserByDiscordUser(interaction.event().getUser());
 
 			if (user != null) {
-				permissionPredicate.test(new Permissions(user.permissions()));
+				hasPermission = permissionPredicate.test(new Permissions(user.permissions()));
 			}
 		}
 
-		if (interaction.event().getMember() == null || !hasPermission(interaction.event().getMember().getRoles())) {
+		if (!hasPermission && (interaction.event().getMember() == null || !hasPermission(interaction.event().getMember().getRoles()))) {
 			return new MessageResponse("You do not have the permissions to execute this command.");
 		}
 
@@ -49,7 +53,7 @@ public abstract class AdminSlashCommand extends SlashCommand {
 
 	private boolean hasPermission(List<Role> roles) {
 		for (Role role : roles) {
-			if (role.getId().equals(SUDO_ROLE_ID) || IS_DEV_ENV) {
+			if (role.getId().equals(SUDO_ROLE_ID) || (IS_DEV_ENV && !DEV_PERMISSIONS)) {
 				return true;
 			}
 		}

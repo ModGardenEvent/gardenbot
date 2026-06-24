@@ -62,7 +62,14 @@ public class GardenBotEvents extends ListenerAdapter {
 
 	@Override
 	public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
-		var response = ButtonDispatcher.dispatch(event);
+		Response response;
+		try {
+			response = ButtonDispatcher.dispatch(event);
+		} catch (HypertextException e) {
+			GardenBot.LOG.error("", e);
+			return;
+		}
+
 		response.replyToButton(event).queue();
 	}
 

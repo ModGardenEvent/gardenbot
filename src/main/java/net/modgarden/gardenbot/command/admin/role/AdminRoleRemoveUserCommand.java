@@ -124,8 +124,10 @@ public class AdminRoleRemoveUserCommand extends AdminRoleSlashCommand {
 			SlashCommandInteraction interaction,
 			ModGardenRole role
 	) {
-		boolean modifyingAdminButNotAdmin = new Permissions(role.permissions()).hasPermissions(Permission.ADMINISTRATOR) && Objects.requireNonNull(interaction.event().getMember()).getRoles().contains(Objects.requireNonNull(interaction.event().getGuild()).getRoleById(SudoCommand.SUDO_ROLE_ID));
-		boolean modifyingRoleAboveMe = role.integrations().discord() != null && Objects.requireNonNull(interaction.event().getMember()).canInteract(Objects.requireNonNull(Objects.requireNonNull(interaction.event().getGuild()).getRoleById(role.integrations().discord().roleId())));
+		Member member = Objects.requireNonNull(interaction.event().getMember());
+		Guild guild = Objects.requireNonNull(interaction.event().getGuild());
+		boolean modifyingAdminButNotAdmin = new Permissions(role.permissions()).hasPermissions(Permission.ADMINISTRATOR) && member.getRoles().contains(guild.getRoleById(SudoCommand.SUDO_ROLE_ID));
+		boolean modifyingRoleAboveMe = !member.getRoles().contains(guild.getRoleById(SudoCommand.SUDO_ROLE_ID)) && (role.integrations().discord() != null && member.canInteract(Objects.requireNonNull(guild.getRoleById(role.integrations().discord().roleId()))));
 
 		if (modifyingAdminButNotAdmin || modifyingRoleAboveMe) {
 			return new MessageResponse("You do not have permission to execute this command.");

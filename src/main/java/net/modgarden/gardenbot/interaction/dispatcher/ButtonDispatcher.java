@@ -2,6 +2,7 @@ package net.modgarden.gardenbot.interaction.dispatcher;
 
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.modgarden.gardenbot.button.Button;
+import net.modgarden.gardenbot.client.exception.HypertextException;
 import net.modgarden.gardenbot.database.DatabaseAccess;
 import net.modgarden.gardenbot.response.Response;
 
@@ -18,7 +19,7 @@ public class ButtonDispatcher {
 		return button;
 	}
 
-	public static Response dispatch(ButtonInteractionEvent event) {
+	public static Response dispatch(ButtonInteractionEvent event) throws HypertextException {
 		String id = Objects.requireNonNull(event.getButton().getId()).split("\\?")[0];
 		return DatabaseAccess.bind().call(() -> HANDLERS.get(id).respondInternal(event));
 	}
