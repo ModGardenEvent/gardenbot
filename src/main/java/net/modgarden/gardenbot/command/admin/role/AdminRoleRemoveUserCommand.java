@@ -132,7 +132,7 @@ public class AdminRoleRemoveUserCommand extends AdminRoleSlashCommand {
 		boolean isSudo = member.getRoles().contains(guild.getRoleById(SudoCommand.SUDO_ROLE_ID));
 		boolean modifyingAdminButNotAdmin;
 		Role discordRole = role.integrations().discord() != null ? Objects.requireNonNull(guild.getRoleById(role.integrations().discord().roleId())) : null;
-		boolean modifyingRoleAboveMe = !isSudo && (discordRole != null && member.getRoles().getFirst().canInteract(discordRole));
+		boolean modifyingRoleAboveMe = !isSudo && (discordRole != null && !member.getRoles().getFirst().canInteract(discordRole));
 
 		if (user != null) {
 			modifyingAdminButNotAdmin = !isSudo && (new Permissions(role.permissions()).hasPermissions(Permission.ADMINISTRATOR) && !new Permissions(user.permissions()).hasPermissions(Permission.ADMINISTRATOR));
@@ -140,8 +140,12 @@ public class AdminRoleRemoveUserCommand extends AdminRoleSlashCommand {
 			modifyingAdminButNotAdmin = !isSudo && new Permissions(role.permissions()).hasPermissions(Permission.ADMINISTRATOR);
 		}
 
-		if (modifyingAdminButNotAdmin || modifyingRoleAboveMe) {
-			return new MessageResponse("You do not have permission to execute this command.");
+		if (modifyingAdminButNotAdmin) {
+			return new MessageResponse("You are not authorized to manage administrator roles.");
+		}
+
+		if (modifyingRoleAboveMe) {
+			return new MessageResponse("You cannot manage roles above your own.");
 		}
 
 		return null;
