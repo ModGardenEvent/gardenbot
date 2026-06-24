@@ -25,6 +25,8 @@ import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static net.modgarden.gardenbot.GardenBot.IS_DEV_ENV;
+
 public class SudoCommand extends SlashCommand {
 	// Feel free to swap these out whilst testing.
 	public static final String SUDO_ROLE_ID = "1441570757539790859"; // Mod Garden Server - sudo ID: '1441570757539790859'
@@ -58,7 +60,7 @@ public class SudoCommand extends SlashCommand {
 
 		Role sudoerRoleId = guild.getRoleById(SUDOER_ROLE_ID);
 
-		if (interaction.event().getMember() == null || !interaction.event().getMember().getRoles().contains(sudoerRoleId)) {
+		if (interaction.event().getMember() == null || !interaction.event().getMember().getRoles().contains(sudoerRoleId) && !IS_DEV_ENV) {
 			return new MessageResponse("You do not have the permissions to execute this command.");
 		}
 
@@ -155,7 +157,7 @@ public class SudoCommand extends SlashCommand {
 
 		Member member = guild.getMember(user);
 		Role sudoerRoleId = guild.getRoleById(SUDOER_ROLE_ID);
-		if (member == null || !member.getRoles().contains(sudoerRoleId)) {
+		if (member == null || !member.getRoles().contains(sudoerRoleId) && !IS_DEV_ENV) {
 			return Collections.emptyList();
 		}
 

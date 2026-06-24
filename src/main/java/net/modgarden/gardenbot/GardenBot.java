@@ -28,7 +28,9 @@ public class GardenBot {
 	public static final Dotenv DOTENV = Dotenv.load();
 	public static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
+
 	public static final String GUILD_ID = GardenBot.DOTENV.get("GUILD_ID");
+	public static final boolean IS_DEV_ENV = "development".equals(DOTENV.get("env"));
 
 	// *Please* don't touch this. In fact, don't use Regex without using https://regex101.com
 	// and manually testing your change.
@@ -39,7 +41,7 @@ public class GardenBot {
 	public static JDA jda;
 
 	public static void main(String[] args) {
-		if ("development".equals(System.getenv("env")))
+		if (IS_DEV_ENV)
 			((ch.qos.logback.classic.Logger) LOG).setLevel(Level.DEBUG);
 
 		jda = JDABuilder.create(
