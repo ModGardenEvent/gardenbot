@@ -23,9 +23,11 @@ import net.modgarden.gardenbot.response.EmbedResponse;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
 import net.modgarden.gardenbot.util.permission.Permission;
+import net.modgarden.gardenbot.util.permission.PermissionPredicate;
 import net.modgarden.gardenbot.util.permission.PermissionScope;
 import net.modgarden.gardenbot.util.permission.Permissions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AdminRoleListUserCommand extends AdminRoleSlashCommand {
 	public AdminRoleListUserCommand() {
@@ -118,5 +120,11 @@ public class AdminRoleListUserCommand extends AdminRoleSlashCommand {
 				.setTitle("Roles of '" + user.username() + "' (`" + user.id() + "`)")
 				.setColor(0xA6FFFE)
 				.setDescription(descriptionBuilder.toString());
+	}
+
+	@Nullable
+	@Override
+	protected PermissionPredicate requiredPermissions() {
+		return PermissionPredicate.any(Permission.LIST_USER_INFO, Permission.MANAGE_ROLES);
 	}
 }
