@@ -128,7 +128,7 @@ public class ModGarden {
 
 		try {
 			HttpResponse<Void> response = post(
-					"internal/user/create",
+					"internal/user",
 					HttpRequest.BodyPublishers.ofString(body),
 					HttpResponse.BodyHandlers.discarding()
 			);
@@ -155,7 +155,7 @@ public class ModGarden {
 
 		try {
 			HttpResponse<InputStream> response = post(
-					"internal/role/create",
+					"internal/role",
 					HttpRequest.BodyPublishers.ofString(body),
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
@@ -185,7 +185,7 @@ public class ModGarden {
 
 		try {
 			HttpResponse<InputStream> response = post(
-					"internal/role/create",
+					"internal/role",
 					HttpRequest.BodyPublishers.ofString(body),
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
@@ -595,7 +595,7 @@ public class ModGarden {
 
 		try {
 			HttpResponse<InputStream> response = post(
-					"internal/event/create",
+					"internal/event",
 					HttpRequest.BodyPublishers.ofString(body),
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
@@ -665,7 +665,7 @@ public class ModGarden {
 		HttpResponse<InputStream> response;
 		try {
 			 response = post(
-					"internal/event/modify/%s/%s".formatted(genreId, eventId),
+					"internal/event/%s/%s".formatted(genreId, eventId),
 					HttpRequest.BodyPublishers.ofString(body),
 					HttpResponse.BodyHandlers.ofInputStream()
 			 );
@@ -848,7 +848,7 @@ public class ModGarden {
 		HttpResponse<InputStream> response;
 		try {
 			response = patch(
-					"internal/user/modify/" + user.id(),
+					"internal/user/" + user.id(),
 					HttpRequest.BodyPublishers.ofString(body),
 					HttpResponse.BodyHandlers.ofInputStream()
 			);
