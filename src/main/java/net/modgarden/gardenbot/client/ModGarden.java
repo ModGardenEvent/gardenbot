@@ -198,7 +198,10 @@ public class ModGarden {
 		}
 	}
 
-	public static void modifyUserRole(String roleId, ModGardenRole.Modifiable role) throws HypertextException {
+	public static void modifyUserRole(
+			String roleId,
+			ModGardenRole.Modifiable role
+	) throws HypertextException {
 		JsonObject root = GardenBot.GSON.toJsonTree(
 				new ModifyUserRoleRequestBody(
 						role.name(),
