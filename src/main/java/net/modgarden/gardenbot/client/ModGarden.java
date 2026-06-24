@@ -76,6 +76,29 @@ public class ModGarden {
 	}
 
 	@Nullable
+	public static ModGardenUser getUserByModGardenUsername(String username) throws HypertextException {
+		HttpResponse<InputStream> response;
+		try {
+			response = get(
+					"v2/users/" + username + "?by=username",
+					HttpResponse.BodyHandlers.ofInputStream()
+			);
+		} catch (IOException | InterruptedException e) {
+			throw new InternalServerException(e.getMessage());
+		}
+
+		if (response.statusCode() == 200) {
+			return GardenBot.GSON.fromJson(new InputStreamReader(response.body()), ModGardenUser.class);
+		}
+
+		if (response.statusCode() == 404) {
+			return null;
+		}
+
+		throw hypertextException(response);
+	}
+
+	@Nullable
 	public static ModGardenUser getUserByModGardenId(String id) throws HypertextException {
 		HttpResponse<InputStream> response;
 		try {

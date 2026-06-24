@@ -11,7 +11,9 @@ public class AdminRoleCommandGroup extends CommandGroup<SlashCommand> {
 				AdminRoleCreateCommand::new,
 				AdminRoleCopyCommand::new,
 				AdminRoleDeleteCommand::new,
-				AdminRoleModifyCommand::new
+				AdminRoleModifyCommand::new,
+				AdminRoleAddUserCommand::new,
+				AdminRoleRemoveUserCommand::new
 		);
 	}
 }
