@@ -102,6 +102,6 @@ public class AdminRoleModifyCommand extends AdminSlashCommand {
 
 		ModGarden.modifyUserRole(role.id(), new ModGardenRole.Modifiable(name, permissionBits.toString(), new RoleIntegrations.Modifiable(discordRoleIntegration)));
 
-		return new MessageResponse("Modified user role '" + role.name() + "' (" + role.id() + ")");
+		return new MessageResponse("Modified user role '" + role.name() + "' (`" + role.id() + "`)");
 	}
 }

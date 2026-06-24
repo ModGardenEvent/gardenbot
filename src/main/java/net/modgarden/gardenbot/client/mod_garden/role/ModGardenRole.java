@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Nullable;
 
 public record ModGardenRole(String name,
 							String permissions,
+							String created,
                             String id,
                             RoleIntegrations integrations) {
 	public record Modifiable(

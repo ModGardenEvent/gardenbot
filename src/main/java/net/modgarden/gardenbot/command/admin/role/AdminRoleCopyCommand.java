@@ -55,6 +55,6 @@ public class AdminRoleCopyCommand extends AdminSlashCommand {
 		ModGardenRole role = ModGarden.createUserRoleFromDiscordRole(discordRole);
 		ModGarden.modifyUserRole(role.id(), new ModGardenRole.Modifiable(null, permissionBits.toString(), null));
 
-		return new MessageResponse("Created user role '" + role.name() + "' (" + role.id() + ")");
+		return new MessageResponse("Created user role '" + role.name() + "' (`" + role.id() + "`)");
 	}
 }

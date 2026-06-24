@@ -92,6 +92,6 @@ public class AdminRoleCreateCommand extends AdminSlashCommand {
 				new RoleIntegrations(discordRoleIntegration)
 		);
 
-		return new MessageResponse("Created user role '" + role.name() + "' (" + role.id() + ")");
+		return new MessageResponse("Created user role '" + role.name() + "' (`" + role.id() + "`)");
 	}
 }

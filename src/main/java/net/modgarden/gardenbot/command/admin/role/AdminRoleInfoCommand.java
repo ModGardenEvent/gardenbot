@@ -1,6 +1,7 @@
 package net.modgarden.gardenbot.command.admin.role;
 
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.List;
 
 import net.dv8tion.jda.api.entities.User;
@@ -17,34 +18,20 @@ import net.modgarden.gardenbot.command.AutoCompletionGetter;
 import net.modgarden.gardenbot.command.SlashCommandOption;
 import net.modgarden.gardenbot.command.admin.AdminSlashCommand;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
+import net.modgarden.gardenbot.response.EmbedResponse;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
+import net.modgarden.gardenbot.util.permission.Permission;
+import net.modgarden.gardenbot.util.permission.PermissionScope;
+import net.modgarden.gardenbot.util.permission.Permissions;
 import org.jetbrains.annotations.NotNull;
 
-public class AdminRoleAddUserCommand extends AdminSlashCommand {
-	public AdminRoleAddUserCommand() {
+public class AdminRoleInfoCommand extends AdminSlashCommand {
+	public AdminRoleInfoCommand() {
 		super(
-				"add_user",
-				"Add a role to a user.",
-				SlashCommandOption.role("role", true),
-				new SlashCommandOption(
-						OptionType.STRING,
-						"user_id",
-						"The user's ID.",
-						false
-				),
-				new SlashCommandOption(
-						OptionType.STRING,
-						"username",
-						"The user's username.",
-						false
-				),
-				new SlashCommandOption(
-						OptionType.USER,
-						"discord_user",
-						"The Discord user.",
-						false
-				)
+				"info",
+				"Get information about a role.",
+				SlashCommandOption.role("role", true)
 		);
 	}
 
@@ -69,34 +56,25 @@ public class AdminRoleAddUserCommand extends AdminSlashCommand {
 			throw new NotFoundException("Role of ID '" + roleId + "' does not exist");
 		}
 
-		String userId = interaction.event().getOption("user_id", OptionMapping::getAsString);
-		String username = interaction.event().getOption("username", OptionMapping::getAsString);
-		User discordUser = interaction.event().getOption("discord_user", OptionMapping::getAsUser);
-		ModGardenUser user;
+		StringBuilder descriptionBuilder = new StringBuilder();
+		descriptionBuilder
+				.append("**Created:** ")
+				.append("<t:")
+				.append(Instant.ofEpochMilli(Long.parseLong(role.created())).getEpochSecond())
+				.append(":S>")
+				.append("\n**Permissions:** ")
+				.append(new Permissions(role.permissions()));
 
-		if (userId != null) {
-			user = ModGarden.getUserByModGardenId(userId);
-
-			if (user == null) {
-				throw new NotFoundException("User by ID '" + userId + "' does not exist");
-			}
-		} else if (username != null) {
-			user = ModGarden.getUserByModGardenUsername(username);
-
-			if (user == null) {
-				throw new NotFoundException("User by username '" + username + "' does not exist");
-			}
-		} else if (discordUser != null) {
-			user = ModGarden.getUserByDiscordUser(discordUser);
-
-			if (user == null) {
-				throw new NotFoundException("User '" + discordUser.getName() + "' does not have a Mod Garden account");
-			}
-		} else {
-			throw new BadRequestException("No user was specified");
+		if (role.integrations().discord() != null) {
+			descriptionBuilder.append("\n**Discord Role:** ")
+					.append("<@&")
+					.append(role.integrations().discord().roleId())
+					.append(">");
 		}
 
-		ModGarden.addUserRole(user, role);
-		return new MessageResponse("Added role '" + role.name() + "' to '" + user.username() + "' (`" + user.id() + "`)");
+		return new EmbedResponse()
+				.setTitle(role.name() + " (`" + role.id() + "`)")
+				.setColor(0xA6FFFE)
+				.setDescription(descriptionBuilder.toString());
 	}
 }
