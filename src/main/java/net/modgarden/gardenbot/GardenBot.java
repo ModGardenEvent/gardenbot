@@ -20,7 +20,7 @@ import java.sql.*;
 
 public class GardenBot {
 	public static final Logger LOG = LoggerFactory.getLogger("GardenBot");
-	public static final String VERSION = "2.0.0"; // TODO: Automatically update this from gradle.properties.
+	public static final String VERSION = "2.0.1"; // TODO: Automatically update this from gradle.properties.
 	public static final Gson GSON = new GsonBuilder()
 			.registerTypeAdapter(NullableWrapper.class, new NullableWrapper.Serializer())
 			.create();

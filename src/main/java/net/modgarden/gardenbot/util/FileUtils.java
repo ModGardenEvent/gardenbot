@@ -1,6 +1,7 @@
 package net.modgarden.gardenbot.util;
 
 import net.modgarden.gardenbot.GardenBot;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,17 +12,26 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Optional;
 
 /// Copied from the backend.
 public class FileUtils {
 	private static final String USER_AGENT = "ModGardenEvent/gardenbot/" + GardenBot.VERSION + " (modgarden.net)";
 
 	public static File download(URI uri) throws IOException, InterruptedException {
+		return download(uri, null);
+	}
+
+	public static File download(URI uri, @Nullable String fileName) throws IOException, InterruptedException {
 		HttpRequest request = HttpRequest.newBuilder()
 				.header("User-Agent", USER_AGENT)
 				.uri(uri)
 				.build();
-		String fileName = getFileName(uri);
+
+		if (fileName == null) {
+			fileName = getFileName(uri);
+		}
 
 		Path temporaryFolder = Path.of("./.tmp")
 				.resolve(fileName);
@@ -29,6 +39,11 @@ public class FileUtils {
 		Files.createDirectories(temporaryFolder.getParent());
 
 		HttpResponse<Path> response = GardenBot.HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofFile(temporaryFolder));
+		Optional<String> location = response.headers().firstValue("Location");
+
+		if (response.statusCode() - 300 > 1 && response.statusCode() - 300 < 100 && location.isPresent()) {
+			return download(URI.create(location.get()), fileName);
+		}
 
 		return response.body().toFile();
 	}
@@ -46,7 +61,7 @@ public class FileUtils {
 		return false;
 	}
 
-	public static void cleanupTmpFolder(File temporaryFile) {
+		public static void cleanupTmpFolder(File temporaryFile) {
 		try {
 			Path temporaryFilePath = temporaryFile.toPath();
 			if (Files.deleteIfExists(temporaryFilePath)) {
