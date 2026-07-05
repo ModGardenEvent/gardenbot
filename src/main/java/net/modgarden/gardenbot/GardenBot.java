@@ -34,7 +34,7 @@ public class GardenBot {
 
 	// *Please* don't touch this. In fact, don't use Regex without using https://regex101.com
 	// and manually testing your change.
-	public static final String SAFE_URL_REGEX = "^https:\\/\\/[\\w!@$()`.+,_\\\"-\\/]*$";
+	public static final String SAFE_URL_REGEX = "^(https:\\/\\/)?[\\w!@$()`.+,_\\\"-\\/]*$";
 
 	private static final int DATABASE_SCHEMA_VERSION = 1;
 
