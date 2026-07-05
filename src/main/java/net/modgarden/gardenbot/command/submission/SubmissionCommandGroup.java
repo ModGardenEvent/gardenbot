@@ -214,6 +214,10 @@ public class SubmissionCommandGroup extends CommandGroup<SlashCommand> {
 													   @Nullable ModGardenSubmission existingSubmission,
 													   ModGardenUser user,
 													   String urlOrExternal) throws HypertextException {
+		if (urlOrExternal == null && existingSubmission != null && existingSubmission.platform().type().equals("modrinth")) {
+			urlOrExternal = existingSubmission.platform().projectId();
+		}
+
 		ModrinthProject project = urlOrExternal == null
 				? null
 				: getModrinthProject(user, urlOrExternal);
