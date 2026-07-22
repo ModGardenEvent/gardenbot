@@ -41,7 +41,7 @@ public class ImageUploadCommand extends SlashCommand {
 	@NotNull
 	@Override
 	public Response respond(SlashCommandInteraction interaction) throws HypertextException {
-		interaction.event().deferReply(true).queue();
+		interaction.event().deferReply(false).queue();
 		User user = interaction.event().getUser();
 
 		if (interaction.event().getChannelId() == null || !interaction.event().getChannelId().equals(GardenBot.DOTENV.get("IMAGE_CHANNEL_ID"))) {
@@ -118,7 +118,6 @@ public class ImageUploadCommand extends SlashCommand {
 		return new EmbedResponse()
 				.setTitle("Successfully uploaded image to Mod Garden's CDN")
 				.setDescription("Your image may be found at\n<https://cdn.modgarden.net/" + fileName + ">")
-				.markEphemeral(false)
 				.setColor(0xA9FFA7);
 	}
 }
