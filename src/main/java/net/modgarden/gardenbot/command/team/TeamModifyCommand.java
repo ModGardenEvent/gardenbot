@@ -90,7 +90,7 @@ public class TeamModifyCommand extends SlashCommand {
 
 			ModGardenUser invitedModGardenUser = ModGarden.getUserByDiscordUser(invitedUser);
 			if (invitedModGardenUser == null) {
-				return new MessageResponse("The user you attempted to invite does not have a Mod Garden account.")
+				return new MessageResponse("The user you attempted to modify does not have a Mod Garden account.")
 						.markEphemeral();
 			}
 
@@ -112,7 +112,7 @@ public class TeamModifyCommand extends SlashCommand {
 
 			long userPermissions = Long.parseLong(modGardenProject.permissions().get(modGardenUser.id()));
 			if (!hasPermissions(userPermissions)) {
-				return new MessageResponse("You are not allowed to invite users to project '" + project + "'.")
+				return new MessageResponse("You are not allowed to modify users in project '" + project + "'.")
 						.markEphemeral();
 			}
 
