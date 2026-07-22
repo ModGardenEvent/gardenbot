@@ -117,7 +117,7 @@ public class ImageUploadCommand extends SlashCommand {
 
 		return new EmbedResponse()
 				.setTitle("Successfully uploaded image to Mod Garden's CDN")
-				.setDescription("Your image may be found at\n<https://cdn.modgarden.net/public/" + fileNameBuilder + ">")
+				.setDescription("Your image may be found at\n<https://cdn.modgarden.net/" + fileName + ">")
 				.markEphemeral(false)
 				.setColor(0xA9FFA7);
 	}
