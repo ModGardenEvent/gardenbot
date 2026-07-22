@@ -2,11 +2,11 @@ package net.modgarden.gardenbot.database.data;
 
 import net.modgarden.gardenbot.GardenBot;
 import net.modgarden.gardenbot.client.BunnyCdn;
+import net.modgarden.gardenbot.client.exception.HypertextException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.net.http.HttpResponse;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -75,12 +75,11 @@ public final class NaturalId {
 		return id;
 	}
 
-	public static String generateCdnLink(String basePath, String fileExtension, int length) throws IOException, InterruptedException {
+	public static String generateCdnLink(String basePath, String fileExtension, int length) throws IOException, InterruptedException, HypertextException {
 		String id = null;
 		while (id == null) {
 			String naturalId = generateUnchecked(length);
-			HttpResponse<Void> response = BunnyCdn.get(basePath + "/" + naturalId + "." + fileExtension, HttpResponse.BodyHandlers.discarding());
-			if (response.statusCode() == 404) {
+			if (!BunnyCdn.fileExists(basePath + "/" + id + "." + fileExtension)) {
 				id = naturalId;
 			}
 		}

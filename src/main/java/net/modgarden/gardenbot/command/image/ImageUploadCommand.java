@@ -52,9 +52,9 @@ public class ImageUploadCommand extends SlashCommand {
 					.setColor(0x5D3E40);
 		}
 
-		GenreAndEvent genreAndEvent = ModGarden.getActiveEvent();
+		GenreAndEvent activeEvent = ModGarden.getActiveEvent();
 
-		if (genreAndEvent == null) {
+		if (activeEvent == null) {
 			return new EmbedResponse()
 					.setTitle("Failed to upload image to Mod Garden's CDN.")
 					.setDescription("There is no active event to upload images for.")
@@ -62,8 +62,8 @@ public class ImageUploadCommand extends SlashCommand {
 					.setColor(0x5D3E40);
 		}
 
-		ModGardenGenre genre = genreAndEvent.genre();
-		ModGardenEvent event = genreAndEvent.event();
+		ModGardenGenre genre = activeEvent.genre();
+		ModGardenEvent event = activeEvent.event();
 
 		Message.Attachment attachment = interaction.event().getOption("attachment", OptionMapping::getAsAttachment);
 
@@ -96,13 +96,14 @@ public class ImageUploadCommand extends SlashCommand {
 
 
 		StringBuilder fileNameBuilder = new StringBuilder()
+				.append("v1/event/")
 				.append(genre.slug())
 				.append("/")
 				.append(event.slug());
 
-		String naturalId;
+		String fileName;
 		try {
-			naturalId = NaturalId.generateCdnLink(fileNameBuilder.toString(), "png", 5);
+			fileName = NaturalId.generateCdnLink(fileNameBuilder.toString(), "png", 5);
 		} catch (IOException | InterruptedException e) {
 			return new EmbedResponse()
 					.setTitle("Failed to upload image to Mod Garden's CDN.")
@@ -111,13 +112,8 @@ public class ImageUploadCommand extends SlashCommand {
 					.setColor(0x5D3E40);
 		}
 
-		fileNameBuilder
-				.append("/")
-				.append(naturalId)
-				.append(".png");
-
 		InputStream attachmentStream = Discord.attachmentToPngStream(attachment);
-		BunnyCdn.upload("public/" + fileNameBuilder, attachmentStream);
+		BunnyCdn.upload(fileName, attachmentStream);
 
 		return new EmbedResponse()
 				.setTitle("Successfully uploaded image to Mod Garden's CDN")

@@ -29,7 +29,7 @@ public class BunnyCdn {
 	public static void upload(String fileName, InputStream attachmentStream) throws HypertextException {
 		try {
 			BunnyCdn.put(
-					"public/" + fileName,
+					fileName,
 					HttpRequest.BodyPublishers.ofInputStream(() -> attachmentStream),
 					HttpResponse.BodyHandlers.ofInputStream(),
 					"Content-Type", "application/octet-stream",
