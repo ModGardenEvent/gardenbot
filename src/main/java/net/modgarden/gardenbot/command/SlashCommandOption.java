@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Supplier;
 
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -16,6 +14,7 @@ import net.modgarden.gardenbot.client.exception.HypertextException;
 import net.modgarden.gardenbot.client.mod_garden.role.ModGardenRole;
 import net.modgarden.gardenbot.util.FallibleSupplier;
 import net.modgarden.gardenbot.util.permission.Permission;
+import net.modgarden.gardenbot.util.permission.PermissionScope;
 import org.jetbrains.annotations.NotNull;
 
 public record SlashCommandOption(OptionType type,
@@ -72,7 +71,8 @@ public record SlashCommandOption(OptionType type,
 	@NotNull
 	public static List<Command.Choice> getPermissionsChoices(
 			AutoCompletionGetter autoCompletionGetter,
-			String optionName
+			String optionName,
+			PermissionScope scope
 	) {
 		String permissions = autoCompletionGetter.getOption(optionName, OptionMapping::getAsString);
 
@@ -84,6 +84,7 @@ public record SlashCommandOption(OptionType type,
 		String currentPermissionFriendlyName = splitPermissions.getLast();
 		Permission currentPermission = Permission.fromName(currentPermissionFriendlyName);
 		List<Command.Choice> choices = new ArrayList<>();
+		choices.add(new Command.Choice("None", 0));
 		List<String> splitPermissionNames = new ArrayList<>(splitPermissions.size());
 		splitPermissions.removeLast();
 
@@ -92,10 +93,20 @@ public record SlashCommandOption(OptionType type,
 		}
 
 		for (String name : splitPermissions) {
-			splitPermissionNames.add(Permission.fromName(name).getFriendlyName());
+			Permission permission = Permission.fromName(name);
+
+			if (!permission.getScope().matches(scope)) {
+				continue;
+			}
+
+			splitPermissionNames.add(permission.getFriendlyName());
 		}
 
 		for (Permission permission : Permission.values()) {
+			if (!permission.getScope().matches(scope)) {
+				continue;
+			}
+
 			if (splitPermissionNames.contains(permission.getFriendlyName())) {
 				continue;
 			}

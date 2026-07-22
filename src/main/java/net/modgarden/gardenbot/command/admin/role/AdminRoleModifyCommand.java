@@ -5,7 +5,6 @@ import static net.modgarden.gardenbot.command.admin.role.AdminRoleRemoveUserComm
 import java.math.BigInteger;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Objects;
 
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
@@ -14,18 +13,17 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.modgarden.gardenbot.client.ModGarden;
 import net.modgarden.gardenbot.client.exception.HypertextException;
-import net.modgarden.gardenbot.client.exception.InternalServerException;
 import net.modgarden.gardenbot.client.exception.NotFoundException;
 import net.modgarden.gardenbot.client.mod_garden.role.ModGardenRole;
 import net.modgarden.gardenbot.client.mod_garden.role.RoleIntegrations;
 import net.modgarden.gardenbot.client.mod_garden.role.integration.DiscordRoleIntegration;
 import net.modgarden.gardenbot.command.AutoCompletionGetter;
 import net.modgarden.gardenbot.command.SlashCommandOption;
-import net.modgarden.gardenbot.command.admin.AdminSlashCommand;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
 import net.modgarden.gardenbot.util.NullableWrapper;
+import net.modgarden.gardenbot.util.permission.PermissionScope;
 import org.jetbrains.annotations.NotNull;
 
 public class AdminRoleModifyCommand extends AdminRoleSlashCommand {
@@ -64,7 +62,7 @@ public class AdminRoleModifyCommand extends AdminRoleSlashCommand {
 	) throws HypertextException {
 		return SlashCommandOption.pickChoices(
 				() -> SlashCommandOption.getRoleIdChoices(focusedOption, autoCompletionGetter, "role"),
-				() -> SlashCommandOption.getPermissionsChoices(autoCompletionGetter, "permissions")
+				() -> SlashCommandOption.getPermissionsChoices(autoCompletionGetter, "permissions", PermissionScope.USER)
 		);
 	}
 

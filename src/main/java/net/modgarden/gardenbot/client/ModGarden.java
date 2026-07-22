@@ -17,6 +17,7 @@ import net.modgarden.gardenbot.client.mod_garden.project.ModGardenProject;
 import net.modgarden.gardenbot.client.mod_garden.project.ModGardenSubmission;
 import net.modgarden.gardenbot.client.mod_garden.project.SubmissionPlatform;
 import net.modgarden.gardenbot.client.mod_garden.project.ProjectMetadata;
+import net.modgarden.gardenbot.client.mod_garden.project.patch.ProjectTeamPatch;
 import net.modgarden.gardenbot.client.mod_garden.request.*;
 import net.modgarden.gardenbot.client.mod_garden.role.ModGardenRole;
 import net.modgarden.gardenbot.client.mod_garden.role.RoleIntegrations;
@@ -823,20 +824,51 @@ public class ModGarden {
 		}
 	}
 
-	public static void addTeamMembers(ModGardenProject project, Map<ModGardenUser, String> usersToRole) throws HypertextException {
+	public static void modifyTeamMembers(ModGardenProject project, ProjectTeamPatch patch) throws HypertextException {
 		JsonElement requestJson = GardenBot.GSON.toJsonTree(
-				usersToRole.entrySet()
-						.stream()
-						.map(entry -> Map.entry(entry.getKey().id(), entry.getValue()))
-						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
-				Map.class
+				patch,
+				ProjectTeamPatch.class
 		);
+
 		try {
-			patch(
-					"v2/projects/" + project.id() + "/members",
+			HttpResponse<?> response = patch(
+					"v2/projects/" + project.id(),
 					HttpRequest.BodyPublishers.ofString(requestJson.toString()),
 					HttpResponse.BodyHandlers.discarding()
 			);
+
+			if (response.statusCode() == 404) {
+				throw new HypertextException(404, "Project not found");
+			}
+		} catch (IOException | InterruptedException e) {
+			throw new InternalServerException(e.getMessage());
+		}
+	}
+
+	public static void addTeamMembers(ModGardenProject project, Map<ModGardenUser, String> usersToRole) throws HypertextException {
+		JsonElement requestJson = GardenBot.GSON.toJsonTree(
+				new ProjectTeamPatch(
+						usersToRole.entrySet()
+								.stream()
+								.map(entry -> Map.entry(entry.getKey().id(), entry.getValue()))
+								.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+						usersToRole.keySet()
+								.stream()
+								.map(user -> Map.entry(user.id(), "0"))
+								.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+				),
+				ProjectTeamPatch.class
+		);
+		try {
+			HttpResponse<?> response = patch(
+					"v2/projects/" + project.id(),
+					HttpRequest.BodyPublishers.ofString(requestJson.toString()),
+					HttpResponse.BodyHandlers.discarding()
+			);
+
+			if (response.statusCode() == 404) {
+				throw new HypertextException(404, "Project not found");
+			}
 		} catch (IOException | InterruptedException e) {
 			throw new InternalServerException(e.getMessage());
 		}

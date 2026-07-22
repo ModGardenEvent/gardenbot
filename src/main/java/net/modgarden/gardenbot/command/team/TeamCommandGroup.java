@@ -25,7 +25,8 @@ public class TeamCommandGroup extends CommandGroup<SlashCommand> {
 		super(
 				"team",
 				"Modify the team of a Mod Garden project.",
-				TeamInviteCommand::new
+				TeamInviteCommand::new,
+				TeamModifyCommand::new
 		);
 	}
 

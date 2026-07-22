@@ -17,12 +17,14 @@ import net.modgarden.gardenbot.client.mod_garden.role.RoleIntegrations;
 import net.modgarden.gardenbot.client.mod_garden.role.integration.DiscordRoleIntegration;
 import net.modgarden.gardenbot.command.AutoCompletionGetter;
 import net.modgarden.gardenbot.command.SlashCommandOption;
-import net.modgarden.gardenbot.command.admin.AdminSlashCommand;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
 import net.modgarden.gardenbot.util.permission.Permission;
+import net.modgarden.gardenbot.util.permission.PermissionScope;
+import net.modgarden.gardenbot.util.permission.Permissions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AdminRoleCreateCommand extends AdminRoleSlashCommand {
 	public AdminRoleCreateCommand() {
@@ -46,7 +48,11 @@ public class AdminRoleCreateCommand extends AdminRoleSlashCommand {
 	}
 
 	@NotNull
-	public static BigInteger parsePermissions(String permissions) {
+	public static BigInteger parsePermissions(@Nullable String permissions) {
+		if (permissions == null) {
+			return Permissions.NIL;
+		}
+
 		BigInteger permissionBits = BigInteger.valueOf(0);
 		String[] splitPermissions = permissions.split(",");
 
@@ -66,7 +72,7 @@ public class AdminRoleCreateCommand extends AdminRoleSlashCommand {
 			User user,
 			AutoCompletionGetter autoCompletionGetter
 	) throws HypertextException {
-		return SlashCommandOption.getPermissionsChoices(autoCompletionGetter, "permissions");
+		return SlashCommandOption.getPermissionsChoices(autoCompletionGetter, "permissions", PermissionScope.USER);
 	}
 
 	@NotNull

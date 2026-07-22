@@ -1,5 +1,6 @@
 package net.modgarden.gardenbot.util.permission;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
@@ -8,6 +9,8 @@ import org.jetbrains.annotations.NotNull;
 ///
 /// Note that once value classes come out, this class will become a value class.
 public record Permissions(long bits) {
+	public static final BigInteger NIL = BigInteger.valueOf(Long.MIN_VALUE).multiply(BigInteger.TWO.pow(64));
+
 	public Permissions(Permission... permissions) {
 		this(Permission.toLong(List.of(permissions)));
 	}

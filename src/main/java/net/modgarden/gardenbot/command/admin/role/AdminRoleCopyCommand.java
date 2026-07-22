@@ -14,10 +14,10 @@ import net.modgarden.gardenbot.client.exception.HypertextException;
 import net.modgarden.gardenbot.client.mod_garden.role.ModGardenRole;
 import net.modgarden.gardenbot.command.AutoCompletionGetter;
 import net.modgarden.gardenbot.command.SlashCommandOption;
-import net.modgarden.gardenbot.command.admin.AdminSlashCommand;
 import net.modgarden.gardenbot.interaction.SlashCommandInteraction;
 import net.modgarden.gardenbot.response.MessageResponse;
 import net.modgarden.gardenbot.response.Response;
+import net.modgarden.gardenbot.util.permission.PermissionScope;
 import org.jetbrains.annotations.NotNull;
 
 public class AdminRoleCopyCommand extends AdminRoleSlashCommand {
@@ -41,7 +41,7 @@ public class AdminRoleCopyCommand extends AdminRoleSlashCommand {
 			User user,
 			AutoCompletionGetter autoCompletionGetter
 	) throws HypertextException {
-		return SlashCommandOption.getPermissionsChoices(autoCompletionGetter, "permissions");
+		return SlashCommandOption.getPermissionsChoices(autoCompletionGetter, "permissions", PermissionScope.USER);
 	}
 
 	@NotNull

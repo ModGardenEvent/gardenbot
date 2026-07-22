@@ -3,14 +3,12 @@ package net.modgarden.gardenbot.util.permission;
 import static net.modgarden.gardenbot.util.permission.PermissionScope.ALL;
 import static net.modgarden.gardenbot.util.permission.PermissionScope.USER;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
-
-import org.jetbrains.annotations.Nullable;
 
 public enum Permission {
 	/// Signifies that this user has every permission.
@@ -59,6 +57,10 @@ public enum Permission {
 		this.friendlyName = friendlyName;
 	}
 
+	public PermissionScope getScope() {
+		return this.kind;
+	}
+
 	public static Set<String> names() {
 		if (names.isEmpty()) {
 			for (Permission permission : Permission.values()) {
@@ -80,6 +82,18 @@ public enum Permission {
 		return NAME_2_PERMISSION.get(name);
 	}
 
+	public static List<Permission> fromBigInteger(BigInteger integer, PermissionScope kind) {
+		List<Permission> permissions = new ArrayList<>();
+		for (Permission permission : Permission.values(kind)) {
+			if (hasPermissionRaw(integer, permission)) {
+				permissions.add(permission);
+			}
+		}
+		return permissions;
+	}
+
+	/// @deprecated Use [#fromBigInteger(BigInteger, PermissionScope)]
+	@Deprecated
 	public static List<Permission> fromLong(long value, PermissionScope kind) {
 		List<Permission> permissions = new ArrayList<>();
 		for (Permission permission : Permission.values(kind)) {
@@ -110,6 +124,10 @@ public enum Permission {
 		long newValue = previousValue;
 		newValue |= permission.bit;
 		return newValue;
+	}
+
+	private static boolean hasPermissionRaw(BigInteger userPermissions, Permission permission) {
+		return !userPermissions.and(BigInteger.valueOf(permission.bit)).equals(BigInteger.ZERO);
 	}
 
 	private static boolean hasPermissionRaw(long userPermissions, Permission permission) {
