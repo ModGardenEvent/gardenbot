@@ -105,6 +105,11 @@ public class TeamModifyCommand extends SlashCommand {
 						.markEphemeral();
 			}
 
+			if (!modGardenProject.team().containsKey(invitedModGardenUser.id())) {
+				return new MessageResponse(invitedUser.getGlobalName() + " is not a member of project '" + project + "'.")
+						.markEphemeral();
+			}
+
 			long userPermissions = Long.parseLong(modGardenProject.permissions().get(modGardenUser.id()));
 			if (!hasPermissions(userPermissions)) {
 				return new MessageResponse("You are not allowed to invite users to project '" + project + "'.")
