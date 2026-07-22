@@ -116,6 +116,11 @@ public class TeamModifyCommand extends SlashCommand {
 						.markEphemeral();
 			}
 
+			if (!permissions.equals(Permissions.NIL) && invitedModGardenUser.id().equals(modGardenUser.id())) {
+				return new MessageResponse("You are not allowed to modify your own permissions in project '" + project + "'.")
+						.markEphemeral();
+			}
+
 			ProjectTeamPatch patch;
 
 			if (permissions.equals(Permissions.NIL) && role != null) {
